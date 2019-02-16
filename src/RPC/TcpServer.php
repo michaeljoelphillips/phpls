@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LanguageServer\RPC;
 
 use React\Socket\ServerInterface;
