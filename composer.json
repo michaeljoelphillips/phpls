@@ -1,0 +1,19 @@
+{
+    "name": "nomad145/language-server",
+    "type": "project",
+    "authors": [
+        {
+            "name": "Michael Phillips",
+            "email": "michaeljoelphillips@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "LanguageServer\\": "src/"
+        }
+    },
+    "require": {
+        "react/event-loop": "^1.1",
+        "react/stream": "^1.1"
+    }
+}
