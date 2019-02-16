@@ -4,28 +4,23 @@ namespace LanguageServer\LSP;
 
 use LanguageServer\RPC\Request;
 use LanguageServer\RPC\Server;
-use React\Stream\WritableResourceStream;
+use React\Stream\WritableStreamInterface;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
 class Initialize
 {
-    /** @var WritableResourceStream */
-    private $output;
-
     /**
-     * @param Server                 $server
-     * @param WritableResourceStream $output
+     * @param Server $server
      */
-    public function __construct(Server $server, WritableResourceStream $output)
+    public function __construct(Server $server)
     {
-        $this->output = $output;
-
         $server->on('initialize', [$this, 'handle']);
     }
 
-    public function handle(Request $request)
+    public function handle(Request $request, WritableStreamInterface $connection)
     {
+        $connection->write('Hi!');
     }
 }
