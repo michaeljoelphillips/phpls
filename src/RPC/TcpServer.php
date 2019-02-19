@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\RPC;
 
+use LanguageServer\LSP\Response\InitializeResponse;
 use React\Socket\ServerInterface;
 use React\Stream\WritableStreamInterface;
 

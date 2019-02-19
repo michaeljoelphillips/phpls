@@ -17,7 +17,7 @@ class Server extends EventEmitter
      *
      * @see https://microsoft.github.io/language-server-protocol/specification
      */
-    protected const HEADER_TERMINATOR = PHP_EOL.PHP_EOL;
+    protected const HEADER_TERMINATOR = "\r\n\r\n";
 
     /**
      * Handle data events from the stream.
@@ -29,7 +29,7 @@ class Server extends EventEmitter
     {
         $request = $this->makeRequest($request);
 
-        $this->emit($request->getMethod(), [$request, $connection]);
+        $this->emit($request->method, [$request, $connection]);
     }
 
     /**
@@ -39,12 +39,12 @@ class Server extends EventEmitter
      *
      * @return Request
      */
-    protected function makeRequest(string $request): Request
+    protected function makeRequest(string $request): object
     {
         [$headers, $content] = explode(self::HEADER_TERMINATOR, $request);
 
         $content = json_decode($content);
 
-        return new Request($content->id, $content->method, $content->params);
+        return $content;
     }
 }
