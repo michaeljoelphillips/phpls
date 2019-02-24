@@ -14,12 +14,9 @@ use PhpParser\Node\Expr\MethodCall;
 use PhpParser\NodeAbstract;
 use PhpParser\NodeFinder;
 use React\Stream\WritableStreamInterface;
-use Roave\BetterReflection\BetterReflection;
 use Roave\BetterReflection\Reflection\ReflectionMethod;
 use Roave\BetterReflection\Reflection\ReflectionParameter;
-use Roave\BetterReflection\Reflector\ClassReflector;
 use Roave\BetterReflection\Reflector\Reflector;
-use Roave\BetterReflection\SourceLocator\Type\StringSourceLocator;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
@@ -55,12 +52,14 @@ class SignatureHelp
     public function handle(object $request, WritableStreamInterface $output)
     {
         try {
-            $line = $request->params->position->line + 1;
-            $character = $request->params->position->character;
-            $document = $this->registry->get($request->params->textDocument->uri);
-            $parsedDocument = $this->parser->parse($document);
-            $method = $parsedDocument->getMethodAtCursor($line, $character);
-            $reflectionMethod = $this->reflectMethodAtCursor($parsedDocument, $method);
+            $parsedDocument = $this->parseDocument($request);
+
+            $method = $parsedDocument->getMethodAtCursor(
+                $request->params->position->line + 1,
+                $request->params->position->character
+            );
+
+            $reflectionMethod = $this->reflectMethod($parsedDocument, $method);
             $signatures = $this->formatSignatures($reflectionMethod, $method);
 
             $result = new SignatureHelpResponse($request->id, $signatures);
@@ -71,7 +70,14 @@ class SignatureHelp
         }
     }
 
-    private function reflectMethodAtCursor(ParsedDocument $document, MethodCall $method): ReflectionMethod
+    private function parseDocument(object $request): ParsedDocument
+    {
+        $document = $this->registry->get($request->params->textDocument->uri);
+
+        return $this->parser->parse($document);
+    }
+
+    private function reflectMethod(ParsedDocument $document, MethodCall $method): ReflectionMethod
     {
         $class = $this->resolver->getType($document, $method);
 
