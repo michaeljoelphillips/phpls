@@ -15,7 +15,7 @@ try {
     $server = new LanguageServer\RPC\TcpServer($socket);
     $initialize = new LanguageServer\LSP\Command\Initialize($server);
     $signatureHelp = new LanguageServer\LSP\Command\SignatureHelp($server, $parser, $resolver, $registry);
-    $didOpen = new LanguageServer\LSP\Command\DidOpenTextDocument($server, $registry);
+    $didOpen = new LanguageServer\LSP\Command\DidOpen($server, $registry);
     $didChange = new LanguageServer\LSP\Command\DidChange($server, $registry);
 
     $loop->run();

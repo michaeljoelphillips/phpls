@@ -12,7 +12,7 @@ use React\Stream\WritableStreamInterface;
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
-class DidOpenTextDocument
+class DidOpen
 {
     private $registry;
 
