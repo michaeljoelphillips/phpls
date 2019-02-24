@@ -16,6 +16,7 @@ try {
     $initialize = new LanguageServer\LSP\Command\Initialize($server);
     $signatureHelp = new LanguageServer\LSP\Command\SignatureHelp($server, $parser, $resolver, $registry);
     $didOpen = new LanguageServer\LSP\Command\DidOpenTextDocument($server, $registry);
+    $didChange = new LanguageServer\LSP\Command\DidChange($server, $registry);
 
     $loop->run();
 } catch (\Exception $t) {
