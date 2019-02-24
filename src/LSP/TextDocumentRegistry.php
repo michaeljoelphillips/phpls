@@ -20,40 +20,9 @@ class TextDocumentRegistry
      *
      * @return TextDocument
      */
-    public function get(string $fileName, int $version): TextDocument
+    public function get(string $fileName): TextDocument
     {
-        return $this->documents[sprintf('%s:%d', $fileName, $version)];
-    }
-
-    public function getLatest(string $fileName): TextDocument
-    {
-        $version = $this->getLatestVersionForFile($fileName);
-
-        return $this->get($fileName, $version);
-    }
-
-    private function getLatestVersionForFile(string $path): int
-    {
-        $documents = array_filter(
-            $this->documents,
-            function (TextDocument $document) use ($path) {
-                return $document->getPath() === $path;
-            }
-        );
-
-        $latestVersion = array_reduce(
-            $documents,
-            function (int $carry, TextDocument $document) {
-                $version = $document->getVersion();
-
-                if ($version >= $carry) {
-                    return $version;
-                }
-            },
-            0
-        );
-
-        return $latestVersion;
+        return $this->documents[$fileName];
     }
 
     /**
@@ -63,8 +32,11 @@ class TextDocumentRegistry
      */
     public function add(TextDocument $document): void
     {
-        $key = sprintf('%s:%d', $document->getPath(), $document->getVersion());
+        $this->documents[$document->getPath()] = $document;
+    }
 
-        $this->documents[$key] = $document;
+    public function getAll(): array
+    {
+        return $this->documents;
     }
 }

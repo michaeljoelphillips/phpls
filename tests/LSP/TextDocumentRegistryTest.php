@@ -13,17 +13,7 @@ use PHPUnit\Framework\TestCase;
  */
 class TextDocumentRegistryTest extends TestCase
 {
-    public function testAddDocument()
-    {
-        $subject = new TextDocumentRegistry();
-        $textDocument = new TextDocument('file:///tmp/foo.php', '<?php ', 0);
-
-        $subject->add($textDocument);
-
-        $this->assertSame($textDocument, $subject->get('file:///tmp/foo.php', 0));
-    }
-
-    public function testGetLatest()
+    public function testAdd()
     {
         $subject = new TextDocumentRegistry();
         $versionOne = new TextDocument('file:///tmp/foo.php', '<?php ', 0);
@@ -32,6 +22,6 @@ class TextDocumentRegistryTest extends TestCase
         $subject->add($versionOne);
         $subject->add($versionTwo);
 
-        $this->assertSame($versionTwo, $subject->getLatest('file:///tmp/foo.php'));
+        $this->assertSame($versionTwo, $subject->get('file:///tmp/foo.php'));
     }
 }
