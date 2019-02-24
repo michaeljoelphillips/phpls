@@ -18,6 +18,7 @@ use Roave\BetterReflection\BetterReflection;
 use Roave\BetterReflection\Reflection\ReflectionMethod;
 use Roave\BetterReflection\Reflection\ReflectionParameter;
 use Roave\BetterReflection\Reflector\ClassReflector;
+use Roave\BetterReflection\Reflector\Reflector;
 use Roave\BetterReflection\SourceLocator\Type\StringSourceLocator;
 
 /**
@@ -27,6 +28,8 @@ class SignatureHelp
 {
     private $resolver;
 
+    private $reflector;
+
     private $parser;
 
     private $registry;
@@ -35,10 +38,12 @@ class SignatureHelp
 
     public function __construct(
         Server $server,
+        Reflector $reflector,
         DocumentParser $parser,
         TypeResolver $resolver,
         TextDocumentRegistry $registry
     ) {
+        $this->reflector = $reflector;
         $this->parser = $parser;
         $this->resolver = $resolver;
         $this->registry = $registry;
@@ -52,7 +57,7 @@ class SignatureHelp
         try {
             $line = $request->params->position->line + 1;
             $character = $request->params->position->character;
-            $document = $this->registry->getLatest($request->params->textDocument->uri);
+            $document = $this->registry->get($request->params->textDocument->uri);
             $parsedDocument = $this->parser->parse($document);
             $method = $parsedDocument->getMethodAtCursor($line, $character);
             $reflectionMethod = $this->reflectMethodAtCursor($parsedDocument, $method);
@@ -70,17 +75,9 @@ class SignatureHelp
     {
         $class = $this->resolver->getType($document, $method);
 
-        return $this->reflectMethodFromSource($document->getSource(), $method->name->name);
-    }
+        $reflection = $this->reflector->reflect($class);
 
-    private function reflectMethodFromSource(string $source, string $method)
-    {
-        $reflection = new BetterReflection();
-        $reflector = new ClassReflector(new StringSourceLocator($source, $reflection->astLocator()));
-
-        $reflectionClass = $reflector->getAllClasses()[0];
-
-        return $reflectionClass->getMethod($method);
+        return $reflection->getMethod($method->name->name);
     }
 
     private function formatSignatures(ReflectionMethod $method, NodeAbstract $methodCall): array
