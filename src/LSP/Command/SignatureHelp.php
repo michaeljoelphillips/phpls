@@ -4,34 +4,44 @@ declare(strict_types=1);
 
 namespace LanguageServer\LSP\Command;
 
+use LanguageServer\LSP\DocumentParser;
+use LanguageServer\LSP\ParsedDocument;
 use LanguageServer\LSP\Response\SignatureHelpResponse;
+use LanguageServer\LSP\TextDocumentRegistry;
+use LanguageServer\LSP\TypeResolver;
 use LanguageServer\RPC\Server;
-use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\MethodCall;
-use PhpParser\Node\Stmt\Expression;
 use PhpParser\NodeAbstract;
 use PhpParser\NodeFinder;
-use PhpParser\Parser;
 use React\Stream\WritableStreamInterface;
 use Roave\BetterReflection\BetterReflection;
 use Roave\BetterReflection\Reflection\ReflectionMethod;
 use Roave\BetterReflection\Reflection\ReflectionParameter;
 use Roave\BetterReflection\Reflector\ClassReflector;
 use Roave\BetterReflection\SourceLocator\Type\StringSourceLocator;
-use stdClass;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
 class SignatureHelp
 {
-    private $finder;
+    private $resolver;
 
     private $parser;
 
-    public function __construct(Server $server, Parser $parser)
-    {
+    private $registry;
+
+    private $finder;
+
+    public function __construct(
+        Server $server,
+        DocumentParser $parser,
+        TypeResolver $resolver,
+        TextDocumentRegistry $registry
+    ) {
         $this->parser = $parser;
+        $this->resolver = $resolver;
+        $this->registry = $registry;
         $this->finder = new NodeFinder();
 
         $server->on('textDocument/signatureHelp', [$this, 'handle']);
@@ -42,13 +52,11 @@ class SignatureHelp
         try {
             $line = $request->params->position->line + 1;
             $character = $request->params->position->character;
-            $source = file_get_contents($request->params->textDocument->uri);
-            $nodes = $this->parser->parse($source);
-            $position = $this->cursorPosition($source, $line, $character);
-
-            $methodCall = $this->methodAtCursor($nodes, $line, $position);
-            $reflectionMethod = $this->reflectMethod($source, $methodCall, $nodes);
-            $signatures = $this->formatSignatures($reflectionMethod, $methodCall);
+            $document = $this->registry->getLatest($request->params->textDocument->uri);
+            $parsedDocument = $this->parser->parse($document);
+            $method = $parsedDocument->getMethodAtCursor($line, $character);
+            $reflectionMethod = $this->reflectMethodAtCursor($parsedDocument, $method);
+            $signatures = $this->formatSignatures($reflectionMethod, $method);
 
             $result = new SignatureHelpResponse($request->id, $signatures);
 
@@ -58,56 +66,11 @@ class SignatureHelp
         }
     }
 
-    /**
-     * Calculate the cursor position relative to the beginning of the file.
-     *
-     * @param string   $code
-     * @param stdClass $position
-     *
-     * @return int
-     */
-    private function cursorPosition(string $code, int $line, int $character): int
+    private function reflectMethodAtCursor(ParsedDocument $document, MethodCall $method): ReflectionMethod
     {
-        $lines = explode(PHP_EOL, $code);
-        $lines = array_splice($lines, 0, $line);
-        $lines[$line - 1] = substr($lines[$line - 1], 0, $character);
-        $lines = implode(PHP_EOL, $lines);
+        $class = $this->resolver->getType($document, $method);
 
-        return strlen($lines);
-    }
-
-    private function methodAtCursor(array $nodes, int $line, int $position)
-    {
-        $methodCall = $this->finder->findFirst($nodes, function (NodeAbstract $node) use ($line, $position) {
-            return $line === $node->getLine()
-                && $node instanceof MethodCall
-                && $node->getStartFilePos() <= $position
-                && $node->getEndFilePos() >= $position;
-        });
-
-        return $methodCall;
-    }
-
-    private function reflectMethod(string $source, NodeAbstract $methodCall, array $nodes): ReflectionMethod
-    {
-        if ('this' === $methodCall->var->name) {
-            return $this->reflectMethodFromSource($source, $methodCall->name->name);
-        }
-
-        // This only handles assignment.  Other means of method reflection:
-        //
-        // Methods on Instance Variables
-        // Methods on objects that are results of some static function
-        // Method chaining
-        $variableAssignment = $this->finder->findFirst($nodes, function (NodeAbstract $node) use ($methodCall) {
-            return $node instanceof Expression
-                && $node->expr instanceof Assign
-                && $node->expr->var->name === $methodCall->var->name;
-        });
-
-        $variableType = implode('\\', $variableAssignment->expr->expr->class->parts);
-
-        return $this->reflectMethodFromClass($variableType, $methodCall->name->name);
+        return $this->reflectMethodFromSource($document->getSource(), $method->name->name);
     }
 
     private function reflectMethodFromSource(string $source, string $method)
@@ -118,14 +81,6 @@ class SignatureHelp
         $reflectionClass = $reflector->getAllClasses()[0];
 
         return $reflectionClass->getMethod($method);
-    }
-
-    private function reflectMethodFromClass(string $class, string $method)
-    {
-        return (new BetterReflection())
-            ->classReflector()
-            ->reflect($class)
-            ->getMethod($method);
     }
 
     private function formatSignatures(ReflectionMethod $method, NodeAbstract $methodCall): array

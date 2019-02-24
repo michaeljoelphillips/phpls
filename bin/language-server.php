@@ -7,13 +7,15 @@ require_once __DIR__.'/../vendor/autoload.php';
 try {
     $loop = React\EventLoop\Factory::create();
 
-    $lexerOptions = ['usedAttributes' => ['comments', 'startLine', 'endLine', 'startFilePos', 'endFilePos']];
-    $parser = (new PhpParser\ParserFactory())->create(1, new PhpParser\Lexer($lexerOptions));
+    $parser = new LanguageServer\LSP\DocumentParser();
+    $resolver = new LanguageServer\LSP\TypeResolver();
+    $registry = new LanguageServer\LSP\TextDocumentRegistry();
 
     $socket = new React\Socket\Server('127.0.0.1:8080', $loop);
     $server = new LanguageServer\RPC\TcpServer($socket);
     $initialize = new LanguageServer\LSP\Command\Initialize($server);
-    $signatureHelp = new LanguageServer\LSP\Command\SignatureHelp($server, $parser);
+    $signatureHelp = new LanguageServer\LSP\Command\SignatureHelp($server, $parser, $resolver, $registry);
+    $didOpen = new LanguageServer\LSP\Command\DidOpenTextDocument($server, $registry);
 
     $loop->run();
 } catch (\Exception $t) {
