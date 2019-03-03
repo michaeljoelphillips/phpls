@@ -8,6 +8,7 @@ use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Namespace_;
+use PhpParser\Node\Stmt\Use_;
 use PhpParser\NodeAbstract;
 use PhpParser\NodeFinder;
 
@@ -64,10 +65,10 @@ class ParsedDocument
      */
     public function getClassName(): string
     {
-        $namespace = $this->finder->findFirstInstanceOf($this->nodes, Namespace_::class);
+        $namespace = $this->getNamespace();
         $class = $this->finder->findFirstInstanceOf($this->nodes, Class_::class);
 
-        return sprintf('%s\%s', $namespace->name, $class->name);
+        return sprintf('%s\%s', $namespace, $class->name);
     }
 
     /**
@@ -83,6 +84,21 @@ class ParsedDocument
             return $node instanceof ClassMethod
                 && $node->name->name === $methodName;
         });
+    }
+
+    public function findNodes(string $class): array
+    {
+        return $this->finder->findInstanceOf($this->nodes, $class);
+    }
+
+    public function getUseStatements(): array
+    {
+        return $this->finder->findInstanceOf($this->nodes, Use_::class);
+    }
+
+    public function getNamespace(): string
+    {
+        return (string) $this->finder->findFirstInstanceOf($this->nodes, Namespace_::class)->name;
     }
 
     public function getNodes(): array
