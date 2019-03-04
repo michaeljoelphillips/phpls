@@ -8,6 +8,7 @@ use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\PropertyFetch;
+use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Name;
 use PhpParser\Node\Param;
@@ -28,6 +29,10 @@ class TypeResolver
 
         if ($node instanceof MethodCall) {
             return $this->getType($document, $node->var);
+        }
+
+        if ($node instanceof StaticCall) {
+            return $this->getType($document, $node->class);
         }
 
         if ($node instanceof New_) {

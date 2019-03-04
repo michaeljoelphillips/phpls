@@ -12,6 +12,7 @@ use LanguageServer\LSP\TypeResolver;
 use LanguageServer\RPC\Server;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\New_;
+use PhpParser\Node\Expr\StaticCall;
 use PhpParser\NodeAbstract;
 use PhpParser\NodeFinder;
 use React\Stream\WritableStreamInterface;
@@ -81,7 +82,9 @@ class SignatureHelp
 
     private function hasSignature(NodeAbstract $node): bool
     {
-        return $node instanceof MethodCall || $node instanceof New_;
+        return $node instanceof MethodCall
+            || $node instanceof StaticCall
+            || $node instanceof New_;
     }
 
     private function parseDocument(object $request): ParsedDocument
