@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LanguageServer\LSP;
 
 use PhpParser\Node\Expr\Assign;
+use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\Variable;
@@ -23,6 +24,14 @@ class TypeResolver
     {
         if ($node instanceof Variable) {
             return $this->getVariableType($document, $node);
+        }
+
+        if ($node instanceof MethodCall) {
+            return $this->getType($document, $node->var);
+        }
+
+        if ($node instanceof New_) {
+            return $this->getType($document, $node->class);
         }
 
         if ($node instanceof Assign && $node->expr instanceof New_) {

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace LanguageServer\LSP;
 
-use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Namespace_;
@@ -35,25 +34,24 @@ class ParsedDocument
     }
 
     /**
-     * Return the MethodCall under the given cursor.
+     * Return all nodes located at the given cursor position.
      *
      * @param int $line
      * @param int $character
      *
-     * @return MethodCall
+     * @return NodeAbstract[]
      */
-    public function getMethodAtCursor(int $line, int $character): MethodCall
+    public function getNodesAtCursor(int $line, int $character): array
     {
         $cursorPosition = $this->document->getCursorPosition($line, $character);
 
-        $methodCall = $this->finder->findFirst($this->nodes, function (NodeAbstract $node) use ($line, $cursorPosition) {
-            return $line === $node->getLine()
-                && $node instanceof MethodCall
-                && $node->getStartFilePos() <= $cursorPosition
-                && $node->getEndFilePos() >= $cursorPosition;
-        });
-
-        return $methodCall;
+        return $this->searchNodes(
+            function (NodeAbstract $node) use ($line, $cursorPosition) {
+                return $line === $node->getLine()
+                    && $node->getStartFilePos() <= $cursorPosition
+                    && $node->getEndFilePos() <= $cursorPosition;
+            }
+        );
     }
 
     /**

@@ -11,6 +11,7 @@ use LanguageServer\LSP\TextDocumentRegistry;
 use LanguageServer\LSP\TypeResolver;
 use LanguageServer\RPC\Server;
 use PhpParser\Node\Expr\MethodCall;
+use PhpParser\Node\Expr\New_;
 use PhpParser\NodeAbstract;
 use PhpParser\NodeFinder;
 use React\Stream\WritableStreamInterface;
@@ -54,13 +55,21 @@ class SignatureHelp
         try {
             $parsedDocument = $this->parseDocument($request);
 
-            $method = $parsedDocument->getMethodAtCursor(
+            $nodes = $parsedDocument->getNodesAtCursor(
                 $request->params->position->line + 1,
                 $request->params->position->character
             );
 
-            $reflectionMethod = $this->reflectMethod($parsedDocument, $method);
-            $signatures = $this->formatSignatures($reflectionMethod, $method);
+            $methods = array_values(array_filter($nodes, [$this, 'hasSignature']));
+
+            if (empty($methods)) {
+                return;
+            }
+
+            $node = $methods[0];
+
+            $reflection = $this->reflect($parsedDocument, $node);
+            $signatures = $this->formatSignatures($reflection, $node);
 
             $result = new SignatureHelpResponse($request->id, $signatures);
 
@@ -70,6 +79,11 @@ class SignatureHelp
         }
     }
 
+    private function hasSignature(NodeAbstract $node): bool
+    {
+        return $node instanceof MethodCall || $node instanceof New_;
+    }
+
     private function parseDocument(object $request): ParsedDocument
     {
         $document = $this->registry->get($request->params->textDocument->uri);
@@ -77,13 +91,17 @@ class SignatureHelp
         return $this->parser->parse($document);
     }
 
-    private function reflectMethod(ParsedDocument $document, MethodCall $method): ReflectionMethod
+    private function reflect(ParsedDocument $document, NodeAbstract $node): ReflectionMethod
     {
-        $class = $this->resolver->getType($document, $method->var);
+        $type = $this->resolver->getType($document, $node);
 
-        $reflection = $this->reflector->reflect($class);
+        $reflection = $this->reflector->reflect($type);
 
-        return $reflection->getMethod($method->name->name);
+        if ($node instanceof New_) {
+            return $reflection->getConstructor();
+        }
+
+        return $reflection->getMethod($node->name->name);
     }
 
     private function formatSignatures(ReflectionMethod $method, NodeAbstract $methodCall): array
