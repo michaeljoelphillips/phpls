@@ -2,6 +2,8 @@
 
 namespace Fixtures;
 
+use Bar\Baz;
+
 class Foo
 {
     public function testFunction()

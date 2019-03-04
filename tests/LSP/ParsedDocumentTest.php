@@ -4,43 +4,76 @@ declare(strict_types=1);
 
 namespace Test\LSP;
 
-use LanguageServer\LSP\DocumentParser;
-use LanguageServer\LSP\TextDocument;
-use PHPUnit\Framework\TestCase;
+use LanguageServer\Test\ParserTestCase;
+use PhpParser\Node\Stmt\ClassMethod;
+use PhpParser\NodeAbstract;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
-class ParsedDocumentTest extends TestCase
+class ParsedDocumentTest extends ParserTestCase
 {
-    public function setUp(): void
-    {
-        $parser = new DocumentParser();
-        $document = new TextDocument('file:///tmp/Foo.php', $this->loadFixture(), 0);
-        $this->subject = $parser->parse($document);
-    }
-
-    private function loadFixture()
-    {
-        return file_get_contents(__DIR__.'/../fixtures/Foo.php');
-    }
-
     public function testGetMethodAtCursor()
     {
-        $method = $this->subject->getMethodAtCursor(14, 35);
+        $subject = $this->parse('file:///tmp/Foo.php');
+
+        $method = $subject->getMethodAtCursor(14, 35);
 
         $this->assertEquals('testFunction', $method->name);
     }
 
     public function testGetClassName()
     {
-        $this->assertEquals('Fixtures\Foo', $this->subject->getClassName());
+        $subject = $this->parse('file:///tmp/Foo.php');
+
+        $this->assertEquals('Fixtures\Foo', $subject->getClassName());
     }
 
     public function testGetMethod()
     {
-        $method = $this->subject->getMethod('anotherTestFunction');
+        $subject = $this->parse('file:///tmp/Foo.php');
+
+        $method = $subject->getMethod('anotherTestFunction');
 
         $this->assertEquals('anotherTestFunction', $method->name);
+    }
+
+    public function testFindNodes()
+    {
+        $subject = $this->parse('file:///tmp/Foo.php');
+
+        $nodes = $subject->findNodes(ClassMethod::class);
+
+        $this->assertEquals(2, count($nodes));
+    }
+
+    public function testSearchNodes()
+    {
+        $subject = $this->parse('file:///tmp/Foo.php');
+
+        $nodes = $subject->searchNodes(
+            function (NodeAbstract $node) {
+                return $node instanceof ClassMethod;
+            }
+        );
+
+        $this->assertEquals(2, count($nodes));
+    }
+
+    public function testGetUseStatements()
+    {
+        $subject = $this->parse('file:///tmp/Foo.php');
+
+        $nodes = $subject->getUseStatements();
+
+        $this->assertEquals(1, count($nodes));
+        $this->assertEquals('Bar\Baz', $nodes[0]->uses[0]->name);
+    }
+
+    public function testGetNamespace()
+    {
+        $subject = $this->parse('file:///tmp/Foo.php');
+
+        $this->assertEquals('Fixtures', $subject->getNamespace());
     }
 }
