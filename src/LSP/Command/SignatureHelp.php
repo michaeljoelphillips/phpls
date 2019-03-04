@@ -79,7 +79,7 @@ class SignatureHelp
 
     private function reflectMethod(ParsedDocument $document, MethodCall $method): ReflectionMethod
     {
-        $class = $this->resolver->getType($document, $method);
+        $class = $this->resolver->getType($document, $method->var);
 
         $reflection = $this->reflector->reflect($class);
 

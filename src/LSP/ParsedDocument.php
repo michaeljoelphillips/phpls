@@ -91,6 +91,11 @@ class ParsedDocument
         return $this->finder->findInstanceOf($this->nodes, $class);
     }
 
+    public function searchNodes(callable $criteria): array
+    {
+        return $this->finder->find($this->nodes, $criteria);
+    }
+
     public function getUseStatements(): array
     {
         return $this->finder->findInstanceOf($this->nodes, Use_::class);
