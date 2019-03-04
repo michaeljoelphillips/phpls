@@ -10,6 +10,7 @@ use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Name;
 use PhpParser\Node\Param;
+use PhpParser\Node\Stmt\Expression;
 use PhpParser\Node\Stmt\Use_;
 use PhpParser\NodeAbstract;
 
@@ -132,7 +133,25 @@ class TypeResolver
         return (string) array_pop($fqcn)->uses[0]->name;
     }
 
+    /**
+     * Get the type of a class property via its assignment.
+     *
+     * @param ParsedDocument $document
+     * @param Name           $node
+     */
     private function getPropertyType(ParsedDocument $document, PropertyFetch $property)
     {
+        $constructor = $document->getConstructorNode();
+
+        // @todo: Handle case where property isn't assigned in constructor.
+        $propertyAssignment = array_filter(
+            $constructor->stmts,
+            function (NodeAbstract $node) use ($property) {
+                return $node instanceof Expression
+                    && $node->expr->var->name->name === $property->name->name;
+            }
+        )[0];
+
+        return $this->getType($document, $propertyAssignment->expr->expr);
     }
 }
