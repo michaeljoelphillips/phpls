@@ -51,15 +51,17 @@ class TextDocument
      * @param int $line
      * @param int $character
      *
-     * @return int
+     * @return CursorPosition
      */
-    public function getCursorPosition(int $line, int $character): int
+    public function getCursorPosition(int $line, int $character): CursorPosition
     {
         $lines = explode(PHP_EOL, $this->source);
         $lines = array_splice($lines, 0, $line);
         $lines[$line - 1] = substr($lines[$line - 1], 0, $character);
         $lines = implode(PHP_EOL, $lines);
 
-        return strlen($lines);
+        $relativePosition = strlen($lines);
+
+        return new CursorPosition($line, $character, $relativePosition);
     }
 }

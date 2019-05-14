@@ -4,33 +4,31 @@ declare(strict_types=1);
 
 namespace LanguageServer\LSP\Command;
 
-use LanguageServer\LSP\Response\InitializeResponse;
-use LanguageServer\RPC\Request;
-use LanguageServer\RPC\Server;
-use React\Stream\WritableStreamInterface;
+use LanguageServerProtocol\CompletionOptions;
+use LanguageServerProtocol\ServerCapabilities;
+use LanguageServerProtocol\SignatureHelpOptions;
+use React\Promise\Deferred;
+use React\Promise\Promise;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
 class Initialize
 {
-    /** @var Server */
-    private $server;
-
-    /**
-     * @param Server $server
-     */
-    public function __construct(Server $server)
+    public function __invoke(array $params)
     {
-        $this->server = $server;
+        $capabilities = new ServerCapabilities();
+        $capabilities->completionProvider = new CompletionOptions(false, ['$', '>']);
+        $capabilities->signatureHelpProvider = new SignatureHelpOptions(['(', ',']);
 
-        $this->server->on('initialize', [$this, 'handle']);
+        return $this->deferred($capabilities);
     }
 
-    public function handle(object $request, WritableStreamInterface $output)
+    private function deferred(ServerCapabilities $capabilities): Promise
     {
-        $response = (string) new InitializeResponse($request->id);
+        $deferred = new Deferred();
+        $deferred->resolve($capabilities);
 
-        $output->write($response);
+        return $deferred->promise();
     }
 }

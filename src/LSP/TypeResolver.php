@@ -74,24 +74,35 @@ class TypeResolver
             return $document->getClassName();
         }
 
-        $expressionsContainingVariable = $document->searchNodes(
+        $closestVariable = $this->findClosestVariableExpressionInDocument($variable, $document);
+
+        return $this->getType($document, $closestVariable);
+    }
+
+    private function findClosestVariableExpressionInDocument(Variable $variable, ParsedDocument $document): Expr
+    {
+        $expressions = $this->findVariableExpressionsInDocument($variable, $document);
+        $orderedExpressions = $this->sortNodesByEndingLineNumber($expressions);
+
+        return end($orderedExpressions);
+    }
+
+    private function findVariableExpressionsInDocument(Variable $variable, ParsedDocument $document): array
+    {
+        return $document->searchNodes(
             function (NodeAbstract $node) use ($variable) {
                 return ($node instanceof Assign || $node instanceof Param)
                     && $node->var->name === $variable->name
                     && $node->getEndFilePos() < $variable->getEndFilePos();
             }
         );
+    }
 
-        usort(
-            $expressionsContainingVariable,
-            function ($a, $b) {
-                return $a->getEndFilePos() <=> $b->getEndFilePos();
-            }
-        );
-
-        $closestExpressionToVariable = end($expressionsContainingVariable);
-
-        return $this->getType($document, $closestExpressionToVariable);
+    private function sortNodesByEndingLineNumber(array $expressions): array
+    {
+        return usort($expressions, function (Expr $a, Expr $b) {
+            return $a->getEndFilePos() <=> $b->getEndFilePos();
+        });
     }
 
     /**

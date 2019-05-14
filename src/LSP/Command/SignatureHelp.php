@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace LanguageServer\LSP\Command;
 
+use LanguageServer\LSP\CursorPosition;
 use LanguageServer\LSP\DocumentParser;
 use LanguageServer\LSP\ParsedDocument;
 use LanguageServer\LSP\TextDocumentRegistry;
 use LanguageServer\LSP\TypeResolver;
-use LanguageServer\RPC\JsonRpcResponse;
-use LanguageServer\RPC\Server;
 use LanguageServerProtocol\ParameterInformation;
 use LanguageServerProtocol\SignatureHelp as SignatureHelpResponse;
 use LanguageServerProtocol\SignatureInformation;
@@ -19,7 +18,8 @@ use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\NodeAbstract;
-use React\Stream\WritableStreamInterface;
+use React\Promise\Deferred;
+use React\Promise\Promise;
 use Roave\BetterReflection\Reflection\ReflectionMethod;
 use Roave\BetterReflection\Reflection\ReflectionParameter;
 use Roave\BetterReflection\Reflector\Reflector;
@@ -29,80 +29,128 @@ use Roave\BetterReflection\Reflector\Reflector;
  */
 class SignatureHelp
 {
-    private $resolver;
     private $reflector;
     private $parser;
+    private $resolver;
     private $registry;
 
-    public function __construct(
-        Server $server,
-        Reflector $reflector,
-        DocumentParser $parser,
-        TypeResolver $resolver,
-        TextDocumentRegistry $registry
-    ) {
+    public function __construct(Reflector $reflector, DocumentParser $parser, TypeResolver $resolver, TextDocumentRegistry $registry)
+    {
         $this->reflector = $reflector;
         $this->parser = $parser;
         $this->resolver = $resolver;
         $this->registry = $registry;
-
-        $server->on('textDocument/signatureHelp', [$this, 'handle']);
     }
 
-    public function handle(object $request, WritableStreamInterface $output)
+    public function __invoke(array $params): Promise
     {
-        try {
-            $response = $this->getSignatureHelpResponse($request);
+        $result = $this->getSignatureHelpResponse($params);
 
-            $output->write($response->getResponse());
-        } catch (\Throwable $t) {
-            var_dump($t->getMessage());
-        }
+        $deferred = new Deferred();
+        $deferred->resolve($result);
+
+        return $deferred->promise();
     }
 
-    private function getSignatureHelpResponse(object $request): JsonRpcResponse
+    private function getSignatureHelpResponse($params)
     {
-        $parsedDocument = $this->parseDocument($request);
-        $expression = $this->findExpressionAtCursor($parsedDocument, $request);
-        $method = $this->reflectMethodFromExpression($parsedDocument, $expression);
-        $signatures = $this->buildResponse($method, $expression);
+        $document = $this->registry->get($params['textDocument']['uri']);
+        $parsedDocument = $this->parser->parse($document);
 
-        return new JsonRpcResponse($request->id, $signatures);
-    }
-
-    private function parseDocument(object $request): ParsedDocument
-    {
-        $document = $this->registry->get($request->params->textDocument->uri);
-
-        return $this->parser->parse($document);
-    }
-
-    private function findExpressionAtCursor(ParsedDocument $document, object $request): Expr
-    {
-        $nodes = $document->getNodesAtCursor(
-            $request->params->position->line + 1,
-            $request->params->position->character
+        $cursorPosition = $document->getCursorPosition(
+            $params['position']['line'] + 1,
+            $params['position']['character']
         );
 
-        $expression = $this->filterNodesWithSignatures($nodes);
+        $expression = $this->findExpressionAtCursor($parsedDocument, $cursorPosition);
 
-        if (empty($expression)) {
-            throw new \Exception('No Nodes found.');
+        if (null === $expression) {
+            return $this->emptySignatureHelpResponse();
         }
 
-        return $expression[0];
+        $method = $this->reflectMethodFromExpression($parsedDocument, $expression);
+        $signatures = $this->getSignatureHelpForMethod($method, $expression, $cursorPosition);
+
+        return $signatures;
     }
 
-    private function filterNodesWithSignatures(array $nodes): array
+    private function findExpressionAtCursor(ParsedDocument $document, CursorPosition $cursorPosition): ?Expr
     {
-        $methodNodes = array_filter($nodes, function (NodeAbstract $node) {
-            return $node instanceof MethodCall
-                || $node instanceof StaticCall
-                || $node instanceof New_;
-        });
+        $methodCallNodes = $this->findMethodCallsNearCursor($document, $cursorPosition);
+
+        if (empty($methodCallNodes)) {
+            return null;
+        }
+
+        return $this->findInnermostMethodUnderCursor($methodCallNodes, $cursorPosition);
+    }
+
+    private function findMethodCallsNearCursor(ParsedDocument $document, CursorPosition $cursorPosition): array
+    {
+        $surroundingNodes = $document->getNodesAtCursor($cursorPosition);
+        $methodNodes = array_filter($surroundingNodes, [$this, 'hasSignature']);
+
+        $this->sortNodesByDistanceFromCursor($methodNodes, $cursorPosition);
 
         // Reset the array indices
         return array_values($methodNodes);
+    }
+
+    private function sortNodesByDistanceFromCursor(array &$nodes, CursorPosition $cursorPosition): array
+    {
+        usort($nodes, function (NodeAbstract $a, NodeAbstract $b) use ($cursorPosition) {
+            $distanceFromA = $cursorPosition->getRelativePosition() - $a->getStartFilePos();
+            $distanceFromB = $cursorPosition->getRelativePosition() - $b->getStartFilePos();
+
+            return $distanceFromA <=> $distanceFromB;
+        });
+
+        return $nodes;
+    }
+
+    private function hasSignature(NodeAbstract $node): bool
+    {
+        return $node instanceof MethodCall
+            || $node instanceof StaticCall
+            || $node instanceof New_;
+    }
+
+    private function findInnermostMethodUnderCursor(array $methodCallNodes, CursorPosition $cursorPosition): Expr
+    {
+        $closestMethodCall = $methodCallNodes[0];
+        $argumentNodes = array_merge(...array_column($methodCallNodes, 'args'));
+        $argumentsUnderCursor = array_values(array_filter($argumentNodes, [$cursorPosition, 'contains']));
+
+        if (empty($argumentsUnderCursor)) {
+            return $closestMethodCall;
+        }
+
+        $closestArgumentUnderCursor = $this->sortNodesByDistanceFromCursor($argumentsUnderCursor, $cursorPosition)[0];
+
+        if ($this->hasSignature($closestArgumentUnderCursor->value) &&
+            $cursorPosition->isBordering($closestArgumentUnderCursor)
+        ) {
+            return $this->findInnermostMethodUnderCursor([$closestArgumentUnderCursor->value], $cursorPosition);
+        }
+
+        $methodForClosestArgument = $this->findOwningMethodByArgument($methodCallNodes, $closestArgumentUnderCursor);
+
+        return $methodForClosestArgument;
+    }
+
+    private function findOwningMethodByArgument(array $methodCalls, Arg $argument): NodeAbstract
+    {
+        return array_values(array_filter(
+            $methodCalls,
+            function (NodeAbstract $node) use ($argument) {
+                return false !== array_search($argument, $node->args);
+            }
+        ))[0];
+    }
+
+    private function emptySignatureHelpResponse(): SignatureHelpResponse
+    {
+        return new SignatureHelpResponse();
     }
 
     private function reflectMethodFromExpression(ParsedDocument $document, Expr $expression): ReflectionMethod
@@ -118,11 +166,13 @@ class SignatureHelp
         return $reflection->getMethod($expression->name->name);
     }
 
-    private function buildResponse(ReflectionMethod $method, Expr $expression): SignatureHelpResponse
+    private function getSignatureHelpForMethod(ReflectionMethod $method, Expr $expression, CursorPosition $cursorPosition): SignatureHelpResponse
     {
         $parameters = $this->extractParameterInfoFromMethod($method);
-        $signatureInformation = new SignatureInformation('Foo', $parameters, $method->getDocComment());
-        $activeParameterPosition = $this->getActiveParameterPosition($method, $expression);
+        $signatureLabel = $this->createSignatureLabel($parameters);
+        $signatureInformation = new SignatureInformation($signatureLabel, $parameters, $method->getDocComment());
+
+        $activeParameterPosition = $this->getActiveParameterPosition($method, $expression, $cursorPosition);
 
         return new SignatureHelpResponse([$signatureInformation], 0, $activeParameterPosition);
     }
@@ -139,9 +189,21 @@ class SignatureHelp
         );
     }
 
-    private function getActiveParameterPosition(ReflectionMethod $method, Expr $expression)
+    private function createSignatureLabel(array $parameters): string
     {
-        $activeParameter = $this->getActiveParameterFromCursorPosition($expression);
+        $parameterLabels = array_map(
+            function (ParameterInformation $parameter) {
+                return $parameter->label;
+            },
+            $parameters
+        );
+
+        return implode(', ', $parameterLabels);
+    }
+
+    private function getActiveParameterPosition(ReflectionMethod $method, Expr $expression, CursorPosition $cursorPosition)
+    {
+        $activeParameter = $this->getActiveParameterFromCursorPosition($expression, $cursorPosition);
 
         if (null === $activeParameter) {
             return 0;
@@ -157,24 +219,14 @@ class SignatureHelp
         return $maximumParameterPosition;
     }
 
-    private function getActiveParameterFromCursorPosition(Expr $expression): ?Arg
+    private function getActiveParameterFromCursorPosition(Expr $expression, CursorPosition $cursorPosition): ?Arg
     {
-        $currentCursorPosition = 0;
-
         foreach ($expression->args as $argument) {
-            if ($this->isCursorWithinArgument($argument, $currentCursorPosition)) {
+            if ($cursorPosition->isWithin($argument) || $cursorPosition->isSurrounding($argument)) {
                 return $argument;
             }
         }
 
         return null;
-    }
-
-    private function isCursorWithinArgument(Arg $node, int $cursorPosition): bool
-    {
-        return true;
-
-        /* return $node->getStartFilePos() <= $cursorPosition */
-        /*     && $node->getEndFilePos() >= $cursorPosition; */
     }
 }

@@ -41,15 +41,11 @@ class ParsedDocument
      *
      * @return NodeAbstract[]
      */
-    public function getNodesAtCursor(int $line, int $character): array
+    public function getNodesAtCursor(CursorPosition $cursorPosition): array
     {
-        $cursorPosition = $this->document->getCursorPosition($line, $character);
-
         return $this->searchNodes(
-            function (NodeAbstract $node) use ($line, $cursorPosition) {
-                return $line === $node->getLine()
-                    && $node->getStartFilePos() <= $cursorPosition
-                    && $node->getEndFilePos() <= $cursorPosition;
+            function (NodeAbstract $node) use ($cursorPosition) {
+                return $cursorPosition->isWithin($node);
             }
         );
     }

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace LanguageServer\RPC;
 
-use LanguageServer\LSP\Response\InitializeResponse;
+use Closure;
 use React\Socket\ServerInterface;
-use React\Stream\WritableStreamInterface;
+use React\Stream\DuplexStreamInterface;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
@@ -18,16 +18,13 @@ class TcpServer extends Server
      */
     public function __construct(ServerInterface $server)
     {
-        $server->on(
-            'connection',
-            function (WritableStreamInterface $connection) {
-                $connection->on(
-                    'data',
-                    function (string $data) use ($connection) {
-                        $this->handle($data, $connection);
-                    }
-                );
-            }
-        );
+        $server->on('connection', Closure::fromCallable([$this, 'registerDataHandler']));
+    }
+
+    private function registerDataHandler(DuplexStreamInterface $connection)
+    {
+        $connection->on('data', function (string $data) use ($connection) {
+            $this->handle($data, $connection);
+        });
     }
 }
