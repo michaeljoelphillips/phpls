@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\LSP\Command;
 
+use LanguageServer\LSP\DocumentParserInterface;
 use LanguageServer\LSP\TextDocument;
 use LanguageServer\LSP\TextDocumentRegistry;
 
@@ -14,9 +15,12 @@ class DidChange
 {
     private $registry;
 
-    public function __construct(TextDocumentRegistry $registry)
+    private $parser;
+
+    public function __construct(TextDocumentRegistry $registry, DocumentParserInterface $parser)
     {
         $this->registry = $registry;
+        $this->parser = $parser;
     }
 
     public function __invoke(array $params): void
@@ -26,6 +30,8 @@ class DidChange
             $params['contentChanges'][0]['text'],
             $params['textDocument']['version']
         );
+
+        $this->parser->parse($document);
 
         $this->registry->add($document);
     }

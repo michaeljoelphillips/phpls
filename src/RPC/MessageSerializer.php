@@ -6,6 +6,7 @@ namespace LanguageServer\RPC;
 
 use Evenement\EventEmitterInterface;
 use Evenement\EventEmitterTrait;
+use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 use Symfony\Component\Serializer\SerializerInterface;
 
 /**
@@ -26,17 +27,25 @@ class MessageSerializer implements EventEmitterInterface
         $this->serializer = $serializer;
     }
 
-    public function deserialize(string $request)
+    public function deserialize(string $request): void
     {
-        $requestMessage = $this->serializer->deserialize($request, RequestMessage::class, 'jsonrpc');
+        try {
+            $requestMessage = $this->serializer->deserialize($request, RequestMessage::class, 'jsonrpc');
 
-        $this->emit('deserialize', [$requestMessage]);
+            $this->emit('deserialize', [$requestMessage]);
+        } catch (NotEncodableValueException $e) {
+            return;
+        }
     }
 
-    public function serialize(int $messageId, object $response)
+    public function serialize(int $messageId, object $response): void
     {
-        $responseBody = $this->serializer->serialize($response, 'jsonrpc', ['messageId' => $messageId]);
+        try {
+            $responseBody = $this->serializer->serialize($response, 'jsonrpc', ['messageId' => $messageId]);
 
-        $this->emit('serialize', [$responseBody]);
+            $this->emit('serialize', [$responseBody]);
+        } catch (NotEncodableValueException $e) {
+            return;
+        }
     }
 }

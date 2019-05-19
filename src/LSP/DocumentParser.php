@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace LanguageServer\LSP;
 
+use PhpParser\ErrorHandler\Collecting;
 use PhpParser\Parser;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
-class DocumentParser
+class DocumentParser implements DocumentParserInterface
 {
-    /** @var Parser */
     private $parser;
 
     public function __construct(Parser $parser)
@@ -21,8 +21,8 @@ class DocumentParser
 
     public function parse(TextDocument $document): ParsedDocument
     {
-        $nodes = $this->parser->parse($document->getSource());
+        $nodes = $this->parser->parse($document->getSource(), new Collecting());
 
-        return new ParsedDocument($nodes ?? [], $document);
+        return new ParsedDocument($nodes, $document);
     }
 }

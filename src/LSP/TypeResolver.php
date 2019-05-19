@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\LSP;
 
+use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\New_;
@@ -15,19 +16,31 @@ use PhpParser\Node\Param;
 use PhpParser\Node\Stmt\Expression;
 use PhpParser\Node\Stmt\Use_;
 use PhpParser\NodeAbstract;
+use Roave\BetterReflection\Reflector\Reflector;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
 class TypeResolver
 {
-    public function getType(ParsedDocument $document, $node): string
+    private $reflector;
+
+    public function __construct(Reflector $reflector)
+    {
+        $this->reflector = $reflector;
+    }
+
+    public function getType(ParsedDocument $document, $node): ?string
     {
         if ($node instanceof Variable) {
             return $this->getVariableType($document, $node);
         }
 
         if ($node instanceof MethodCall) {
+            if ($node->var instanceof MethodCall) {
+                return $this->getReturnType($document, $node->var);
+            }
+
             return $this->getType($document, $node->var);
         }
 
@@ -48,12 +61,29 @@ class TypeResolver
         }
 
         if ($node instanceof PropertyFetch) {
+            if ($node->var instanceof MethodCall) {
+                return $this->getReturnType($document, $node->var);
+            }
+
             return $this->getPropertyType($document, $node);
         }
 
         if ($node instanceof Name) {
             return $this->getTypeFromClassReference($document, $node);
         }
+
+        return null;
+    }
+
+    private function getReturnType(ParsedDocument $document, MethodCall $methodCall): string
+    {
+        $variableType = $this->getType($document, $methodCall);
+        $methodName = $methodCall->name;
+
+        $reflectedClass = $this->reflector->reflect($variableType);
+        $reflectedMethod = $reflectedClass->getMethod($methodName->name);
+
+        return (string) $reflectedMethod->getReturnType();
     }
 
     /**
@@ -74,20 +104,20 @@ class TypeResolver
             return $document->getClassName();
         }
 
-        $closestVariable = $this->findClosestVariableExpressionInDocument($variable, $document);
+        $closestVariable = $this->findClosestVariableReferencesInDocument($variable, $document);
 
         return $this->getType($document, $closestVariable);
     }
 
-    private function findClosestVariableExpressionInDocument(Variable $variable, ParsedDocument $document): Expr
+    private function findClosestVariableReferencesInDocument(Variable $variable, ParsedDocument $document): NodeAbstract
     {
-        $expressions = $this->findVariableExpressionsInDocument($variable, $document);
-        $orderedExpressions = $this->sortNodesByEndingLineNumber($expressions);
+        $expressions = $this->findVariableReferencesInDocument($variable, $document);
+        $orderedExpressions = $this->sortNodesByEndingLocation($expressions);
 
         return end($orderedExpressions);
     }
 
-    private function findVariableExpressionsInDocument(Variable $variable, ParsedDocument $document): array
+    private function findVariableReferencesInDocument(Variable $variable, ParsedDocument $document): array
     {
         return $document->searchNodes(
             function (NodeAbstract $node) use ($variable) {
@@ -98,11 +128,13 @@ class TypeResolver
         );
     }
 
-    private function sortNodesByEndingLineNumber(array $expressions): array
+    private function sortNodesByEndingLocation(array $expressions): array
     {
-        return usort($expressions, function (Expr $a, Expr $b) {
+        usort($expressions, function (Expr $a, Expr $b) {
             return $a->getEndFilePos() <=> $b->getEndFilePos();
         });
+
+        return $expressions;
     }
 
     /**
@@ -159,8 +191,6 @@ class TypeResolver
     }
 
     /**
-     * Get the type of a class property via its assignment.
-     *
      * @param ParsedDocument $document
      * @param Name           $node
      */
@@ -168,15 +198,18 @@ class TypeResolver
     {
         $constructor = $document->getConstructorNode();
 
-        // @todo: Handle case where property isn't assigned in constructor.
-        $propertyAssignment = array_filter(
+        $propertyAssignment = array_values(array_filter(
             $constructor->stmts,
             function (NodeAbstract $node) use ($property) {
                 return $node instanceof Expression
                     && $node->expr->var->name->name === $property->name->name;
             }
-        )[0];
+        ));
 
-        return $this->getType($document, $propertyAssignment->expr->expr);
+        if (empty($propertyAssignment)) {
+            return null;
+        }
+
+        return $this->getType($document, $propertyAssignment[0]->expr->expr);
     }
 }

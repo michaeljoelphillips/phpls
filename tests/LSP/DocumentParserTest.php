@@ -6,6 +6,7 @@ namespace Test\LSP;
 
 use LanguageServer\LSP\DocumentParser;
 use LanguageServer\LSP\TextDocument;
+use PhpParser\ParserFactory;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -13,23 +14,18 @@ use PHPUnit\Framework\TestCase;
  */
 class DocumentParserTest extends TestCase
 {
-    public function testParse()
+    private $subject;
+
+    public function setUp(): void
     {
-        $subject = new DocumentParser();
-
-        $document = new TextDocument('file:///tmp/Foo.php', '<?php echo "Hi";', 0);
-        $parsedDocument = $subject->parse($document);
-
-        $this->assertNotEmpty($parsedDocument->getNodes());
+        $this->subject = new DocumentParser(ParserFactory::create(ParserFactory::PREFER_PHP7));
     }
 
-    public function testParseWithInvalidPHP()
+    public function testParse()
     {
-        $subject = new DocumentParser();
+        $document = new TextDocument('file:///tmp/Foo.php', '<?php echo "Hi";', 0);
+        $parsedDocument = $this->subject->parse($document);
 
-        $document = new TextDocument('file:///tmp/Foo.php', '<?php ', 0);
-        $parsedDocument = $subject->parse($document);
-
-        $this->assertEmpty($parsedDocument->getNodes());
+        $this->assertNotEmpty($parsedDocument->getNodes());
     }
 }

@@ -51,6 +51,23 @@ class ParsedDocument
     }
 
     /**
+     * Return all nodes located at the given cursor position.
+     *
+     * @param int $line
+     * @param int $character
+     *
+     * @return NodeAbstract[]
+     */
+    public function getNodesBesideCursor(CursorPosition $cursorPosition): array
+    {
+        return $this->searchNodes(
+            function (NodeAbstract $node) use ($cursorPosition) {
+                return $cursorPosition->isSurrounding($node);
+            }
+        );
+    }
+
+    /**
      * Get the FQCN for the document.
      *
      * This method expects one class per document.

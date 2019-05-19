@@ -14,7 +14,7 @@ $containerBuilder->addDefinitions('src/services.php');
 $container = $containerBuilder->build();
 
 $loop = Factory::create();
-$socket = new Server('127.0.0.1:8080', $loop);
+$socket = new Server('0.0.0.0:8080', $loop);
 $rpcServer = $container->get(RpcServer::class);
 $rpcServer->listen($socket);
 
