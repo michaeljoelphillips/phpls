@@ -45,7 +45,5 @@ EOF;
         $request = json_decode(self::INITIALIZE_REQUEST, true);
 
         $result = $subject->denormalize($request, ResponseMessage::class, 'jsonrpc');
-
-        var_dump($result);
     }
 }

@@ -64,8 +64,6 @@ class SignatureHelp
 
         $expression = $this->findExpressionAtCursor($parsedDocument, $cursorPosition);
 
-        var_dump($expression);
-
         if (null === $expression) {
             return $this->emptySignatureHelpResponse();
         }
@@ -158,8 +156,6 @@ class SignatureHelp
     private function reflectMethodFromExpression(ParsedDocument $document, Expr $expression): ReflectionMethod
     {
         $type = $this->resolver->getType($document, $expression);
-
-        echo($type).PHP_EOL;
 
         $reflection = $this->reflector->reflect($type);
 

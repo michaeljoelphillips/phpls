@@ -75,8 +75,6 @@ class Completion
             return $this->emptyCompletionList();
         }
 
-        echo $type.PHP_EOL;
-
         $reflection = $this->reflector->reflect($type);
 
         $contextualVisibility = null;
