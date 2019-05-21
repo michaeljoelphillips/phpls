@@ -21,10 +21,10 @@ class JsonRpcEncoder extends JsonEncoder
         $headers = sprintf(
             "%s\r\n%s",
             'Content-Type: application/vscode-jsonrpc; charset=utf8',
-            'Content-Length: '.strlen($result),
+            'Content-Length: '.strlen($result)
         );
 
-        return sprintf("%s%s%s", $headers, self::HEADER_TERMINATOR, $result);
+        return sprintf('%s%s%s', $headers, self::HEADER_TERMINATOR, $result);
     }
 
     public function decode($data, $format, array $context = [])
