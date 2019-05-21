@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\LSP\Command;
+namespace LanguageServer\LSP\Method\TextDocument;
 
 use LanguageServer\LSP\CursorPosition;
 use LanguageServer\LSP\DocumentParser;

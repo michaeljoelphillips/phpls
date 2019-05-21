@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\LSP\Command;
+namespace LanguageServer\LSP\Method;
 
 use LanguageServerProtocol\CompletionOptions;
 use LanguageServerProtocol\ServerCapabilities;

@@ -1,6 +1,6 @@
 <?php
 
-namespace LanguageServer\LSP\Command;
+namespace LanguageServer\LSP\Method\TextDocument;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>

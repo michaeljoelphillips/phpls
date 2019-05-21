@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\LSP\Command;
+namespace LanguageServer\LSP\Method\TextDocument;
 
 use LanguageServer\LSP\DocumentParserInterface;
 use LanguageServer\LSP\TextDocument;
@@ -11,9 +11,11 @@ use LanguageServer\LSP\TextDocumentRegistry;
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
-class DidOpen
+class DidChange
 {
     private $registry;
+
+    private $parser;
 
     public function __construct(TextDocumentRegistry $registry, DocumentParserInterface $parser)
     {
@@ -23,14 +25,14 @@ class DidOpen
 
     public function __invoke(array $params): void
     {
-        $textDocument = new TextDocument(
+        $document = new TextDocument(
             $params['textDocument']['uri'],
-            $params['textDocument']['text'],
-            $params['textDocument']['version'],
+            $params['contentChanges'][0]['text'],
+            $params['textDocument']['version']
         );
 
-        $this->parser->parse($textDocument);
+        $this->parser->parse($document);
 
-        $this->registry->add($textDocument);
+        $this->registry->add($document);
     }
 }

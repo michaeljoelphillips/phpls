@@ -2,14 +2,16 @@
 
 declare(strict_types=1);
 
-use LanguageServer\LSP\Command\Completion;
-use LanguageServer\LSP\Command\DidChange;
-use LanguageServer\LSP\Command\DidOpen;
-use LanguageServer\LSP\Command\DidSave;
-use LanguageServer\LSP\Command\Initialize;
-use LanguageServer\LSP\Command\SignatureHelp;
 use LanguageServer\LSP\DocumentParser;
 use LanguageServer\LSP\IncompleteDocumentParser;
+use LanguageServer\LSP\Method\Exit_;
+use LanguageServer\LSP\Method\Initialize;
+use LanguageServer\LSP\Method\Initialized;
+use LanguageServer\LSP\Method\TextDocument\Completion;
+use LanguageServer\LSP\Method\TextDocument\DidChange;
+use LanguageServer\LSP\Method\TextDocument\DidOpen;
+use LanguageServer\LSP\Method\TextDocument\DidSave;
+use LanguageServer\LSP\Method\TextDocument\SignatureHelp;
 use LanguageServer\LSP\SourceLocator\RegistrySourceLocator;
 use LanguageServer\LSP\TextDocumentRegistry;
 use LanguageServer\LSP\TypeResolver;
@@ -92,9 +94,8 @@ return [
     },
     TextDocumentRegistry::class => DI\create(TextDocumentRegistry::class),
     'initialize' => DI\create(Initialize::class),
-    'initialized' => DI\create(DidSave::class),
-    'save' => DI\create(DidSave::class),
-    'exit' => DI\create(DidSave::class),
+    'initialized' => DI\create(Initialized::class),
+    'exit' => DI\create(Exit_::class),
     'textDocument/didSave' => DI\create(DidSave::class),
     'textDocument/completion' => function (ContainerInterface $container) {
         return new Completion(
