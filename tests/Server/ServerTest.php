@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test\Server;
 
-use LanguageServerMessageSerializer;
-use LanguageServerServer;
+use LanguageServer\Server\MessageSerializer;
+use LanguageServer\Server\Server;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
-use React\Stream\WritableStreamInterface;
+use React\Socket\ServerInterface;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
@@ -24,14 +24,16 @@ class ServerTest extends TestCase
         $this->serializer = $this->createMock(MessageSerializer::class);
     }
 
-    public function testHandle(): void
+    public function testListen(): void
     {
         $subject = new Server($this->container, $this->serializer);
-
         $this->container->method('get')->willReturn(new \stdClass());
+        $server = $this->createMock(ServerInterface::class);
 
-        $connection = $this->createMock(WritableStreamInterface::class);
+        $server
+            ->expects($this->once())
+            ->method('on');
 
-        $subject->handle('', $connection);
+        $subject->listen($server);
     }
 }

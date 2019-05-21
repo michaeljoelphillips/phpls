@@ -19,7 +19,7 @@ class IncompleteDocumentParserTest extends TestCase
     public function setUp(): void
     {
         $this->subject = new IncompleteDocumentParser(
-            ParserFactory::create(ParserFactory::PREFER_PHP7)
+            (new ParserFactory())->create(ParserFactory::PREFER_PHP7)
         );
     }
 
@@ -36,7 +36,7 @@ class IncompleteDocumentParserTest extends TestCase
 
     private function readDocument(string $fixtureName): TextDocument
     {
-        $documentSource = file_get_contents(__DIR__.'/../Fixtures/IncompleteSyntax/'.$fixtureName);
+        $documentSource = file_get_contents(__DIR__.'/../fixtures/IncompleteSyntax/'.$fixtureName);
 
         return new TextDocument('file:///tmp/Foo.php', $documentSource, 0);
     }

@@ -18,7 +18,9 @@ class DocumentParserTest extends TestCase
 
     public function setUp(): void
     {
-        $this->subject = new DocumentParser(ParserFactory::create(ParserFactory::PREFER_PHP7));
+        $this->subject = new DocumentParser(
+            (new ParserFactory())->create(ParserFactory::PREFER_PHP7)
+        );
     }
 
     public function testParse()

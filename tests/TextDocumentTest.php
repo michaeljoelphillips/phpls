@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test;
 
+use LanguageServer\CursorPosition;
 use LanguageServer\TextDocument;
 use PHPUnit\Framework\TestCase;
 
@@ -22,8 +23,9 @@ class TextDocumentTest extends TestCase
     public function testGetCursorPosition()
     {
         $subject = new TextDocument('file:///tmp/foo.php', $this->getFixture(), 0);
+        $cursor = new CursorPosition(9, 16, 70);
 
-        $this->assertEquals(97, $subject->getCursorPosition(9, 16));
+        $this->assertEquals($cursor, $subject->getCursorPosition(9, 16));
     }
 
     private function getFixture()

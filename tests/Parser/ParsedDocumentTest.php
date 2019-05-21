@@ -13,15 +13,6 @@ use PhpParser\NodeAbstract;
  */
 class ParsedDocumentTest extends ParserTestCase
 {
-    public function testGetMethodAtCursor()
-    {
-        $subject = $this->parse('file:///tmp/Foo.php');
-
-        $method = $subject->getMethodAtCursor(14, 35);
-
-        $this->assertEquals('testFunction', $method->name);
-    }
-
     public function testGetClassName()
     {
         $subject = $this->parse('file:///tmp/Foo.php');
