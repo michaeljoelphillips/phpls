@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test;
 
-use LanguageServer\LSP\DocumentParser;
-use LanguageServer\LSP\ParsedDocument;
-use LanguageServer\LSP\TextDocument;
+use LanguageServer\Parser\DocumentParser;
+use LanguageServer\Parser\ParsedDocument;
+use LanguageServer\TextDocument;
 use PhpParser\Lexer;
 use PhpParser\ParserFactory;
 use PHPUnit\Framework\TestCase;

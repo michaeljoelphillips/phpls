@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use DI\ContainerBuilder;
-use LanguageServer\RPC\RpcServer;
+use LanguageServer\Server\Server as LanguageServer;
 use React\EventLoop\Factory;
 use React\Socket\Server;
 
@@ -15,7 +15,7 @@ $container = $containerBuilder->build();
 
 $loop = Factory::create();
 $socket = new Server('0.0.0.0:8080', $loop);
-$rpcServer = $container->get(RpcServer::class);
+$rpcServer = $container->get(LanguageServer::class);
 $rpcServer->listen($socket);
 
 $loop->run();

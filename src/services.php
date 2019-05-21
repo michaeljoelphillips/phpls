@@ -2,22 +2,20 @@
 
 declare(strict_types=1);
 
-use LanguageServer\LSP\DocumentParser;
-use LanguageServer\LSP\IncompleteDocumentParser;
-use LanguageServer\LSP\Method\Exit_;
-use LanguageServer\LSP\Method\Initialize;
-use LanguageServer\LSP\Method\Initialized;
-use LanguageServer\LSP\Method\TextDocument\Completion;
-use LanguageServer\LSP\Method\TextDocument\DidChange;
-use LanguageServer\LSP\Method\TextDocument\DidOpen;
-use LanguageServer\LSP\Method\TextDocument\DidSave;
-use LanguageServer\LSP\Method\TextDocument\SignatureHelp;
-use LanguageServer\LSP\SourceLocator\RegistrySourceLocator;
-use LanguageServer\LSP\TextDocumentRegistry;
-use LanguageServer\LSP\TypeResolver;
-use LanguageServer\RPC\Encoder\JsonRpcEncoder;
-use LanguageServer\RPC\MessageSerializer;
-use LanguageServer\RPC\RpcServer;
+use LanguageServer\Method\Exit_;
+use LanguageServer\Method\Initialize;
+use LanguageServer\Method\Initialized;
+use LanguageServer\Method\TextDocument\Completion;
+use LanguageServer\Method\TextDocument\DidChange;
+use LanguageServer\Method\TextDocument\DidOpen;
+use LanguageServer\Method\TextDocument\DidSave;
+use LanguageServer\Method\TextDocument\SignatureHelp;
+use LanguageServer\Parser\DocumentParser;
+use LanguageServer\Parser\IncompleteDocumentParser;
+use LanguageServer\RegistrySourceLocator;
+use LanguageServer\Server\JsonRpcEncoder;
+use LanguageServer\TextDocumentRegistry;
+use LanguageServer\TypeResolver;
 use PhpParser\Lexer;
 use PhpParser\Parser;
 use PhpParser\ParserFactory;
