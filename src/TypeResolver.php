@@ -15,7 +15,7 @@ use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Name;
 use PhpParser\Node\Param;
 use PhpParser\Node\Stmt\Expression;
-use PhpParser\Node\Stmt\Use_;
+use PhpParser\Node\Stmt\UseUse;
 use PhpParser\NodeAbstract;
 use Roave\BetterReflection\Reflector\Reflector;
 
@@ -131,7 +131,7 @@ class TypeResolver
 
     private function sortNodesByEndingLocation(array $expressions): array
     {
-        usort($expressions, function (Expr $a, Expr $b) {
+        usort($expressions, function (NodeAbstract $a, NodeAbstract $b) {
             return $a->getEndFilePos() <=> $b->getEndFilePos();
         });
 
@@ -170,25 +170,29 @@ class TypeResolver
      */
     private function getTypeFromClassReference(ParsedDocument $document, Name $node)
     {
-        // @todo: Account for FQCN
-        $className = $node->parts[0];
+        if ('self' === (string) $node) {
+            return $document->getClassName();
+        }
 
-        $useStatements = $document->getUseStatements();
+        $useStatements = array_merge(...array_column($document->getUseStatements(), 'uses'));
 
-        $fqcn = array_filter(
+        $matchingUseStatement = array_filter(
             $useStatements,
-            function (Use_ $use) use ($className) {
-                $shortClassName = end($use->uses[0]->name->parts);
-
-                return $shortClassName === $className;
+            function (UseUse $use) use ($node) {
+                return $use->name->getLast() === $node->getLast();
             }
         );
 
-        if (empty($fqcn)) {
-            return sprintf('%s\%s', $document->getNamespace(), $className);
+        if (empty($matchingUseStatement)) {
+            if ($node->isUnqualified()) {
+                return sprintf('%s\%s', $document->getNamespace(), $node->getLast());
+            }
+
+            // Not sure what to do here yet
+            return null;
         }
 
-        return (string) array_pop($fqcn)->uses[0]->name;
+        return array_pop($matchingUseStatement)->name->toCodeString();
     }
 
     /**
