@@ -31,6 +31,8 @@ use Roave\BetterReflection\SourceLocator\Type\PhpInternalSourceLocator;
 use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
+use LanguageServer\Method\TextDocument\CompletionProvider\InstanceMethodProvider;
+use LanguageServer\Method\TextDocument\CompletionProvider\InstanceVariableProvider;
 
 return [
     RpcServer::class => function (ContainerInterface $container) {
@@ -80,7 +82,7 @@ return [
                 new RegistrySourceLocator($locator, $container->get(TextDocumentRegistry::class)),
                 new MemoizingSourceLocator(
                     new AggregateSourceLocator([
-                        (new MakeLocatorForComposerJsonAndInstalledJson())('/home/nomad/Code/omnichannel', $locator),
+                        (new MakeLocatorForComposerJsonAndInstalledJson())('/Users/mphillips2/Code/language-server', $locator),
                         new PhpInternalSourceLocator($locator, new PhpStormStubsSourceStubber($container->get(MemoizingParser::class))),
                     ]),
                 ),
@@ -91,16 +93,31 @@ return [
         return new TypeResolver($container->get(ClassReflector::class));
     },
     TextDocumentRegistry::class => DI\create(TextDocumentRegistry::class),
+    InstanceMethodProvider::class => function (ContainerInterface $container) {
+        return new InstanceMethodProvider(
+            $container->get(TypeResolver::class),
+            $container->get(ClassReflector::class)
+        );
+    },
+    InstanceVariableProvider::class => function (ContainerInterface $container) {
+        return new InstanceVariableProvider(
+            $container->get(TypeResolver::class),
+            $container->get(ClassReflector::class)
+        );
+    },
+    'completionProviders' => [
+        DI\get(InstanceMethodProvider::class),
+        DI\get(InstanceVariableProvider::class),
+    ],
     'initialize' => DI\create(Initialize::class),
     'initialized' => DI\create(Initialized::class),
     'exit' => DI\create(Exit_::class),
     'textDocument/didSave' => DI\create(DidSave::class),
     'textDocument/completion' => function (ContainerInterface $container) {
         return new Completion(
-            $container->get(ClassReflector::class),
             $container->get(IncompleteDocumentParser::class),
-            $container->get(TypeResolver::class),
-            $container->get(TextDocumentRegistry::class)
+            $container->get(TextDocumentRegistry::class),
+            ...$container->get('completionProviders')
         );
     },
     'textDocument/signatureHelp' => function (ContainerInterface $container) {
