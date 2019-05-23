@@ -6,12 +6,15 @@ use LanguageServer\Method\Exit_;
 use LanguageServer\Method\Initialize;
 use LanguageServer\Method\Initialized;
 use LanguageServer\Method\TextDocument\Completion;
+use LanguageServer\Method\TextDocument\CompletionProvider\InstanceMethodProvider;
+use LanguageServer\Method\TextDocument\CompletionProvider\InstanceVariableProvider;
 use LanguageServer\Method\TextDocument\DidChange;
 use LanguageServer\Method\TextDocument\DidOpen;
 use LanguageServer\Method\TextDocument\DidSave;
 use LanguageServer\Method\TextDocument\SignatureHelp;
 use LanguageServer\Parser\DocumentParser;
 use LanguageServer\Parser\IncompleteDocumentParser;
+use LanguageServer\Parser\LenientParser;
 use LanguageServer\RegistrySourceLocator;
 use LanguageServer\Server\JsonRpcEncoder;
 use LanguageServer\TextDocumentRegistry;
@@ -31,8 +34,6 @@ use Roave\BetterReflection\SourceLocator\Type\PhpInternalSourceLocator;
 use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
-use LanguageServer\Method\TextDocument\CompletionProvider\InstanceMethodProvider;
-use LanguageServer\Method\TextDocument\CompletionProvider\InstanceVariableProvider;
 
 return [
     RpcServer::class => function (ContainerInterface $container) {
@@ -49,8 +50,9 @@ return [
         );
     },
     Parser::class => function (ContainerInterface $container) {
-        return (new ParserFactory())->create(
-            ParserFactory::ONLY_PHP7,
+        return new LenientParser(
+            (new ParserFactory())->create(
+                ParserFactory::ONLY_PHP7,
                 new Lexer([
                     'usedAttributes' => [
                         'comments',
@@ -60,7 +62,8 @@ return [
                         'endFilePos',
                     ],
                 ])
-            );
+            )
+        );
     },
     MemoizingParser::class => function (ContainerInterface $container) {
         return new MemoizingParser($container->get(Parser::class));
@@ -72,7 +75,7 @@ return [
         return new DocumentParser($container->get(MemoizingParser::class));
     },
     IncompleteDocumentParser::class => function (ContainerInterface $container) {
-        return new DocumentParser($container->get(MemoizingParser::class));
+        return new IncompleteDocumentParser($container->get(MemoizingParser::class));
     },
     ClassReflector::class => function (ContainerInterface $container) {
         $locator = $container->get(Locator::class);
@@ -123,7 +126,7 @@ return [
     'textDocument/signatureHelp' => function (ContainerInterface $container) {
         return new SignatureHelp(
             $container->get(ClassReflector::class),
-            $container->get(DocumentParser::class),
+            $container->get(IncompleteDocumentParser::class),
             $container->get(TypeResolver::class),
             $container->get(TextDocumentRegistry::class)
         );
@@ -131,13 +134,16 @@ return [
     'textDocument/didOpen' => function (ContainerInterface $container) {
         return new DidOpen(
             $container->get(TextDocumentRegistry::class),
-            $container->get(DocumentParser::class)
+            $container->get(IncompleteDocumentParser::class)
         );
     },
     'textDocument/didChange' => function (ContainerInterface $container) {
         return new DidChange(
             $container->get(TextDocumentRegistry::class),
-            $container->get(DocumentParser::class)
+            $container->get(IncompleteDocumentParser::class)
         );
+    },
+    'textDocument/didClose' => function () {
+        return function () { return; };
     },
 ];

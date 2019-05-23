@@ -44,9 +44,9 @@ class IncompleteDocumentParserTest extends TestCase
     public function incompleteSyntax(): array
     {
         return [
-            ['IncompletePropertyAccessFollowedByReturn.php'],
-            ['IncompletePropertyAccessFollowedByTryCatch.php'],
             ['IncompletePropertyAccessFollowedByIfStatement.php'],
+            ['IncompletePropertyAccessFollowedByTryCatch.php'],
+            ['IncompletePropertyAccessFollowedByReturn.php'],
             ['IncompletePropertyAccessWithinMethodCall.php'],
             ['IncompleteStaticAccessFollowedByReturn.php'],
             ['IncompleteStaticAccessWithinMethodCall.php'],
