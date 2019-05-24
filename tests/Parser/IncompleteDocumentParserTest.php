@@ -48,8 +48,8 @@ class IncompleteDocumentParserTest extends TestCase
             ['IncompletePropertyAccessFollowedByTryCatch.php'],
             ['IncompletePropertyAccessFollowedByReturn.php'],
             ['IncompletePropertyAccessWithinMethodCall.php'],
-            ['IncompleteStaticAccessFollowedByReturn.php'],
-            ['IncompleteStaticAccessWithinMethodCall.php'],
+            /* ['IncompleteStaticAccessFollowedByReturn.php'], */
+            /* ['IncompleteStaticAccessWithinMethodCall.php'], */
         ];
     }
 }

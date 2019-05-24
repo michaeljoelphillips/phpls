@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace LanguageServer\Parser;
 
 use LanguageServer\TextDocument;
-use PhpParser\ErrorHandler\Collecting;
 use PhpParser\Parser;
 
 /**
@@ -23,7 +22,7 @@ class IncompleteDocumentParser implements DocumentParserInterface
     public function parse(TextDocument $document): ParsedDocument
     {
         $completedSourceCode = $this->correctIncompleteSyntax($document);
-        $nodes = $this->parser->parse($completedSourceCode, new Collecting());
+        $nodes = $this->parser->parse($completedSourceCode);
 
         return new ParsedDocument($nodes, $document);
     }
@@ -31,8 +30,9 @@ class IncompleteDocumentParser implements DocumentParserInterface
     private function correctIncompleteSyntax(TextDocument $document): string
     {
         $source = $document->getSource();
-        $source = preg_replace('/(\$\w+->)\n/i', '${1}lspSyntaxStub;'.PHP_EOL, $source);
-        $source = preg_replace('/(\w+::)\n/i', '${1}LSP_SYNTAX_STUB;'.PHP_EOL, $source);
+
+        $source = preg_replace('/[^\(](\$\w+->)\n/i', '${1}lspSyntaxStub;'.PHP_EOL, $source);
+        $source = preg_replace('/(\(\$(\w+(\([$\w]*\))?->)*)\n/', '${1}lspSyntaxStub);'.PHP_EOL, $source);
 
         return $source;
     }
