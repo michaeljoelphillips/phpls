@@ -7,6 +7,7 @@ namespace LanguageServer\Method\TextDocument\CompletionProvider;
 use LanguageServer\Parser\ParsedDocument;
 use LanguageServer\TypeResolver;
 use LanguageServerProtocol\CompletionItem;
+use LanguageServerProtocol\CompletionItemKind;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\PropertyFetch;
@@ -41,7 +42,12 @@ class InstanceVariableProvider implements CompletionProviderInterface
     {
         return array_values(array_map(
             function (ReflectionProperty $parameter) {
-                return new CompletionItem($parameter->getName(), 10);
+                return new CompletionItem(
+                    $parameter->getName(),
+                    CompletionItemKind::PROPERTY,
+                    implode('|', $parameter->getDocblockTypeStrings()),
+                    $parameter->getDocComment()
+                );
             },
             $reflection->getProperties()
         ));

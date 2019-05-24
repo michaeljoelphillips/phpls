@@ -48,7 +48,9 @@ class InstanceMethodProvider implements CompletionProviderInterface
             function (ReflectionMethod $method) {
                 return new CompletionItem(
                     $method->getName(),
-                    CompletionItemKind::METHOD
+                    CompletionItemKind::METHOD,
+                    (string) $method->getReturnType(),
+                    $method->getDocComment()
                 );
             },
             $reflection->getMethods()
