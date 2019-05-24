@@ -32,13 +32,13 @@ abstract class ParserTestCase extends TestCase
                 ])
             ));
 
-        $document = new TextDocument($file, $this->loadFixture(), 0);
+        $document = new TextDocument($file, $this->loadFixture($file), 0);
 
         return $parser->parse($document);
     }
 
-    private function loadFixture()
+    protected function loadFixture(string $fixture)
     {
-        return file_get_contents(__DIR__.'/fixtures/Foo.php');
+        return file_get_contents(__DIR__.'/fixtures/'.$fixture);
     }
 }

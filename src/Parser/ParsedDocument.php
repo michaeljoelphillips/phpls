@@ -114,7 +114,7 @@ class ParsedDocument
         return $this->finder->findInstanceOf($this->nodes, Use_::class);
     }
 
-    public function getConstructorNode(): ClassMethod
+    public function getConstructorNode(): ?ClassMethod
     {
         return $this->finder->findFirst(
             $this->nodes,
