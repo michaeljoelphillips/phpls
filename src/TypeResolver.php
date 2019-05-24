@@ -107,7 +107,7 @@ class TypeResolver
      *
      * @return string
      */
-    public function getVariableType(ParsedDocument $document, Variable $variable): string
+    public function getVariableType(ParsedDocument $document, Variable $variable): ?string
     {
         if ('this' === $variable->name) {
             return $document->getClassName();
@@ -115,12 +115,21 @@ class TypeResolver
 
         $closestVariable = $this->findClosestVariableReferencesInDocument($variable, $document);
 
+        if (null === $closestVariable) {
+            return null;
+        }
+
         return $this->getType($document, $closestVariable);
     }
 
-    private function findClosestVariableReferencesInDocument(Variable $variable, ParsedDocument $document): NodeAbstract
+    private function findClosestVariableReferencesInDocument(Variable $variable, ParsedDocument $document): ?NodeAbstract
     {
         $expressions = $this->findVariableReferencesInDocument($variable, $document);
+
+        if (empty($expressions)) {
+            return null;
+        }
+
         $orderedExpressions = $this->sortNodesByEndingLocation($expressions);
 
         return end($orderedExpressions);
@@ -203,11 +212,48 @@ class TypeResolver
         return array_pop($matchingUseStatement)->name->toCodeString();
     }
 
-    /**
-     * @param ParsedDocument $document
-     * @param Name           $node
-     */
     private function getPropertyType(ParsedDocument $document, PropertyFetch $property)
+    {
+        $type = $this->getPropertyTypeFromDocblock($document, $property);
+
+        if ($type === null) {
+            if ($property->var->name === 'this') {
+                return $this->getPropertyTypeFromConstructorAssignment($document, $property);
+            }
+
+            return null;
+        }
+
+        return $type;
+    }
+
+    private function getPropertyTypeFromDocblock(ParsedDocument $document, PropertyFetch $property)
+    {
+        $propertyName = $property->name;
+        $variableType = $this->getType($document, $property->var);
+
+        if (null === $variableType) {
+            return null;
+        }
+
+        $reflectedClass = $this->reflector->reflect($variableType);
+        $reflectedProperty = $reflectedClass->getProperty($propertyName->name);
+
+        if (null === $reflectedProperty) {
+            return null;
+        }
+
+        $docblockTypes = $reflectedProperty->getDocBlockTypeStrings();
+
+        if (empty($docblockTypes)) {
+            return null;
+        }
+
+        // @todo: Figure out what to do with union types
+        return $this->getType($document, new Name(array_pop($docblockTypes)));
+    }
+
+    private function getPropertyTypeFromConstructorAssignment(ParsedDocument $document, PropertyFetch $property)
     {
         $constructor = $document->getConstructorNode();
 
