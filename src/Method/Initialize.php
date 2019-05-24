@@ -18,7 +18,7 @@ class Initialize
     public function __invoke(array $params)
     {
         $capabilities = new ServerCapabilities();
-        $capabilities->completionProvider = new CompletionOptions(true, ['::', '->']);
+        $capabilities->completionProvider = new CompletionOptions(true, [':', '>']);
         $capabilities->signatureHelpProvider = new SignatureHelpOptions(['(', ',']);
 
         return $this->deferred($capabilities);

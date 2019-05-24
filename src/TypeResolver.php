@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace LanguageServer;
 
 use LanguageServer\Parser\ParsedDocument;
-use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Assign;
+use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\StaticCall;
+use PhpParser\Node\Expr\StaticPropertyFetch;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Name;
 use PhpParser\Node\Param;
@@ -46,6 +47,13 @@ class TypeResolver
         }
 
         if ($node instanceof StaticCall) {
+            return $this->getType($document, $node->class);
+        }
+
+        if (
+            $node instanceof StaticPropertyFetch ||
+            $node instanceof ClassConstFetch
+        ) {
             return $this->getType($document, $node->class);
         }
 
