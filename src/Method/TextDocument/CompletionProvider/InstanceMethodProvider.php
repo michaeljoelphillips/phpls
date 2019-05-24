@@ -32,7 +32,11 @@ class InstanceMethodProvider implements CompletionProviderInterface
 
     public function complete(ParsedDocument $document, Expr $expression): array
     {
-        $type = $this->resolver->getType($document, $expression->var);
+        if (!$expression->var instanceof MethodCall) {
+            $expression = $expression->var;
+        }
+
+        $type = $this->resolver->getType($document, $expression);
         $reflection = $this->reflector->reflect($type);
 
         return $this->mapCompletionItems($document, $reflection);
@@ -53,6 +57,6 @@ class InstanceMethodProvider implements CompletionProviderInterface
 
     public function supports(NodeAbstract $expression): bool
     {
-        return $expression instanceof PropertyFetch && !$expression->var instanceof MethodCall;
+        return $expression instanceof PropertyFetch;
     }
 }
