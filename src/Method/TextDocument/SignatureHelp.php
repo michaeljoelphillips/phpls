@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace LanguageServer\Method\TextDocument;
 
 use LanguageServer\CursorPosition;
-use LanguageServer\Parser\DocumentParser;
+use LanguageServer\Parser\DocumentParserInterface;
 use LanguageServer\Parser\ParsedDocument;
 use LanguageServer\TextDocumentRegistry;
 use LanguageServer\TypeResolver;
@@ -34,7 +34,7 @@ class SignatureHelp
     private $resolver;
     private $registry;
 
-    public function __construct(Reflector $reflector, DocumentParser $parser, TypeResolver $resolver, TextDocumentRegistry $registry)
+    public function __construct(Reflector $reflector, DocumentParserInterface $parser, TypeResolver $resolver, TextDocumentRegistry $registry)
     {
         $this->reflector = $reflector;
         $this->parser = $parser;
