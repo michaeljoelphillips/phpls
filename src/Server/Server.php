@@ -23,9 +23,9 @@ class Server
         $this->serializer = $serializer;
     }
 
-    public function listen(ServerInterface $socker): void
+    public function listen(ServerInterface $socket): void
     {
-        $socker->on('connection', [$this, 'handleRequest']);
+        $socket->on('connection', [$this, 'handleRequest']);
     }
 
     public function handleRequest(ConnectionInterface $connection): void
