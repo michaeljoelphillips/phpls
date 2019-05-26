@@ -181,7 +181,13 @@ class SignatureHelp
     {
         return array_map(
             function (ReflectionParameter $param) {
-                $label = sprintf('%s $%s', (string) $param->getType(), (string) $param->getName());
+                $label = '';
+
+                if (null !== $param->getType()) {
+                    $label .= (string) $param->getType().' ';
+                }
+
+                $label .= '$'.(string) $param->getName();
 
                 return new ParameterInformation($label, null);
             },

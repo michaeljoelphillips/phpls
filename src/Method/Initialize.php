@@ -9,13 +9,14 @@ use LanguageServerProtocol\ServerCapabilities;
 use LanguageServerProtocol\SignatureHelpOptions;
 use React\Promise\Deferred;
 use React\Promise\Promise;
+use React\Promise\PromiseInterface;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
 class Initialize
 {
-    public function __invoke(array $params)
+    public function __invoke(array $params): PromiseInterface
     {
         $capabilities = new ServerCapabilities();
         $capabilities->completionProvider = new CompletionOptions(true, [':', '>']);

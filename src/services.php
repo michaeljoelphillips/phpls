@@ -114,7 +114,9 @@ return [
     ],
     'initialize' => DI\create(Initialize::class),
     'initialized' => DI\create(Initialized::class),
-    'exit' => DI\create(Exit_::class),
+    'exit' => function (ContainerInterface $container) {
+        return new Exit_($container->get(TextDocumentRegistry::class));
+    },
     'textDocument/didSave' => DI\create(DidSave::class),
     'textDocument/completion' => function (ContainerInterface $container) {
         return new Completion(

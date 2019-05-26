@@ -27,7 +27,7 @@ class DidOpen
         $textDocument = new TextDocument(
             $params['textDocument']['uri'],
             $params['textDocument']['text'],
-            $params['textDocument']['version'],
+            $params['textDocument']['version']
         );
 
         $this->parser->parse($textDocument);

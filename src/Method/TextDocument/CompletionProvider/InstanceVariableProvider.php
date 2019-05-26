@@ -33,6 +33,11 @@ class InstanceVariableProvider implements CompletionProviderInterface
     public function complete(ParsedDocument $document, Expr $expression): array
     {
         $type = $this->resolver->getType($document, $expression->var);
+
+        if (null === $type) {
+            return [];
+        }
+
         $reflection = $this->reflector->reflect($type);
 
         return $this->mapCompletionItems($document, $reflection);

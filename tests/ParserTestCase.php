@@ -16,9 +16,9 @@ use PHPUnit\Framework\TestCase;
  */
 abstract class ParserTestCase extends TestCase
 {
-    public function parse(string $file): ParsedDocument
+    public function getParser()
     {
-        $parser = new DocumentParser(
+        return new DocumentParser(
             (new ParserFactory())->create(
                 ParserFactory::PREFER_PHP7,
                 new Lexer([
@@ -31,6 +31,11 @@ abstract class ParserTestCase extends TestCase
                     ],
                 ])
             ));
+    }
+
+    public function parse(string $file): ParsedDocument
+    {
+        $parser = $this->getParser();
 
         $document = new TextDocument($file, $this->loadFixture($file), 0);
 

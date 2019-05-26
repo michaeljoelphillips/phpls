@@ -37,6 +37,11 @@ class InstanceMethodProvider implements CompletionProviderInterface
         }
 
         $type = $this->resolver->getType($document, $expression);
+
+        if (null === $type) {
+            return [];
+        }
+
         $reflection = $this->reflector->reflect($type);
 
         return $this->mapCompletionItems($document, $reflection);
