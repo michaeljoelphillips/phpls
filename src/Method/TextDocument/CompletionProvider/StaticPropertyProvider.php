@@ -7,33 +7,36 @@ namespace LanguageServer\Method\TextDocument\CompletionProvider;
 use LanguageServer\Parser\ParsedDocument;
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
-use PhpParser\Node\Expr\PropertyFetch;
+use PhpParser\Node\Expr\ClassConstFetch;
+use PhpParser\Node\Expr\StaticPropertyFetch;
 use PhpParser\NodeAbstract;
+use ReflectionProperty as CoreReflectionProperty;
 use Roave\BetterReflection\Reflection\ReflectionClass;
-use Roave\BetterReflection\Reflection\ReflectionMethod;
+use Roave\BetterReflection\Reflection\ReflectionProperty;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
-class InstanceMethodProvider extends AbstractProvider
+class StaticPropertyProvider extends AbstractProvider
 {
     protected function mapCompletionItems(ParsedDocument $document, ReflectionClass $reflection): array
     {
         return array_values(array_map(
-            function (ReflectionMethod $method) {
+            function (ReflectionProperty $property) {
                 return new CompletionItem(
-                    $method->getName(),
-                    CompletionItemKind::METHOD,
-                    (string) $method->getReturnType(),
-                    $method->getDocComment()
+                    $property->getName(),
+                    CompletionItemKind::PROPERTY,
+                    implode('|', $property->getDocblockTypeStrings()),
+                    $property->getDocComment()
                 );
             },
-            $reflection->getMethods()
+            $reflection->getProperties(CoreReflectionProperty::IS_STATIC)
         ));
     }
 
     public function supports(NodeAbstract $expression): bool
     {
-        return $expression instanceof PropertyFetch;
+        return $expression instanceof StaticPropertyFetch
+            || $expression instanceof ClassConstFetch;
     }
 }

@@ -6,8 +6,11 @@ use LanguageServer\Method\Exit_;
 use LanguageServer\Method\Initialize;
 use LanguageServer\Method\Initialized;
 use LanguageServer\Method\TextDocument\Completion;
+use LanguageServer\Method\TextDocument\CompletionProvider\ClassConstantProvider;
 use LanguageServer\Method\TextDocument\CompletionProvider\InstanceMethodProvider;
 use LanguageServer\Method\TextDocument\CompletionProvider\InstanceVariableProvider;
+use LanguageServer\Method\TextDocument\CompletionProvider\StaticMethodProvider;
+use LanguageServer\Method\TextDocument\CompletionProvider\StaticPropertyProvider;
 use LanguageServer\Method\TextDocument\DidChange;
 use LanguageServer\Method\TextDocument\DidOpen;
 use LanguageServer\Method\TextDocument\DidSave;
@@ -85,7 +88,7 @@ return [
                 new RegistrySourceLocator($locator, $container->get(TextDocumentRegistry::class)),
                 new MemoizingSourceLocator(
                     new AggregateSourceLocator([
-                        (new MakeLocatorForComposerJsonAndInstalledJson())('/Users/mphillips2/Code/language-server', $locator),
+                        (new MakeLocatorForComposerJsonAndInstalledJson())('/home/nomad/Code/language-server', $locator),
                         new PhpInternalSourceLocator($locator, new PhpStormStubsSourceStubber($container->get(MemoizingParser::class))),
                     ]),
                 ),
@@ -108,9 +111,30 @@ return [
             $container->get(ClassReflector::class)
         );
     },
+    ClassConstantProvider::class => function (ContainerInterface $container) {
+        return new ClassConstantProvider(
+            $container->get(TypeResolver::class),
+            $container->get(ClassReflector::class)
+        );
+    },
+    StaticMethodProvider::class => function (ContainerInterface $container) {
+        return new StaticMethodProvider(
+            $container->get(TypeResolver::class),
+            $container->get(ClassReflector::class)
+        );
+    },
+    StaticPropertyProvider::class => function (ContainerInterface $container) {
+        return new StaticPropertyProvider(
+            $container->get(TypeResolver::class),
+            $container->get(ClassReflector::class)
+        );
+    },
     'completionProviders' => [
         DI\get(InstanceMethodProvider::class),
         DI\get(InstanceVariableProvider::class),
+        DI\get(StaticMethodProvider::class),
+        DI\get(StaticPropertyProvider::class),
+        DI\get(ClassConstantProvider::class),
     ],
     'initialize' => DI\create(Initialize::class),
     'initialized' => DI\create(Initialized::class),
