@@ -31,8 +31,21 @@ class IncompleteDocumentParser implements DocumentParserInterface
     {
         $source = $document->getSource();
 
-        $source = preg_replace('/[^\(](\$\w+->)\n/i', '${1}lspSyntaxStub;'.PHP_EOL, $source);
-        $source = preg_replace('/(\(\$(\w+(\([$\w]*\))?->)*)\n/', '${1}lspSyntaxStub);'.PHP_EOL, $source);
+        $source = preg_replace_callback(
+            '/(\()*\$(\w+(\([$\w]*\))?->)*\n/',
+            function (array $matches) {
+                $result = sprintf('%slspSyntaxStub', $matches[0]);
+
+                if (isset($matches[1]) && '(' === $matches[1]) {
+                    $result .= ')';
+                }
+
+                return $result .= ';'.PHP_EOL;
+            },
+            $source
+        );
+
+        $source = preg_replace('/(\w+::)\n/', '${1}LSP_SYNTAX_STUB;'.PHP_EOL, $source);
 
         return $source;
     }
