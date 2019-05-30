@@ -8,7 +8,6 @@ use LanguageServer\CursorPosition;
 use LanguageServer\Test\ParserTestCase;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Stmt\ClassMethod;
-use PhpParser\Node\Stmt\Return_;
 use PhpParser\NodeAbstract;
 
 /**
@@ -18,23 +17,24 @@ class ParsedDocumentTest extends ParserTestCase
 {
     public function testGetClassName()
     {
-        $subject = $this->parse('Foo.php');
+        $subject = $this->parse('ParsedDocumentFixture.php');
 
-        $this->assertEquals('Fixtures\Foo', $subject->getClassName());
+        $this->assertEquals('Fixtures\ParsedDocumentFixture', $subject->getClassName());
     }
 
     public function testGetMethod()
     {
-        $subject = $this->parse('Foo.php');
+        $subject = $this->parse('ParsedDocumentFixture.php');
 
-        $method = $subject->getMethod('anotherTestFunction');
+        $method = $subject->getMethod('testMethod');
 
-        $this->assertEquals('anotherTestFunction', $method->name);
+        $this->assertNotNull($method);
+        $this->assertEquals('testMethod', $method->name);
     }
 
     public function testFindNodes()
     {
-        $subject = $this->parse('Foo.php');
+        $subject = $this->parse('ParsedDocumentFixture.php');
 
         $nodes = $subject->findNodes(ClassMethod::class);
 
@@ -43,7 +43,7 @@ class ParsedDocumentTest extends ParserTestCase
 
     public function testSearchNodes()
     {
-        $subject = $this->parse('Foo.php');
+        $subject = $this->parse('ParsedDocumentFixture.php');
 
         $nodes = $subject->searchNodes(
             function (NodeAbstract $node) {
@@ -56,51 +56,40 @@ class ParsedDocumentTest extends ParserTestCase
 
     public function testGetUseStatements()
     {
-        $subject = $this->parse('Foo.php');
+        $subject = $this->parse('ParsedDocumentFixture.php');
 
         $nodes = $subject->getUseStatements();
 
         $this->assertEquals(1, count($nodes));
-        $this->assertEquals('Bar\Baz', $nodes[0]->uses[0]->name);
+        $this->assertEquals('Psr\Log\LoggerInterface', $nodes[0]->uses[0]->name);
     }
 
     public function testGetNamespace()
     {
-        $subject = $this->parse('Foo.php');
+        $subject = $this->parse('ParsedDocumentFixture.php');
 
         $this->assertEquals('Fixtures', $subject->getNamespace());
     }
 
     public function testGetSource()
     {
-        $subject = $this->parse('Foo.php');
+        $subject = $this->parse('ParsedDocumentFixture.php');
 
-        $this->assertEquals($this->loadFixture('Foo.php'), $subject->getSource());
+        $this->assertEquals($this->loadFixture('ParsedDocumentFixture.php'), $subject->getSource());
     }
 
     public function testGetNodesAtCursor()
     {
-        $subject = $this->parse('Foo.php');
+        $subject = $this->parse('ParsedDocumentFixture.php');
 
-        $result = $subject->getNodesAtCursor(new CursorPosition(16, 36, 189));
+        $result = $subject->getNodesAtCursor(new CursorPosition(18, 36, 284));
 
         $this->assertContainsInstanceOf(MethodCall::class, $result);
     }
 
-    public function testGetNodesBesideCursor()
-    {
-        $subject = $this->parse('Foo.php');
-
-        $result = $subject->getNodesBesideCursor(new CursorPosition(16, 36, 211));
-        $this->assertContainsOnlyInstancesOf(Return_::class, $result);
-
-        $result = $subject->getNodesBesideCursor(new CursorPosition(16, 36, 210));
-        $this->assertContainsOnlyInstancesOf(MethodCall::class, $result);
-    }
-
     public function testGetConstructorNode()
     {
-        $subject = $this->parse('Foo.php');
+        $subject = $this->parse('ParsedDocumentFixture.php');
         $constructor = $subject->getConstructorNode();
         $this->assertNull($constructor);
 

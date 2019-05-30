@@ -22,14 +22,14 @@ class TextDocumentTest extends TestCase
 
     public function testGetCursorPosition()
     {
-        $subject = new TextDocument('file:///tmp/foo.php', $this->getFixture(), 0);
-        $cursor = new CursorPosition(9, 16, 70);
+        $subject = new TextDocument('file:///tmp/Foo.php', $this->getFixture(), 0);
+        $cursor = new CursorPosition(10, 32, 151);
 
-        $this->assertEquals($cursor, $subject->getCursorPosition(9, 16));
+        $this->assertEquals($cursor, $subject->getCursorPosition(10, 32));
     }
 
     private function getFixture()
     {
-        return file_get_contents('tests/fixtures/Foo.php');
+        return file_get_contents('tests/fixtures/TextDocumentFixture.php');
     }
 }

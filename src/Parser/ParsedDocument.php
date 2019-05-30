@@ -84,14 +84,7 @@ class ParsedDocument
         return sprintf('%s\%s', $namespace, $class->name);
     }
 
-    /**
-     * Get a method node by name.
-     *
-     * @param string $methodName
-     *
-     * @return ClassMethod
-     */
-    public function getMethod(string $methodName): ClassMethod
+    public function getMethod(string $methodName): ?ClassMethod
     {
         return $this->finder->findFirst($this->nodes, function (NodeAbstract $node) use ($methodName) {
             return $node instanceof ClassMethod
