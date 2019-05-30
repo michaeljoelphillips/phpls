@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LanguageServer\Server;
 
 use Psr\Container\ContainerInterface;
+use Psr\Log\LoggerInterface;
 use React\Promise\Promise;
 use React\Socket\ConnectionInterface;
 use React\Socket\ServerInterface;
@@ -17,11 +18,13 @@ class Server
 {
     private $container;
     private $serializer;
+    private $logger;
 
-    public function __construct(ContainerInterface $container, MessageSerializer $serializer)
+    public function __construct(ContainerInterface $container, MessageSerializer $serializer, LoggerInterface $logger)
     {
         $this->container = $container;
         $this->serializer = $serializer;
+        $this->logger = $logger;
     }
 
     public function listen(ServerInterface $socket): void
@@ -63,12 +66,14 @@ class Server
 
     private function invokeRemoteMethod(RequestMessage $request): ?object
     {
+        $this->logger->debug(sprintf('Received %s', $request->method), $request->params ?? []);
+
         try {
             $object = $this->container->get($request->method);
 
             return $object->__invoke($request->params);
         } catch (Throwable $t) {
-            echo $t->getMessage().PHP_EOL;
+            $this->logger->error($t->getMessage());
 
             return null;
         }

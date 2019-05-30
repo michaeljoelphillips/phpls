@@ -22,10 +22,13 @@ use LanguageServer\RegistrySourceLocator;
 use LanguageServer\Server\JsonRpcEncoder;
 use LanguageServer\TextDocumentRegistry;
 use LanguageServer\TypeResolver;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
 use PhpParser\Lexer;
 use PhpParser\Parser;
 use PhpParser\ParserFactory;
 use Psr\Container\ContainerInterface;
+use Psr\Log\LoggerInterface;
 use Roave\BetterReflection\Reflector\ClassReflector;
 use Roave\BetterReflection\SourceLocator\Ast\Locator;
 use Roave\BetterReflection\SourceLocator\Ast\Parser\MemoizingParser;
@@ -39,8 +42,11 @@ use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
 
 return [
-    RpcServer::class => function (ContainerInterface $container) {
-        return new RpcServer($container, $container->get(MessageSerializer::class));
+    LoggerInterface::class => function (ContainerInterface $container) {
+        $logger = new Logger('default');
+        $logger->pushHandler(new StreamHandler(STDOUT));
+
+        return $logger;
     },
     SerializerInterface::class => function (ContainerInterface $container) {
         return new Serializer(
@@ -88,7 +94,7 @@ return [
                 new RegistrySourceLocator($locator, $container->get(TextDocumentRegistry::class)),
                 new MemoizingSourceLocator(
                     new AggregateSourceLocator([
-                        (new MakeLocatorForComposerJsonAndInstalledJson())('/home/nomad/Code/language-server', $locator),
+                        (new MakeLocatorForComposerJsonAndInstalledJson())('/home/nomad/Code/answer-automation', $locator),
                         new PhpInternalSourceLocator($locator, new PhpStormStubsSourceStubber($container->get(MemoizingParser::class))),
                     ]),
                 ),
