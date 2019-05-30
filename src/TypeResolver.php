@@ -38,18 +38,6 @@ class TypeResolver
             return $this->getVariableType($document, $node);
         }
 
-        if ($node instanceof MethodCall) {
-            if ($node->var instanceof MethodCall) {
-                return $this->getReturnType($document, $node->var);
-            }
-
-            return $this->getType($document, $node->var);
-        }
-
-        if ($node instanceof StaticCall) {
-            return $this->getType($document, $node->class);
-        }
-
         if (
             $node instanceof StaticPropertyFetch ||
             $node instanceof ClassConstFetch
@@ -57,8 +45,16 @@ class TypeResolver
             return $this->getType($document, $node->class);
         }
 
+        if ($node instanceof StaticCall) {
+            return $this->getType($document, $node->class);
+        }
+
         if ($node instanceof New_) {
             return $this->getType($document, $node->class);
+        }
+
+        if ($node instanceof Name) {
+            return $this->getTypeFromClassReference($document, $node);
         }
 
         if ($node instanceof Assign && $node->expr instanceof New_) {
@@ -69,22 +65,34 @@ class TypeResolver
             return $this->getArgumentType($document, $node);
         }
 
+        if ($node instanceof MethodCall) {
+            if ($node->var instanceof MethodCall) {
+                return $this->getReturnType($document, $node->var);
+            }
+
+            if ($node->var instanceof PropertyFetch) {
+                return $this->getPropertyType($document, $node->var);
+            }
+
+            return $this->getType($document, $node->var);
+        }
+
         if ($node instanceof PropertyFetch) {
             if ($node->var instanceof MethodCall) {
                 return $this->getReturnType($document, $node->var);
             }
 
-            return $this->getPropertyType($document, $node);
-        }
+            if ($node->var instanceof PropertyFetch) {
+                return $this->getPropertyType($document, $node->var);
+            }
 
-        if ($node instanceof Name) {
-            return $this->getTypeFromClassReference($document, $node);
+            return $this->getType($document, $node->var);
         }
 
         return null;
     }
 
-    private function getReturnType(ParsedDocument $document, MethodCall $methodCall): string
+    private function getReturnType(ParsedDocument $document, MethodCall $methodCall): ?string
     {
         $variableType = $this->getType($document, $methodCall);
         $methodName = $methodCall->name;
@@ -92,7 +100,13 @@ class TypeResolver
         $reflectedClass = $this->reflector->reflect($variableType);
         $reflectedMethod = $reflectedClass->getMethod($methodName->name);
 
-        return (string) $reflectedMethod->getReturnType();
+        $type = (string) $reflectedMethod->getReturnType();
+
+        if ($type === '') {
+            return null;
+        }
+
+        return $type;
     }
 
     /**
@@ -216,8 +230,8 @@ class TypeResolver
     {
         $type = $this->getPropertyTypeFromDocblock($document, $property);
 
-        if ($type === null) {
-            if ($property->var->name === 'this') {
+        if (null === $type) {
+            if ('this' === $property->var->name) {
                 return $this->getPropertyTypeFromConstructorAssignment($document, $property);
             }
 
@@ -256,6 +270,10 @@ class TypeResolver
     private function getPropertyTypeFromConstructorAssignment(ParsedDocument $document, PropertyFetch $property)
     {
         $constructor = $document->getConstructorNode();
+
+        if (null === $constructor) {
+            return null;
+        }
 
         $propertyAssignment = array_values(array_filter(
             $constructor->stmts,

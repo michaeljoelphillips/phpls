@@ -5,13 +5,16 @@ declare(strict_types=1);
 namespace LanguageServer\Test;
 
 use LanguageServer\TypeResolver;
+use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
 use PhpParser\Node\Param;
 use Roave\BetterReflection\Reflection\ReflectionClass;
+use Roave\BetterReflection\Reflection\ReflectionMethod;
 use Roave\BetterReflection\Reflection\ReflectionProperty;
+use Roave\BetterReflection\Reflection\ReflectionType;
 use Roave\BetterReflection\Reflector\Reflector;
 
 /**
@@ -183,12 +186,16 @@ class TypeResolverTest extends ParserTestCase
     public function testGetTypeForPropertyFetchOnPropertyAssignedInTheConstructor()
     {
         $document = $this->parse('Foo.php');
+
         $node = new PropertyFetch(
-            new Variable('this', [
-                'startFilePos' => 30,
-                'endFilePos' => 300,
-            ]),
-            new Identifier('bar')
+            new PropertyFetch(
+                new Variable('this', [
+                    'startFilePos' => 30,
+                    'endFilePos' => 300,
+                ]),
+                new Identifier('bar')
+            ),
+            new Identifier('baz')
         );
 
         $reflectedClass = $this->createMock(ReflectionClass::class);
@@ -210,5 +217,119 @@ class TypeResolverTest extends ParserTestCase
         $type = $this->subject->getType($document, $node);
 
         $this->assertEquals('Bar\Bar', $type);
+    }
+
+    public function testGetTypeForPropertyFetchOnMethodCallReturnType()
+    {
+        $document = $this->parse('Foo.php');
+
+        $node = new PropertyFetch(
+            new MethodCall(
+                new Variable('this'),
+                new Identifier('methodCallTestMethod')
+            ),
+            new Identifier('bar')
+        );
+
+        $reflectedClass = $this->createMock(ReflectionClass::class);
+        $reflectedMethod = $this->createMock(ReflectionMethod::class);
+        $reflectionType = $this->createMock(ReflectionType::class);
+
+        $reflectionType
+            ->method('__toString')
+            ->willReturn('Fixtures\Foo');
+
+        $this
+            ->reflector
+            ->method('reflect')
+            ->willReturn($reflectedClass);
+
+        $reflectedClass
+            ->method('getMethod')
+            ->willReturn($reflectedMethod);
+
+        $reflectedMethod
+            ->method('getReturnType')
+            ->willReturn($reflectionType);
+
+        $type = $this->subject->getType($document, $node);
+
+        $this->assertEquals('Fixtures\Foo', $type);
+    }
+
+    public function testGetTypeForMethodCallOnMethodCallReturnType()
+    {
+        $document = $this->parse('Foo.php');
+
+        $node = new MethodCall(
+            new MethodCall(
+                new Variable('this'),
+                new Identifier('anotherTestFunction')
+            ),
+            new Identifier('methodCallTestMethod')
+        );
+
+        $reflectedClass = $this->createMock(ReflectionClass::class);
+        $reflectedMethod = $this->createMock(ReflectionMethod::class);
+        $reflectionType = $this->createMock(ReflectionType::class);
+
+        $this
+            ->reflector
+            ->method('reflect')
+            ->willReturn($reflectedClass);
+
+        $reflectedClass
+            ->method('getMethod')
+            ->willReturn($reflectedMethod);
+
+        $reflectedMethod
+            ->method('getReturnType')
+            ->willReturn($reflectionType);
+
+        $reflectionType
+            ->method('__toString')
+            ->willReturn('Bar\Bar');
+
+        $type = $this->subject->getType($document, $node);
+
+        $this->assertEquals('Bar\Bar', $type);
+    }
+
+    public function testGetTypeForMethodCallWithNoReturnType()
+    {
+        $document = $this->parse('Foo.php');
+
+        $node = new MethodCall(
+            new MethodCall(
+                new Variable('this'),
+                new Identifier('methodWithoutReturnType')
+            ),
+            new Identifier('methodCallTestMethod')
+        );
+
+        $reflectedClass = $this->createMock(ReflectionClass::class);
+        $reflectedMethod = $this->createMock(ReflectionMethod::class);
+        $reflectionType = $this->createMock(ReflectionType::class);
+
+        $this
+            ->reflector
+            ->method('reflect')
+            ->willReturn($reflectedClass);
+
+        $reflectedClass
+            ->method('getMethod')
+            ->willReturn($reflectedMethod);
+
+        $reflectedMethod
+            ->method('getReturnType')
+            ->willReturn($reflectionType);
+
+        $reflectionType
+            ->method('__toString')
+            ->willReturn('');
+
+        $type = $this->subject->getType($document, $node);
+
+        $this->assertNull($type);
     }
 }

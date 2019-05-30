@@ -26,7 +26,7 @@ abstract class AbstractProvider implements CompletionProviderInterface
 
     public function complete(ParsedDocument $document, Expr $expression): array
     {
-        $type = $this->resolver->getType($document, $expression->class);
+        $type = $this->resolver->getType($document, $expression);
 
         if (null === $type) {
             return [];

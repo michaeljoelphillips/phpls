@@ -21,13 +21,24 @@ class Foo
         return 'Hello';
     }
 
-    public function anotherTestFunction(Baz $parameter)
+    public function anotherTestFunction(Baz $parameter): Bar
     {
         $localVariable = new Baz();
         $localVariable->methodCall();
 
         $parameter->foo;
 
+        $this->bar->baz;
+
         return $this->testFunction();
+    }
+
+    public function methodCallTestMethod(): self
+    {
+        $this->methodCallTestMethod()->bar;
+    }
+
+    public function methodWithoutReturnType()
+    {
     }
 }
