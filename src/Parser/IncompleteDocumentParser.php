@@ -32,11 +32,11 @@ class IncompleteDocumentParser implements DocumentParserInterface
         $source = $document->getSource();
 
         $source = preg_replace_callback(
-            '/(\()*\$(\w+(\([$\w]*\))?->)*\n/',
+            '/((\()*\$(\w+(\([$\w]*\))?->\w*)*)\n/',
             function (array $matches) {
-                $result = sprintf('%slspSyntaxStub', $matches[0]);
+                $result = sprintf('%slspSyntaxStub', $matches[1]);
 
-                if (isset($matches[1]) && '(' === $matches[1]) {
+                if (isset($matches[2]) && '(' === $matches[2]) {
                     $result .= ')';
                 }
 
