@@ -8,6 +8,7 @@ use Psr\Container\ContainerInterface;
 use React\Promise\Promise;
 use React\Socket\ConnectionInterface;
 use React\Socket\ServerInterface;
+use Throwable;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
@@ -62,8 +63,14 @@ class Server
 
     private function invokeRemoteMethod(RequestMessage $request): ?object
     {
-        $object = $this->container->get($request->method);
+        try {
+            $object = $this->container->get($request->method);
 
-        return $object->__invoke($request->params);
+            return $object->__invoke($request->params);
+        } catch (Throwable $t) {
+            echo $t->getMessage().PHP_EOL;
+
+            return null;
+        }
     }
 }
