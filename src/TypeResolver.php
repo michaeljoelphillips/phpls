@@ -95,6 +95,11 @@ class TypeResolver
     private function getReturnType(ParsedDocument $document, MethodCall $methodCall): ?string
     {
         $variableType = $this->getType($document, $methodCall);
+
+        if (null === $variableType) {
+            return null;
+        }
+
         $methodName = $methodCall->name;
 
         $reflectedClass = $this->reflector->reflect($variableType);
@@ -102,7 +107,7 @@ class TypeResolver
 
         $type = (string) $reflectedMethod->getReturnType();
 
-        if ($type === '') {
+        if ('' === $type) {
             return null;
         }
 
