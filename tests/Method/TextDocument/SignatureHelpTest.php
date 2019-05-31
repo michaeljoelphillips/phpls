@@ -6,6 +6,7 @@ namespace LanguageServer\Test\Method\TextDocument;
 
 use LanguageServer\Method\TextDocument\SignatureHelp;
 use LanguageServer\Parser\DocumentParser;
+use LanguageServer\RegistrySourceLocator;
 use LanguageServer\Test\FixtureTestCase;
 use LanguageServer\TextDocument;
 use LanguageServer\TextDocumentRegistry;
@@ -14,7 +15,6 @@ use PhpParser\Lexer;
 use PhpParser\ParserFactory;
 use Roave\BetterReflection\Reflector\ClassReflector;
 use Roave\BetterReflection\SourceLocator\Ast\Locator as AstLocator;
-use Roave\BetterReflection\SourceLocator\Type\StringSourceLocator;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
@@ -38,20 +38,19 @@ class SignatureHelpTest extends FixtureTestCase
             ])
         );
 
-        $source = $this->loadFixture('SignatureHelpFixture.php');
-        $locator = new StringSourceLocator($source, new AstLocator($phpParser));
+        $registry = new TextDocumentRegistry();
+        $locator = new RegistrySourceLocator(new AstLocator($phpParser), $registry);
         $reflector = new ClassReflector($locator);
         $resolver = new TypeResolver($reflector);
         $documentParser = new DocumentParser($phpParser);
-        $registry = new TextDocumentRegistry();
-        $document = new TextDocument('file:///tmp/foo.php', $source, 0);
+        $document = new TextDocument('file:///tmp/foo.php', $this->loadFixture('SignatureHelpFixture.php'), 0);
         $registry->add($document);
 
         $this->subject = new SignatureHelp($reflector, $documentParser, $resolver, $registry);
     }
 
     /**
-     * @dataProvider cursorPositions
+     * @dataProvider cursorPositionsProvider
      */
     public function testSignatureHelp(int $line, int $character, int $activeParameter, string $label)
     {
@@ -70,7 +69,37 @@ class SignatureHelpTest extends FixtureTestCase
         $this->assertEquals($label, $result->signatures[0]->label);
     }
 
-    public function cursorPositions(): array
+    public function testSignatureHelpReturnsEmptyResponseWhenNoExpressionFound()
+    {
+        $result = $this->subject->__invoke([
+            'textDocument' => [
+                'uri' => 'file:///tmp/foo.php',
+            ],
+            'position' => [
+                'line' => 31,
+                'character' => 9,
+            ],
+        ]);
+
+        $this->assertEmpty($result->activeParameter);
+    }
+
+    public function testSignatureHelpReturnsEmptyResponseWhenNoConstructorFound()
+    {
+        $result = $this->subject->__invoke([
+            'textDocument' => [
+                'uri' => 'file:///tmp/foo.php',
+            ],
+            'position' => [
+                'line' => 30,
+                'character' => 33,
+            ],
+        ]);
+
+        $this->assertEmpty($result->activeParameter);
+    }
+
+    public function cursorPositionsProvider(): array
     {
         return [
             [17, 19, 0, 'stdClass $bar, array $baz'],
@@ -78,9 +107,10 @@ class SignatureHelpTest extends FixtureTestCase
             [19, 33, 0, 'stdClass $bar, array $baz'],
             [20, 16, 0, 'stdClass $bar, array $baz'],
             [22, 13, 1, 'stdClass $bar, array $baz'],
-            [26, 25, 0, '$baz'],
             [26, 34, 0, 'stdClass $bar, array $baz'],
             [27, 13, 1, 'stdClass $bar, array $baz'],
+            [26, 25, 0, '$baz'],
+            [26, 53, 1, '$baz'],
         ];
     }
 }

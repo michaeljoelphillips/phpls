@@ -12,6 +12,7 @@ use LanguageServer\TypeResolver;
 use LanguageServerProtocol\ParameterInformation;
 use LanguageServerProtocol\SignatureHelp as SignatureHelpResponse;
 use LanguageServerProtocol\SignatureInformation;
+use OutOfBoundsException;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\MethodCall;
@@ -61,10 +62,14 @@ class SignatureHelp
             return $this->emptySignatureHelpResponse();
         }
 
-        $method = $this->reflectMethodFromExpression($parsedDocument, $expression);
-        $signatures = $this->getSignatureHelpForMethod($method, $expression, $cursorPosition);
+        try {
+            $method = $this->reflectMethodFromExpression($parsedDocument, $expression);
+            $signatures = $this->getSignatureHelpForMethod($method, $expression, $cursorPosition);
 
-        return $signatures;
+            return $signatures;
+        } catch (OutOfBoundsException $e) {
+            return $this->emptySignatureHelpResponse();
+        }
     }
 
     private function findExpressionAtCursor(ParsedDocument $document, CursorPosition $cursorPosition): ?Expr

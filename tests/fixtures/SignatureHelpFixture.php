@@ -24,9 +24,11 @@ class SignatureHelpFixture
         );
 
         $this->foo(
-            $this->bar($this->foo()),
+            $this->bar($this->foo(), $baz, $bad, $qwe),
             []
         );
+
+        new SignatureHelpFixture();
 
         return;
     }
