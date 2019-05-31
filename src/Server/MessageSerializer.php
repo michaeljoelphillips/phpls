@@ -38,10 +38,10 @@ class MessageSerializer implements EventEmitterInterface
         }
     }
 
-    public function serialize(int $messageId, object $response): void
+    public function serialize(object $response): void
     {
         try {
-            $responseBody = $this->serializer->serialize($response, 'jsonrpc', ['messageId' => $messageId]);
+            $responseBody = $this->serializer->serialize($response, 'jsonrpc');
 
             $this->emit('serialize', [$responseBody]);
         } catch (NotEncodableValueException $e) {

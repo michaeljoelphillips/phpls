@@ -12,8 +12,6 @@ use LanguageServer\TextDocumentRegistry;
 use LanguageServerProtocol\CompletionList;
 use PhpParser\Node\Expr;
 use PhpParser\NodeAbstract;
-use React\Promise\Deferred;
-use React\Promise\Promise;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
@@ -31,14 +29,9 @@ class Completion
         $this->providers = $providers;
     }
 
-    public function __invoke(array $params): Promise
+    public function __invoke(array $params)
     {
-        $completionList = $this->getCompletionList($params);
-
-        $deferred = new Deferred();
-        $deferred->resolve($completionList);
-
-        return $deferred->promise();
+        return $this->getCompletionList($params);
     }
 
     private function getCompletionList(array $params): CompletionList

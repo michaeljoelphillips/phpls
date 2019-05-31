@@ -18,8 +18,6 @@ use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\NodeAbstract;
-use React\Promise\Deferred;
-use React\Promise\Promise;
 use Roave\BetterReflection\Reflection\ReflectionMethod;
 use Roave\BetterReflection\Reflection\ReflectionParameter;
 use Roave\BetterReflection\Reflector\Reflector;
@@ -42,14 +40,9 @@ class SignatureHelp
         $this->registry = $registry;
     }
 
-    public function __invoke(array $params): Promise
+    public function __invoke(array $params)
     {
-        $result = $this->getSignatureHelpResponse($params);
-
-        $deferred = new Deferred();
-        $deferred->resolve($result);
-
-        return $deferred->promise();
+        return $this->getSignatureHelpResponse($params);
     }
 
     private function getSignatureHelpResponse($params)

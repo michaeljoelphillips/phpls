@@ -16,11 +16,9 @@ class InitializeTest extends TestCase
     {
         $subject = new Initialize();
 
-        $promise = $subject([]);
+        $result = $subject([]);
 
-        $promise->then(function ($result) {
-            $this->assertEquals([':', '>'], $result->completionProvider->triggerCharacters);
-            $this->assertEquals(['(', ','], $result->signatureHelpProvider->triggerCharacters);
-        });
+        $this->assertEquals([':', '>'], $result->completionProvider->triggerCharacters);
+        $this->assertEquals(['(', ','], $result->signatureHelpProvider->triggerCharacters);
     }
 }

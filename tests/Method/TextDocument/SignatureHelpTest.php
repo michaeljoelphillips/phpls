@@ -15,7 +15,6 @@ use PhpParser\ParserFactory;
 use Roave\BetterReflection\Reflector\ClassReflector;
 use Roave\BetterReflection\SourceLocator\Ast\Locator as AstLocator;
 use Roave\BetterReflection\SourceLocator\Type\StringSourceLocator;
-use Throwable;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
@@ -56,7 +55,7 @@ class SignatureHelpTest extends FixtureTestCase
      */
     public function testSignatureHelp(int $line, int $character, int $activeParameter, string $label)
     {
-        $promise = $this->subject->__invoke([
+        $result = $this->subject->__invoke([
             'textDocument' => [
                 'uri' => 'file:///tmp/foo.php',
             ],
@@ -65,18 +64,6 @@ class SignatureHelpTest extends FixtureTestCase
                 'character' => $character,
             ],
         ]);
-
-        $result = null;
-        $promise->then(
-            function ($value) use (&$result) {
-                $result = $value;
-
-                return;
-            },
-            function (Throwable $t) {
-                $this->fail(sprintf('Failed to assert that the promise was fulfilled: %s', $t->getMessage()));
-            }
-        );
 
         $this->assertCount(1, $result->signatures);
         $this->assertEquals($activeParameter, $result->activeParameter);

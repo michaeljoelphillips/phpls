@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace LanguageServer\Server;
 
+use LanguageServer\Exception\LanguageServerException;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
-use React\Promise\Promise;
 use React\Socket\ConnectionInterface;
 use React\Socket\ServerInterface;
 use Throwable;
@@ -37,24 +37,13 @@ class Server
         $this->serializer->on('deserialize', function (RequestMessage $request) {
             $result = $this->invokeRemoteMethod($request);
 
-            if ($result instanceof Promise) {
-                $result->then(
-                    function ($result) use ($request) {
-                        $response = new ResponseMessage();
-                        $response->id = $request->id;
-                        $response->result = $result;
-
-                        $this->serializer->serialize($request->id, $response);
-                    },
-                    function ($error) use ($request) {
-                        $response = new ResponseMessage();
-                        $response->id = $request->id;
-                        $response->error = $error;
-
-                        $this->serializer->serialize($request->id, $response);
-                    }
-                );
+            if (null === $result) {
+                return;
             }
+
+            $response = $this->prepareResponse($result, $request);
+
+            $this->serializer->serialize($response);
         });
 
         $this->serializer->on('serialize', function (string $response) use ($connection) {
@@ -66,7 +55,7 @@ class Server
 
     private function invokeRemoteMethod(RequestMessage $request): ?object
     {
-        $this->logger->debug(sprintf('Received %s', $request->method), $request->params ?? []);
+        $this->logger->debug(sprintf('Received %s', $request->method));
 
         try {
             $object = $this->container->get($request->method);
@@ -77,5 +66,14 @@ class Server
 
             return null;
         }
+    }
+
+    private function prepareResponse(object $result, RequestMessage $request): ResponseMessage
+    {
+        if ($result instanceof LanguageServerException) {
+            return ResponseMessage::createErrorResponse($result, $request->id);
+        }
+
+        return ResponseMessage::createSuccessfulResponse($result, $request->id);
     }
 }
