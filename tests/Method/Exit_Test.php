@@ -23,6 +23,6 @@ class Exit_Test extends TestCase
 
         $subject = new Exit_($registry);
 
-        $subject();
+        $subject->__invoke();
     }
 }

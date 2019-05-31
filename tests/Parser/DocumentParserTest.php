@@ -18,14 +18,15 @@ class DocumentParserTest extends TestCase
 
     public function setUp(): void
     {
-        $this->subject = new DocumentParser(
-            (new ParserFactory())->create(ParserFactory::PREFER_PHP7)
-        );
+        $parser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
+
+        $this->subject = new DocumentParser($parser);
     }
 
     public function testParse()
     {
         $document = new TextDocument('file:///tmp/Foo.php', '<?php echo "Hi";', 0);
+
         $parsedDocument = $this->subject->parse($document);
 
         $this->assertNotEmpty($parsedDocument->getNodes());

@@ -21,7 +21,7 @@ class TextDocumentRegistry
 
     public function add(TextDocument $document): void
     {
-        $this->documents[$document->getPath()] = $document;
+        $this->documents[$document->getUri()] = $document;
     }
 
     public function getAll(): array

@@ -87,14 +87,21 @@ class ParsedDocumentTest extends ParserTestCase
         $this->assertContainsInstanceOf(MethodCall::class, $result);
     }
 
-    public function testGetConstructorNode()
+    public function testGetConstructorNodeWhenNoConstructorPresent()
     {
         $subject = $this->parse('ParsedDocumentFixture.php');
-        $constructor = $subject->getConstructorNode();
-        $this->assertNull($constructor);
 
-        $subject = $this->parse('Bar.php');
         $constructor = $subject->getConstructorNode();
+
+        $this->assertNull($constructor);
+    }
+
+    public function testGetConstructorNode()
+    {
+        $subject = $this->parse('NoConstructor.php');
+
+        $constructor = $subject->getConstructorNode();
+
         $this->assertEquals('__construct', $constructor->name->name);
     }
 

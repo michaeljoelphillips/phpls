@@ -9,22 +9,20 @@ namespace LanguageServer;
  */
 class TextDocument
 {
-    private $path;
-
+    private $uri;
     private $source;
-
     private $version;
 
-    public function __construct(string $path, string $source, int $version)
+    public function __construct(string $uri, string $source, int $version)
     {
-        $this->path = $path;
+        $this->uri = $uri;
         $this->source = $source;
         $this->version = $version;
     }
 
-    public function getPath(): string
+    public function getUri(): string
     {
-        return $this->path;
+        return $this->uri;
     }
 
     public function getSource(): string
@@ -35,11 +33,6 @@ class TextDocument
     public function getVersion(): int
     {
         return $this->version;
-    }
-
-    public function getNormalizedPath(): string
-    {
-        return str_replace('file://', '', $this->path);
     }
 
     /**

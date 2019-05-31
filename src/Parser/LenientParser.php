@@ -22,6 +22,12 @@ class LenientParser implements Parser
 
     public function parse(string $code, ErrorHandler $errorHandler = null)
     {
-        return $this->wrapped->parse($code, new Collecting()) ?? [];
+        $result = $this->wrapped->parse($code, new Collecting());
+
+        if (null === $result) {
+            return [];
+        }
+
+        return $result;
     }
 }

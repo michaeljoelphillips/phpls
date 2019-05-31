@@ -5,52 +5,117 @@ declare(strict_types=1);
 namespace LanguageServer\Test\Parser;
 
 use LanguageServer\Parser\IncompleteDocumentParser;
+use LanguageServer\Parser\LenientParser;
+use LanguageServer\Parser\ParsedDocument;
+use LanguageServer\Test\FixtureTestCase;
 use LanguageServer\TextDocument;
+use PhpParser\Error;
 use PhpParser\ParserFactory;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
-class IncompleteDocumentParserTest extends TestCase
+class IncompleteDocumentParserTest extends FixtureTestCase
 {
     private $subject;
 
     public function setUp(): void
     {
-        $this->subject = new IncompleteDocumentParser(
-            (new ParserFactory())->create(ParserFactory::PREFER_PHP7)
-        );
+        $parser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
+
+        $this->subject = new IncompleteDocumentParser(new LenientParser($parser));
     }
 
     /**
-     * @dataProvider incompleteSyntax
+     * @dataProvider incompleteSyntaxProvider
      */
-    public function testParseFixesIncompleteSyntax(string $fixtureName): void
+    public function testParseFixesIncompleteSyntax(string $incompleteSource): void
     {
-        $document = $this->readDocument($fixtureName);
+        $document = new TextDocument('file:///tmp/Foo.php', $incompleteSource, 0);
 
-        $this->subject->parse($document);
-        $this->addToAssertionCount(1);
+        $parsedDocument = $this->subject->parse($document);
+
+        $this->assertDocumentHasNoErrors($parsedDocument);
     }
 
-    private function readDocument(string $fixtureName): TextDocument
+    private function assertDocumentHasNoErrors(ParsedDocument $document): void
     {
-        $documentSource = file_get_contents(__DIR__.'/../fixtures/IncompleteSyntax/'.$fixtureName);
-
-        return new TextDocument('file:///tmp/Foo.php', $documentSource, 0);
+        $this->assertEmpty($document->findNodes(Error::class), 'Failed asserting that the ParsedDocument contained no errors.');
     }
 
-    public function incompleteSyntax(): array
+    public function incompleteSyntaxProvider(): array
     {
         return [
-            ['IncompletePropertyAccessFollowedByClosingBrace.php'],
-            ['IncompletePropertyAccessFollowedByIfStatement.php'],
-            ['IncompletePropertyAccessFollowedByTryCatch.php'],
-            ['IncompletePropertyAccessFollowedByReturn.php'],
-            ['IncompletePropertyAccessWithinMethodCall.php'],
-            ['IncompleteStaticAccessFollowedByReturn.php'],
-            ['IncompleteStaticAccessWithinMethodCall.php'],
+            [
+                <<<PHP
+                <?php
+
+                if (true) {
+                    \$this->foo->
+                }
+
+                PHP
+            ],
+            [
+                <<<PHP
+                <?php
+
+                \$foo->
+
+                if (true) {
+                    return true;
+                }
+                PHP
+            ],
+            [
+                <<<PHP
+                <?php
+
+                \$foo->
+
+                return \$foo;
+                PHP
+            ],
+            [
+                <<<PHP
+                <?php
+
+                \$foo->
+
+                try {
+                    return;
+                } catch (\Throwable \$t) {
+                }
+                PHP
+            ],
+            [
+                <<<PHP
+                \$foo->
+                \$foo->bar(\$bar->
+                \$foo->bar(\$bar->foo->
+                \$foo->bar(\$bar->foo->baz()->
+                \$foo->bar(\$bar->foo->baz()->foo
+                \$foo->bar->
+                PHP
+            ],
+            [
+                <<<PHP
+                <?php
+
+                Foo::
+
+                return;
+                PHP
+            ],
+            [
+                <<<PHP
+                <?php
+
+                \$factor->create(Factory::
+
+                return false;
+                PHP
+            ],
         ];
     }
 }

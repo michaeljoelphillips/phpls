@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LanguageServer\Parser;
 
 use LanguageServer\TextDocument;
+use PhpParser\ErrorHandler\Collecting;
 use PhpParser\Parser;
 
 /**
@@ -21,17 +22,24 @@ class IncompleteDocumentParser implements DocumentParserInterface
 
     public function parse(TextDocument $document): ParsedDocument
     {
-        $completedSourceCode = $this->correctIncompleteSyntax($document);
-        $nodes = $this->parser->parse($completedSourceCode);
+        $documentSource = $this->amendDocumentSource($document->getSource());
+
+        $nodes = $this->parser->parse($documentSource);
 
         return new ParsedDocument($nodes, $document);
     }
 
-    private function correctIncompleteSyntax(TextDocument $document): string
+    private function amendDocumentSource(string $source): string
     {
-        $source = $document->getSource();
+        $source = $this->stubIncompleteAccessors($source);
+        $source = $this->stubIncompleteStaticAccessors($source);
 
-        $source = preg_replace_callback(
+        return $source;
+    }
+
+    private function stubIncompleteAccessors(string $source): string
+    {
+        return preg_replace_callback(
             '/((\()*\$(\w+(\([$\w]*\))?->\w*)*)\n/',
             function (array $matches) {
                 $result = sprintf('%slspSyntaxStub', $matches[1]);
@@ -44,9 +52,10 @@ class IncompleteDocumentParser implements DocumentParserInterface
             },
             $source
         );
+    }
 
-        $source = preg_replace('/(\w+::)\n/', '${1}LSP_SYNTAX_STUB;'.PHP_EOL, $source);
-
-        return $source;
+    private function stubIncompleteStaticAccessors(string $source): string
+    {
+        return preg_replace('/(\w+::)\n/', '${1}LSP_SYNTAX_STUB;'.PHP_EOL, $source);
     }
 }

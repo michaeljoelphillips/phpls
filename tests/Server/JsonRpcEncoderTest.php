@@ -35,7 +35,7 @@ class JsonRpcEncoderTest extends TestCase
         $this->assertTrue($subject->supportsEncoding(JsonRpcEncoder::FORMAT));
     }
 
-    public function testSupporsDecoding(): void
+    public function testSupportsDecoding(): void
     {
         $subject = new JsonRpcEncoder();
 

@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
  */
 class TextDocumentRegistryTest extends TestCase
 {
-    public function testAdd()
+    public function testAddOnlyStoresLatestVersion()
     {
         $subject = new TextDocumentRegistry();
         $versionOne = new TextDocument('file:///tmp/foo.php', '<?php ', 0);

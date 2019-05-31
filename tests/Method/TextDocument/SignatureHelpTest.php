@@ -6,7 +6,7 @@ namespace LanguageServer\Test\Method\TextDocument;
 
 use LanguageServer\Method\TextDocument\SignatureHelp;
 use LanguageServer\Parser\DocumentParser;
-use LanguageServer\Test\ParserTestCase;
+use LanguageServer\Test\FixtureTestCase;
 use LanguageServer\TextDocument;
 use LanguageServer\TextDocumentRegistry;
 use LanguageServer\TypeResolver;
@@ -20,7 +20,7 @@ use Throwable;
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
-class SignatureHelpTest extends ParserTestCase
+class SignatureHelpTest extends FixtureTestCase
 {
     private $subject;
 

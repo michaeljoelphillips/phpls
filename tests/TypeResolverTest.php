@@ -33,7 +33,7 @@ class TypeResolverTest extends ParserTestCase
 
     public function testGetTypeForThis()
     {
-        $document = $this->parse('Foo.php');
+        $document = $this->parse('TypeResolverFixture.php');
         $node = new Variable('this');
 
         $type = $this->subject->getType($document, $node);
@@ -43,7 +43,7 @@ class TypeResolverTest extends ParserTestCase
 
     public function testGetTypeForLocalVariable()
     {
-        $document = $this->parse('Foo.php');
+        $document = $this->parse('TypeResolverFixture.php');
         $node = new Variable('localVariable', [
             'startFilePos' => 1,
             'endFilePos' => 900,
@@ -56,7 +56,7 @@ class TypeResolverTest extends ParserTestCase
 
     public function testGetTypeForNonExistentLocalVariable()
     {
-        $document = $this->parse('Foo.php');
+        $document = $this->parse('TypeResolverFixture.php');
         $node = new Variable('nonExistentVariable', [
             'startFilePos' => 1,
             'endFilePos' => 250,
@@ -69,7 +69,7 @@ class TypeResolverTest extends ParserTestCase
 
     public function testGetTypeForClassName()
     {
-        $document = $this->parse('Foo.php');
+        $document = $this->parse('TypeResolverFixture.php');
         $node = new Name('Baz');
 
         $type = $this->subject->getType($document, $node);
@@ -79,7 +79,7 @@ class TypeResolverTest extends ParserTestCase
 
     public function testGetTypeForUntypedParameter()
     {
-        $document = $this->parse('Foo.php');
+        $document = $this->parse('TypeResolverFixture.php');
         $node = new Param(new Variable('parameter'));
 
         $type = $this->subject->getType($document, $node);
@@ -89,7 +89,7 @@ class TypeResolverTest extends ParserTestCase
 
     public function testGetTypeForTypedParameter()
     {
-        $document = $this->parse('Foo.php');
+        $document = $this->parse('TypeResolverFixture.php');
         $node = new Param(new Variable('parameter'), null, new Name('Baz'));
 
         $type = $this->subject->getType($document, $node);
@@ -99,7 +99,7 @@ class TypeResolverTest extends ParserTestCase
 
     public function testGetTypeDefaultsToNull()
     {
-        $document = $this->parse('Foo.php');
+        $document = $this->parse('TypeResolverFixture.php');
         $node = new Identifier('Foo');
 
         $type = $this->subject->getType($document, $node);
@@ -109,7 +109,7 @@ class TypeResolverTest extends ParserTestCase
 
     public function testGetTypeForPropertyFetchOnVariable()
     {
-        $document = $this->parse('Foo.php');
+        $document = $this->parse('TypeResolverFixture.php');
         $node = new PropertyFetch(
             new Variable('parameter', [
                 'startFilePos' => 30,
@@ -141,7 +141,7 @@ class TypeResolverTest extends ParserTestCase
 
     public function testGetTypeForPropertyFetchOnNonExistentVariable()
     {
-        $document = $this->parse('Foo.php');
+        $document = $this->parse('TypeResolverFixture.php');
         $node = new PropertyFetch(
             new Variable('nonExistentVariable', [
                 'startFilePos' => 30,
@@ -157,7 +157,7 @@ class TypeResolverTest extends ParserTestCase
 
     public function testGetTypeForPropertyFetchOnUndefinedPropertyOnTheClass()
     {
-        $document = $this->parse('Foo.php');
+        $document = $this->parse('TypeResolverFixture.php');
         $node = new PropertyFetch(
             new Variable('parameter', [
                 'startFilePos' => 30,
@@ -185,7 +185,7 @@ class TypeResolverTest extends ParserTestCase
 
     public function testGetTypeForPropertyFetchOnPropertyAssignedInTheConstructor()
     {
-        $document = $this->parse('Foo.php');
+        $document = $this->parse('TypeResolverFixture.php');
 
         $node = new PropertyFetch(
             new PropertyFetch(
@@ -221,7 +221,7 @@ class TypeResolverTest extends ParserTestCase
 
     public function testGetTypeForPropertyFetchOnMethodCallReturnType()
     {
-        $document = $this->parse('Foo.php');
+        $document = $this->parse('TypeResolverFixture.php');
 
         $node = new PropertyFetch(
             new MethodCall(
@@ -259,7 +259,7 @@ class TypeResolverTest extends ParserTestCase
 
     public function testGetTypeForMethodCallOnMethodCallReturnType()
     {
-        $document = $this->parse('Foo.php');
+        $document = $this->parse('TypeResolverFixture.php');
 
         $node = new MethodCall(
             new MethodCall(
@@ -297,7 +297,7 @@ class TypeResolverTest extends ParserTestCase
 
     public function testGetTypeForMethodCallWithNoReturnType()
     {
-        $document = $this->parse('Foo.php');
+        $document = $this->parse('TypeResolverFixture.php');
 
         $node = new MethodCall(
             new MethodCall(

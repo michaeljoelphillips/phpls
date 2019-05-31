@@ -7,6 +7,7 @@ namespace LanguageServer\Test;
 use LanguageServer\CursorPosition;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\PropertyFetch;
+use PhpParser\Node\Expr\Variable;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -23,46 +24,54 @@ class CursorPositionTest extends TestCase
         $this->assertEquals(30, $subject->getRelativePosition());
     }
 
-    public function testContains()
+    /**
+     * @dataProvider coordinatesContainingNode
+     */
+    public function testContains(int $line, int $character, int $position, bool $contains)
     {
-        $expr = $this->createMock(Expr::class);
-        $node = new PropertyFetch($expr, 'testProperty', [
+        $node = new PropertyFetch(new Variable('foo'), 'bar', [
             'startFilePos' => 10,
             'endFilePos' => 20,
         ]);
 
-        $subject = new CursorPosition(1, 10, 21);
-        $this->assertTrue($subject->contains($node));
+        $subject = new CursorPosition($line, $character, $position);
 
-        $subject = new CursorPosition(1, 10, 9);
-        $this->assertTrue($subject->contains($node));
-
-        $subject = new CursorPosition(1, 10, 15);
-        $this->assertTrue($subject->contains($node));
-
-        $subject = new CursorPosition(1, 10, 22);
-        $this->assertFalse($subject->contains($node));
-
-        $subject = new CursorPosition(1, 10, 8);
-        $this->assertFalse($subject->contains($node));
+        $this->assertEquals($contains, $subject->contains($node));
     }
 
-    public function testIsWithin()
+    public function coordinatesContainingNode(): array
     {
-        $expr = $this->createMock(Expr::class);
-        $node = new PropertyFetch($expr, 'testProperty', [
+        return [
+            [1, 10, 21, true],
+            [1, 10, 9, true],
+            [1, 10, 15, true],
+            [1, 10, 22, false],
+            [1, 10, 8, false],
+        ];
+    }
+
+    /**
+     * @dataProvider coordinatesWithinNode
+     */
+    public function testIsWithin(int $line, int $character, int $position, bool $isWithin)
+    {
+        $node = new PropertyFetch(new Variable('foo'), 'bar', [
             'startFilePos' => 10,
             'endFilePos' => 20,
         ]);
 
-        $subject = new CursorPosition(1, 10, 15);
-        $this->assertTrue($subject->isWithin($node));
+        $subject = new CursorPosition($line, $character, $position);
 
-        $subject = new CursorPosition(1, 10, 21);
-        $this->assertFalse($subject->isWithin($node));
+        $this->assertEquals($isWithin, $subject->isWithin($node));
+    }
 
-        $subject = new CursorPosition(1, 10, 9);
-        $this->assertFalse($subject->isWithin($node));
+    public function coordinatesWithinNode(): array
+    {
+        return [
+            [1, 10, 15, true],
+            [1, 10, 21, false],
+            [1, 10, 9, false],
+        ];
     }
 
     public function testIsBordering()
