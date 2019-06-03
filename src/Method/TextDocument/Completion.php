@@ -9,9 +9,11 @@ use LanguageServer\Method\TextDocument\CompletionProvider\CompletionProviderInte
 use LanguageServer\Parser\DocumentParserInterface;
 use LanguageServer\Parser\ParsedDocument;
 use LanguageServer\TextDocumentRegistry;
+use LanguageServer\TypeResolver;
 use LanguageServerProtocol\CompletionList;
 use PhpParser\Node\Expr;
 use PhpParser\NodeAbstract;
+use Roave\BetterReflection\Reflector\Reflector;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
@@ -20,12 +22,16 @@ class Completion
 {
     private $parser;
     private $registry;
+    private $reflector;
+    private $resolver;
     private $providers;
 
-    public function __construct(DocumentParserInterface $parser, TextDocumentRegistry $registry, CompletionProviderInterface ...$providers)
+    public function __construct(DocumentParserInterface $parser, TextDocumentRegistry $registry, Reflector $reflector, TypeResolver $resolver, CompletionProviderInterface ...$providers)
     {
         $this->parser = $parser;
         $this->registry = $registry;
+        $this->reflector = $reflector;
+        $this->resolver = $resolver;
         $this->providers = $providers;
     }
 
@@ -50,7 +56,15 @@ class Completion
             return $this->emptyCompletionList();
         }
 
-        return $this->completeExpression($parsedDocument, $expression);
+        $type = $this->resolver->getType($parsedDocument, $expression);
+
+        if (null === $type) {
+            return $this->emptyCompletionList();
+        }
+
+        $reflection = $this->reflector->reflect($type);
+
+        return $this->completeExpression($reflection, $expression);
     }
 
     private function findExpressionAtCursor(ParsedDocument $document, CursorPosition $cursor): ?Expr

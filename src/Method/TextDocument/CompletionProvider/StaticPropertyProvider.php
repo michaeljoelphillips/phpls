@@ -4,12 +4,9 @@ declare(strict_types=1);
 
 namespace LanguageServer\Method\TextDocument\CompletionProvider;
 
-use LanguageServer\Parser\ParsedDocument;
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
 use PhpParser\Node\Expr\ClassConstFetch;
-use PhpParser\Node\Expr\StaticPropertyFetch;
-use PhpParser\NodeAbstract;
 use ReflectionProperty as CoreReflectionProperty;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionProperty;
@@ -17,9 +14,9 @@ use Roave\BetterReflection\Reflection\ReflectionProperty;
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
-class StaticPropertyProvider extends AbstractProvider
+class StaticPropertyProvider implements CompletionProviderInterface
 {
-    protected function mapCompletionItems(ParsedDocument $document, ReflectionClass $reflection): array
+    public function complete(Expr $expression, ReflectionClass $reflection): array
     {
         return array_values(array_map(
             function (ReflectionProperty $property) {
@@ -34,9 +31,8 @@ class StaticPropertyProvider extends AbstractProvider
         ));
     }
 
-    public function supports(NodeAbstract $expression): bool
+    public function supports(Expr $expression): bool
     {
-        return $expression instanceof StaticPropertyFetch
-            || $expression instanceof ClassConstFetch;
+        return $expression instanceof ClassConstFetch;
     }
 }

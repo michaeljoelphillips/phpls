@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace LanguageServer\Method\TextDocument\CompletionProvider;
 
-use LanguageServer\Parser\ParsedDocument;
 use LanguageServerProtocol\CompletionItem;
 use PhpParser\Node\Expr;
-use PhpParser\NodeAbstract;
+use Roave\BetterReflection\Reflection\ReflectionClass;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
@@ -17,12 +16,12 @@ interface CompletionProviderInterface
     /**
      * @return CompletionItem[]
      */
-    public function complete(ParsedDocument $document, Expr $expression): array;
+    public function complete(Expr $expression, ReflectionClass $reflection): array;
 
     /**
      * @param Expr $expression
      *
      * @return bool
      */
-    public function supports(NodeAbstract $expression): bool;
+    public function supports(Expr $expression): bool;
 }

@@ -4,20 +4,18 @@ declare(strict_types=1);
 
 namespace LanguageServer\Method\TextDocument\CompletionProvider;
 
-use LanguageServer\Parser\ParsedDocument;
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
 use PhpParser\Node\Expr\PropertyFetch;
-use PhpParser\NodeAbstract;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionMethod;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
-class InstanceMethodProvider extends AbstractProvider
+class InstanceMethodProvider implements CompletionProviderInterface
 {
-    protected function mapCompletionItems(ParsedDocument $document, ReflectionClass $reflection): array
+    public function complete(Expr $expression, ReflectionClass $reflection): array
     {
         return array_values(array_map(
             function (ReflectionMethod $method) {
@@ -32,7 +30,7 @@ class InstanceMethodProvider extends AbstractProvider
         ));
     }
 
-    public function supports(NodeAbstract $expression): bool
+    public function supports(Expr $expression): bool
     {
         return $expression instanceof PropertyFetch;
     }
