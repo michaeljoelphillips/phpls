@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace LanguageServer\Method\TextDocument\CompletionProvider;
 
 use LanguageServerProtocol\CompletionItem;
-use PhpParser\Node\Expr;
+use PhpParser\NodeAbstract;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 
 /**
@@ -16,12 +16,12 @@ interface CompletionProviderInterface
     /**
      * @return CompletionItem[]
      */
-    public function complete(Expr $expression, ReflectionClass $reflection): array;
+    public function complete(NodeAbstract $expression, ReflectionClass $reflection): array;
 
     /**
-     * @param Expr $expression
+     * @param NodeAbstract $expression
      *
      * @return bool
      */
-    public function supports(Expr $expression): bool;
+    public function supports(NodeAbstract $expression): bool;
 }

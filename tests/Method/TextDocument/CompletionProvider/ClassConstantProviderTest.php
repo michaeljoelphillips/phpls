@@ -5,29 +5,43 @@ declare(strict_types=1);
 namespace LanguageServer\Test\Method\TextDocument\CompletionProvider;
 
 use LanguageServer\Method\TextDocument\CompletionProvider\ClassConstantProvider;
-use LanguageServer\Parser\ParsedDocument;
-use phpDocumentor\Reflection\TypeResolver;
+use PhpParser\Node\Expr;
+use PhpParser\Node\Expr\ClassConstFetch;
 use PHPUnit\Framework\TestCase;
-use Roave\BetterReflection\Reflector\Reflector;
+use Roave\BetterReflection\Reflection\ReflectionClass;
+use Roave\BetterReflection\Reflection\ReflectionClassConstant;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
 class ClassConstantProviderTest extends TestCase
 {
-    private $resolver;
-    private $reflector;
-
-    public function setUp(): void
+    public function testSupports()
     {
-        $this->resolver = $this->createMock(TypeResolver::class);
-        $this->reflector = $this->createMock(Reflector::class);
+        $subject = new ClassConstantProvider();
+
+        $this->assertTrue($subject->supports(new ClassConstFetch('Foo', 'bar')));
     }
 
     public function testComplete()
     {
-        $subject = new ClassConstantProvider($this->resolver, $this->reflector);
+        $subject = new ClassConstantProvider();
 
-        $subject->complete($this->createMock(ParsedDocument::class), $expression);
+        $expression = $this->createMock(Expr::class);
+        $reflection = $this->createMock(ReflectionClass::class);
+        $constant = $this->createMock(ReflectionClassConstant::class);
+
+        $constant
+            ->method('getName')
+            ->willReturn('TEST_CONSTANT');
+
+        $reflection
+            ->method('getReflectionConstants')
+            ->willReturn([$constant]);
+
+        $completionItems = $subject->complete($expression, $reflection);
+
+        $this->assertCount(1, $completionItems);
+        $this->assertEquals('TEST_CONSTANT', $completionItems[0]->label);
     }
 }

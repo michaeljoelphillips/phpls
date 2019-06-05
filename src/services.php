@@ -94,7 +94,7 @@ return [
                 new RegistrySourceLocator($locator, $container->get(TextDocumentRegistry::class)),
                 new MemoizingSourceLocator(
                     new AggregateSourceLocator([
-                        (new MakeLocatorForComposerJsonAndInstalledJson())('/home/nomad/Code/answer-automation', $locator),
+                        (new MakeLocatorForComposerJsonAndInstalledJson())('/home/nomad/Code/language-server', $locator),
                         new PhpInternalSourceLocator($locator, new PhpStormStubsSourceStubber($container->get(MemoizingParser::class))),
                     ]),
                 ),
@@ -152,6 +152,8 @@ return [
         return new Completion(
             $container->get(IncompleteDocumentParser::class),
             $container->get(TextDocumentRegistry::class),
+            $container->get(ClassReflector::class),
+            $container->get(TypeResolver::class),
             ...$container->get('completionProviders')
         );
     },

@@ -6,8 +6,8 @@ namespace LanguageServer\Method\TextDocument\CompletionProvider;
 
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
-use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\ClassConstFetch;
+use PhpParser\NodeAbstract;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionClassConstant;
 
@@ -16,7 +16,7 @@ use Roave\BetterReflection\Reflection\ReflectionClassConstant;
  */
 class ClassConstantProvider implements CompletionProviderInterface
 {
-    protected function complete(Expr $expression, ReflectionClass $reflection): array
+    public function complete(NodeAbstract $expression, ReflectionClass $reflection): array
     {
         return array_values(array_map(
             function (ReflectionClassConstant $constant) {
@@ -31,7 +31,7 @@ class ClassConstantProvider implements CompletionProviderInterface
         ));
     }
 
-    public function supports(Expr $expression): bool
+    public function supports(NodeAbstract $expression): bool
     {
         return $expression instanceof ClassConstFetch;
     }

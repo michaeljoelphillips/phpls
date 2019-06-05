@@ -13,6 +13,7 @@ use LanguageServer\TypeResolver;
 use LanguageServerProtocol\CompletionList;
 use PhpParser\Node\Expr;
 use PhpParser\NodeAbstract;
+use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflector\Reflector;
 
 /**
@@ -64,7 +65,7 @@ class Completion
 
         $reflection = $this->reflector->reflect($type);
 
-        return $this->completeExpression($reflection, $expression);
+        return $this->completeExpression($expression, $reflection);
     }
 
     private function findExpressionAtCursor(ParsedDocument $document, CursorPosition $cursor): ?Expr
@@ -91,14 +92,14 @@ class Completion
         return new CompletionList();
     }
 
-    private function completeExpression(ParsedDocument $document, Expr $expression): CompletionList
+    private function completeExpression(Expr $expression, ReflectionClass $reflection): CompletionList
     {
         $completionItems = [];
         foreach ($this->providers as $provider) {
             if ($provider->supports($expression)) {
                 $completionItems = array_merge(
                     $completionItems,
-                    $provider->complete($document, $expression)
+                    $provider->complete($expression, $reflection)
                 );
             }
         }
