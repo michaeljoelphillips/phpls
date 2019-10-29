@@ -64,13 +64,13 @@ class Server
         } catch (Throwable $t) {
             $this->logger->error($t->getMessage());
 
-            return null;
+            return $t;
         }
     }
 
     private function prepareResponse(object $result, RequestMessage $request): ResponseMessage
     {
-        if ($result instanceof LanguageServerException) {
+        if ($result instanceof Throwable) {
             return ResponseMessage::createErrorResponse($result, $request->id);
         }
 
