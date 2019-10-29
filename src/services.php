@@ -147,7 +147,11 @@ return [
     'exit' => function (ContainerInterface $container) {
         return new Exit_($container->get(TextDocumentRegistry::class));
     },
-    'textDocument/didSave' => DI\create(DidSave::class),
+    'textDocument/didSave' => function (ContainerInterface $container) {
+        return new DidSave(
+            $container->get(TextDocumentRegistry::class)
+        );
+    },
     'textDocument/completion' => function (ContainerInterface $container) {
         return new Completion(
             $container->get(IncompleteDocumentParser::class),
