@@ -77,6 +77,16 @@ class TypeResolverTest extends ParserTestCase
         $this->assertEquals('Bar\Baz', $type);
     }
 
+    public function testGetTypeForClassAlias()
+    {
+        $document = $this->parse('TypeResolverFixture.php');
+        $node = new Name('FooBar');
+
+        $type = $this->subject->getType($document, $node);
+
+        $this->assertEquals('Foo\Bar', $type);
+    }
+
     public function testGetTypeForUntypedParameter()
     {
         $document = $this->parse('TypeResolverFixture.php');

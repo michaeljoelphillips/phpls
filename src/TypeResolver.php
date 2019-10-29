@@ -215,6 +215,10 @@ class TypeResolver
         $matchingUseStatement = array_filter(
             $useStatements,
             function (UseUse $use) use ($node) {
+                if ($use->alias !== null && $use->alias->name === $node->getLast()) {
+                    return true;
+                }
+
                 return $use->name->getLast() === $node->getLast();
             }
         );

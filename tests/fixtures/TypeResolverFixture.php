@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fixtures;
 
+use Foo\Bar as FooBar;
 use Bar\Bar;
 use Bar\Baz;
 
@@ -40,5 +41,10 @@ class Foo
 
     public function methodWithoutReturnType()
     {
+    }
+
+    public function getFooBar(): FooBar
+    {
+        return new FooBar();
     }
 }
