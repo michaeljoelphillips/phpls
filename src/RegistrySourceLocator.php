@@ -12,6 +12,7 @@ use Roave\BetterReflection\SourceLocator\Ast\Locator as AstLocator;
 use Roave\BetterReflection\SourceLocator\Type\AggregateSourceLocator;
 use Roave\BetterReflection\SourceLocator\Type\SourceLocator;
 use Roave\BetterReflection\SourceLocator\Type\StringSourceLocator;
+use Throwable;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
@@ -48,11 +49,15 @@ class RegistrySourceLocator implements SourceLocator
 
         $locators = array_map(
             function (TextDocument $document) {
-                return new StringSourceLocator($document->getSource(), $this->astLocator);
+                try {
+                    return new StringSourceLocator($document->getSource(), $this->astLocator);
+                } catch (Throwable $t) {
+                    return null;
+                }
             },
             $documents
         );
 
-        return new AggregateSourceLocator(array_values($locators));
+        return new AggregateSourceLocator(array_filter(array_values($locators)));
     }
 }
