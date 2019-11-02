@@ -237,17 +237,11 @@ class TypeResolver
 
     private function getPropertyType(ParsedDocument $document, PropertyFetch $property)
     {
-        $type = $this->getPropertyTypeFromDocblock($document, $property);
-
-        if (null === $type) {
-            if ('this' === $property->var->name) {
-                return $this->getPropertyTypeFromConstructorAssignment($document, $property);
-            }
-
-            return null;
+        if ('this' === $property->var->name) {
+            return $this->getPropertyTypeFromConstructorAssignment($document, $property);
         }
 
-        return $type;
+        return $this->getPropertyTypeFromDocblock($document, $property);
     }
 
     private function getPropertyTypeFromDocblock(ParsedDocument $document, PropertyFetch $property)
