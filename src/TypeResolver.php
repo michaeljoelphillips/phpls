@@ -228,8 +228,8 @@ class TypeResolver
                 return sprintf('%s\%s', $document->getNamespace(), $node->getLast());
             }
 
-            // Not sure what to do here yet
-            return null;
+            // If the node is qualified, return it.
+            return $node->toCodeString();
         }
 
         return array_pop($matchingUseStatement)->name->toCodeString();
