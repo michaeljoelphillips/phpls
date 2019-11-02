@@ -62,4 +62,41 @@ class StaticMethodProviderTest extends TestCase
         $this->assertEquals('testMethod', $completionItems[0]->label);
         $this->assertEquals('testDocumentation', $completionItems[0]->documentation);
     }
+
+    public function testCompleteWithDocBlockReturnTypes()
+    {
+        $subject = new StaticMethodProvider();
+
+        $expression = $this->createMock(Expr::class);
+        $reflection = $this->createMock(ReflectionClass::class);
+        $method = $this->createMock(ReflectionMethod::class);
+
+        $method
+            ->method('getName')
+            ->willReturn('testMethod');
+
+        $method
+            ->method('getReturnType')
+            ->willReturn(null);
+
+        $method
+            ->method('getDocBlockReturnTypes')
+            ->willReturn(['int', 'float']);
+
+        $method
+            ->method('getDocComment')
+            ->willReturn('testDocumentation');
+
+        $reflection
+            ->method('getMethods')
+            ->willReturn([$method]);
+
+        $completionItems = $subject->complete($expression, $reflection);
+
+        $this->assertCount(1, $completionItems);
+        $this->assertEquals(2, $completionItems[0]->kind);
+        $this->assertEquals('int|float', $completionItems[0]->detail);
+        $this->assertEquals('testMethod', $completionItems[0]->label);
+        $this->assertEquals('testDocumentation', $completionItems[0]->documentation);
+    }
 }

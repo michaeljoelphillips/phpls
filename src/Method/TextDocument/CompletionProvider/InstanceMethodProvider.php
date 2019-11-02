@@ -20,10 +20,12 @@ class InstanceMethodProvider implements CompletionProviderInterface
     {
         return array_values(array_map(
             function (ReflectionMethod $method) {
+                $returnTypes = $method->getReturnType() ?? implode('|', $method->getDocBlockReturnTypes());
+
                 return new CompletionItem(
                     $method->getName(),
                     CompletionItemKind::METHOD,
-                    (string) $method->getReturnType(),
+                    (string) $returnTypes,
                     $method->getDocComment()
                 );
             },
