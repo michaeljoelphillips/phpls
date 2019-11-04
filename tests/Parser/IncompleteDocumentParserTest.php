@@ -10,6 +10,7 @@ use LanguageServer\Parser\ParsedDocument;
 use LanguageServer\Test\FixtureTestCase;
 use LanguageServer\TextDocument;
 use PhpParser\Error;
+use PhpParser\Node\Expr\Error as ExprError;
 use PhpParser\ParserFactory;
 
 /**
@@ -41,6 +42,7 @@ class IncompleteDocumentParserTest extends FixtureTestCase
     private function assertDocumentHasNoErrors(ParsedDocument $document): void
     {
         $this->assertEmpty($document->findNodes(Error::class), 'Failed asserting that the ParsedDocument contained no errors.');
+        $this->assertEmpty($document->findNodes(ExprError::class), 'Failed asserting that the ParsedDocument contained no errors.');
     }
 
     public function incompleteSyntaxProvider(): array
@@ -111,9 +113,16 @@ class IncompleteDocumentParserTest extends FixtureTestCase
                 <<<PHP
                 <?php
 
-                \$factor->create(Factory::
+                \$factory->create(Factory::
 
                 return false;
+                PHP
+            ],
+            [
+                <<<PHP
+                <?php
+
+                return \$this->foo(\$this->);
                 PHP
             ],
         ];
