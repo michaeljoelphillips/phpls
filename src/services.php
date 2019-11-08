@@ -94,7 +94,7 @@ return [
                 new RegistrySourceLocator($locator, $container->get(TextDocumentRegistry::class)),
                 new MemoizingSourceLocator(
                     new AggregateSourceLocator([
-                        (new MakeLocatorForComposerJsonAndInstalledJson())('/home/nomad/Code/language-server', $locator),
+                        (new MakeLocatorForComposerJsonAndInstalledJson())('/home/nomad/Code/social', $locator),
                         new PhpInternalSourceLocator($locator, new PhpStormStubsSourceStubber($container->get(MemoizingParser::class))),
                     ]),
                 ),
@@ -106,34 +106,19 @@ return [
     },
     TextDocumentRegistry::class => DI\create(TextDocumentRegistry::class),
     InstanceMethodProvider::class => function (ContainerInterface $container) {
-        return new InstanceMethodProvider(
-            $container->get(TypeResolver::class),
-            $container->get(ClassReflector::class)
-        );
+        return new InstanceMethodProvider();
     },
     InstanceVariableProvider::class => function (ContainerInterface $container) {
-        return new InstanceVariableProvider(
-            $container->get(TypeResolver::class),
-            $container->get(ClassReflector::class)
-        );
+        return new InstanceVariableProvider();
     },
     ClassConstantProvider::class => function (ContainerInterface $container) {
-        return new ClassConstantProvider(
-            $container->get(TypeResolver::class),
-            $container->get(ClassReflector::class)
-        );
+        return new ClassConstantProvider();
     },
     StaticMethodProvider::class => function (ContainerInterface $container) {
-        return new StaticMethodProvider(
-            $container->get(TypeResolver::class),
-            $container->get(ClassReflector::class)
-        );
+        return new StaticMethodProvider();
     },
     StaticPropertyProvider::class => function (ContainerInterface $container) {
-        return new StaticPropertyProvider(
-            $container->get(TypeResolver::class),
-            $container->get(ClassReflector::class)
-        );
+        return new StaticPropertyProvider();
     },
     'completionProviders' => [
         DI\get(InstanceMethodProvider::class),
