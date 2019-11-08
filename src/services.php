@@ -27,6 +27,7 @@ use Monolog\Logger;
 use PhpParser\Lexer;
 use PhpParser\Parser;
 use PhpParser\ParserFactory;
+use ProxyManager\Factory\LazyLoadingValueHolderFactory;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Roave\BetterReflection\Reflector\ClassReflector;
@@ -87,19 +88,29 @@ return [
         return new IncompleteDocumentParser($container->get(MemoizingParser::class));
     },
     ClassReflector::class => function (ContainerInterface $container) {
-        $locator = $container->get(Locator::class);
+        $factory = new LazyLoadingValueHolderFactory();
 
-        return new ClassReflector(
-            new AggregateSourceLocator([
-                new RegistrySourceLocator($locator, $container->get(TextDocumentRegistry::class)),
-                new MemoizingSourceLocator(
+        return $factory->createProxy(
+            ClassReflector::class,
+            function (&$wrappedObject, $proxy, $method, $parameters, &$initializer) use ($container) {
+                $locator = $container->get(Locator::class);
+
+                $initializer = null;
+                $wrappedObject = new ClassReflector(
                     new AggregateSourceLocator([
-                        (new MakeLocatorForComposerJsonAndInstalledJson())('/home/nomad/Code/social', $locator),
-                        new PhpInternalSourceLocator($locator, new PhpStormStubsSourceStubber($container->get(MemoizingParser::class))),
-                    ]),
-                ),
-            ])
+                        new RegistrySourceLocator($locator, $container->get(TextDocumentRegistry::class)),
+                        new MemoizingSourceLocator(
+                            new AggregateSourceLocator([
+                                (new MakeLocatorForComposerJsonAndInstalledJson())($container->get('project_root'), $locator),
+                                new PhpInternalSourceLocator($locator, new PhpStormStubsSourceStubber($container->get(MemoizingParser::class))),
+                            ]),
+                        ),
+                    ])
+                );
+            }
         );
+
+        $locator = $container->get(Locator::class);
     },
     TypeResolver::class => function (ContainerInterface $container) {
         return new TypeResolver($container->get(ClassReflector::class));
@@ -127,7 +138,9 @@ return [
         DI\get(StaticPropertyProvider::class),
         DI\get(ClassConstantProvider::class),
     ],
-    'initialize' => DI\create(Initialize::class),
+    'initialize' => function (ContainerInterface $container) {
+        return new Initialize($container);
+    },
     'initialized' => DI\create(Initialized::class),
     'exit' => function (ContainerInterface $container) {
         return new Exit_($container->get(TextDocumentRegistry::class));
