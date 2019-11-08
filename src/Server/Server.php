@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace LanguageServer\Server;
 
-use LanguageServer\Exception\LanguageServerException;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
-use React\Socket\ConnectionInterface;
-use React\Socket\ServerInterface;
+use React\Stream\DuplexStreamInterface;
 use Throwable;
 
 /**
@@ -27,12 +25,7 @@ class Server
         $this->logger = $logger;
     }
 
-    public function listen(ServerInterface $socket): void
-    {
-        $socket->on('connection', [$this, 'handleRequest']);
-    }
-
-    public function handleRequest(ConnectionInterface $connection): void
+    public function listen(DuplexStreamInterface $stream): void
     {
         $this->serializer->on('deserialize', function (RequestMessage $request) {
             $result = $this->invokeRemoteMethod($request);
@@ -46,11 +39,11 @@ class Server
             $this->serializer->serialize($response);
         });
 
-        $this->serializer->on('serialize', function (string $response) use ($connection) {
-            $connection->write($response);
+        $this->serializer->on('serialize', function (string $response) use ($stream) {
+            $stream->write($response);
         });
 
-        $connection->on('data', [$this->serializer, 'deserialize']);
+        $stream->on('data', [$this->serializer, 'deserialize']);
     }
 
     private function invokeRemoteMethod(RequestMessage $request): ?object
@@ -62,7 +55,7 @@ class Server
 
             return $object->__invoke($request->params);
         } catch (Throwable $t) {
-            $this->logger->error($t->getMessage());
+            $this->logger->error(sprintf('%s: %s', get_class($t), $t->getMessage()));
 
             return $t;
         }
