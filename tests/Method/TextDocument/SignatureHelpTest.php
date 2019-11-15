@@ -14,6 +14,7 @@ use LanguageServer\TypeResolver;
 use PhpParser\Lexer;
 use PhpParser\ParserFactory;
 use Roave\BetterReflection\Reflector\ClassReflector;
+use Roave\BetterReflection\Reflector\FunctionReflector;
 use Roave\BetterReflection\SourceLocator\Ast\Locator as AstLocator;
 
 /**
@@ -38,15 +39,39 @@ class SignatureHelpTest extends FixtureTestCase
             ])
         );
 
-        $registry = new TextDocumentRegistry();
-        $locator = new RegistrySourceLocator(new AstLocator($phpParser), $registry);
-        $reflector = new ClassReflector($locator);
-        $resolver = new TypeResolver($reflector);
+        $registry = $this->setUpRegistry();
         $documentParser = new DocumentParser($phpParser);
-        $document = new TextDocument('file:///tmp/foo.php', $this->loadFixture('SignatureHelpFixture.php'), 0);
-        $registry->add($document);
 
-        $this->subject = new SignatureHelp($reflector, $documentParser, $resolver, $registry);
+        $locator = new RegistrySourceLocator(new AstLocator($phpParser), $registry);
+        $classReflector = new ClassReflector($locator);
+        $functionReflector = new FunctionReflector($locator, $classReflector);
+
+        $typeResolver = new TypeResolver($classReflector);
+
+        $this->subject = new SignatureHelp($classReflector, $functionReflector, $documentParser, $typeResolver, $registry);
+    }
+
+    private function setUpRegistry(): TextDocumentRegistry
+    {
+        $registry = new TextDocumentRegistry();
+
+        $registry->add(
+            new TextDocument(
+                'file:///tmp/foo.php',
+                $this->loadFixture('SignatureHelpFixture.php'),
+                0
+            )
+        );
+
+        $registry->add(
+            new TextDocument(
+                'file:///tmp/bar.php',
+                $this->loadFixture('NamespacedFunctionsFixture.php'),
+                0
+            )
+        );
+
+        return $registry;
     }
 
     /**
@@ -102,15 +127,17 @@ class SignatureHelpTest extends FixtureTestCase
     public function cursorPositionsProvider(): array
     {
         return [
-            [17, 19, 0, 'stdClass $bar, array $baz'],
-            [18, 36, 1, 'stdClass $bar, array $baz'],
-            [19, 33, 0, 'stdClass $bar, array $baz'],
-            [20, 16, 0, 'stdClass $bar, array $baz'],
-            [22, 13, 1, 'stdClass $bar, array $baz'],
-            [26, 34, 0, 'stdClass $bar, array $baz'],
-            [27, 13, 1, 'stdClass $bar, array $baz'],
-            [26, 25, 0, '$baz'],
-            [26, 53, 1, '$baz'],
+            [18, 19, 0, 'stdClass $bar, array $baz'],
+            [19, 36, 1, 'stdClass $bar, array $baz'],
+            [20, 33, 0, 'stdClass $bar, array $baz'],
+            [21, 16, 0, 'stdClass $bar, array $baz'],
+            [23, 13, 1, 'stdClass $bar, array $baz'],
+            [27, 34, 0, 'stdClass $bar, array $baz'],
+            [28, 13, 1, 'stdClass $bar, array $baz'],
+            [27, 25, 0, '$baz'],
+            [27, 53, 1, '$baz'],
+            [38, 26, 0, 'int $code, string $body'],
+            [43, 20, 0, 'string $view'],
         ];
     }
 }

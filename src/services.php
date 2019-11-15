@@ -31,13 +31,15 @@ use ProxyManager\Factory\LazyLoadingValueHolderFactory;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Roave\BetterReflection\Reflector\ClassReflector;
-use Roave\BetterReflection\SourceLocator\Ast\Locator;
+use Roave\BetterReflection\Reflector\FunctionReflector;
+use Roave\BetterReflection\SourceLocator\Ast\Locator as AstLocator;
 use Roave\BetterReflection\SourceLocator\Ast\Parser\MemoizingParser;
 use Roave\BetterReflection\SourceLocator\SourceStubber\PhpStormStubsSourceStubber;
 use Roave\BetterReflection\SourceLocator\Type\AggregateSourceLocator;
 use Roave\BetterReflection\SourceLocator\Type\Composer\Factory\MakeLocatorForComposerJsonAndInstalledJson;
 use Roave\BetterReflection\SourceLocator\Type\MemoizingSourceLocator;
 use Roave\BetterReflection\SourceLocator\Type\PhpInternalSourceLocator;
+use Roave\BetterReflection\SourceLocator\Type\SourceLocator;
 use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -78,39 +80,41 @@ return [
     MemoizingParser::class => function (ContainerInterface $container) {
         return new MemoizingParser($container->get(Parser::class));
     },
-    Locator::class => function (ContainerInterface $container) {
-        return new Locator($container->get(MemoizingParser::class));
-    },
     DocumentParser::class => function (ContainerInterface $container) {
         return new DocumentParser($container->get(MemoizingParser::class));
     },
     IncompleteDocumentParser::class => function (ContainerInterface $container) {
         return new IncompleteDocumentParser($container->get(MemoizingParser::class));
     },
-    ClassReflector::class => function (ContainerInterface $container) {
+    SourceLocator::class => function (ContainerInterface $container) {
         $factory = new LazyLoadingValueHolderFactory();
 
         return $factory->createProxy(
-            ClassReflector::class,
+            AggregateSourceLocator::class,
             function (&$wrappedObject, $proxy, $method, $parameters, &$initializer) use ($container) {
-                $locator = $container->get(Locator::class);
+                $locator = new AstLocator($container->get(MemoizingParser::class));
 
                 $initializer = null;
-                $wrappedObject = new ClassReflector(
-                    new AggregateSourceLocator([
-                        new RegistrySourceLocator($locator, $container->get(TextDocumentRegistry::class)),
-                        new MemoizingSourceLocator(
-                            new AggregateSourceLocator([
-                                (new MakeLocatorForComposerJsonAndInstalledJson())($container->get('project_root'), $locator),
-                                new PhpInternalSourceLocator($locator, new PhpStormStubsSourceStubber($container->get(MemoizingParser::class))),
-                            ]),
-                        ),
-                    ])
-                );
+                $wrappedObject = new AggregateSourceLocator([
+                    new RegistrySourceLocator($locator, $container->get(TextDocumentRegistry::class)),
+                    new MemoizingSourceLocator(
+                        new AggregateSourceLocator([
+                            new PhpInternalSourceLocator($locator, new PhpStormStubsSourceStubber($container->get(MemoizingParser::class))),
+                            (new MakeLocatorForComposerJsonAndInstalledJson())($container->get('project_root'), $locator),
+                        ]),
+                    ),
+                ]);
             }
         );
-
-        $locator = $container->get(Locator::class);
+    },
+    ClassReflector::class => function (ContainerInterface $container) {
+        return new ClassReflector($container->get(SourceLocator::class));
+    },
+    FunctionReflector::class => function (ContainerInterface $container) {
+        return new FunctionReflector(
+            $container->get(SourceLocator::class),
+            $container->get(ClassReflector::class)
+        );
     },
     TypeResolver::class => function (ContainerInterface $container) {
         return new TypeResolver($container->get(ClassReflector::class));
@@ -162,6 +166,7 @@ return [
     'textDocument/signatureHelp' => function (ContainerInterface $container) {
         return new SignatureHelp(
             $container->get(ClassReflector::class),
+            $container->get(FunctionReflector::class),
             $container->get(IncompleteDocumentParser::class),
             $container->get(TypeResolver::class),
             $container->get(TextDocumentRegistry::class)

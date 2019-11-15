@@ -3,6 +3,7 @@
 namespace App;
 
 use stdClass;
+use function SignatureHelp\Functions\view;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
@@ -32,4 +33,18 @@ class SignatureHelpFixture
 
         return;
     }
+
+    public function functionCompletion()
+    {
+        return \App\render();
+    }
+
+    public function importedFunctionCompletion()
+    {
+        return view();
+    }
+}
+
+function render(int $code, string $body): Response
+{
 }

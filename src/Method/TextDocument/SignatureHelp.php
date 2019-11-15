@@ -15,27 +15,31 @@ use LanguageServerProtocol\SignatureInformation;
 use OutOfBoundsException;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\NodeAbstract;
-use Roave\BetterReflection\Reflection\ReflectionMethod;
+use Roave\BetterReflection\Reflection\ReflectionFunctionAbstract;
 use Roave\BetterReflection\Reflection\ReflectionParameter;
-use Roave\BetterReflection\Reflector\Reflector;
+use Roave\BetterReflection\Reflector\ClassReflector;
+use Roave\BetterReflection\Reflector\FunctionReflector;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
 class SignatureHelp
 {
-    private $reflector;
+    private $classReflector;
+    private $functionReflector;
     private $parser;
     private $resolver;
     private $registry;
 
-    public function __construct(Reflector $reflector, DocumentParserInterface $parser, TypeResolver $resolver, TextDocumentRegistry $registry)
+    public function __construct(ClassReflector $classReflector, FunctionReflector $functionReflector, DocumentParserInterface $parser, TypeResolver $resolver, TextDocumentRegistry $registry)
     {
-        $this->reflector = $reflector;
+        $this->classReflector = $classReflector;
+        $this->functionReflector = $functionReflector;
         $this->parser = $parser;
         $this->resolver = $resolver;
         $this->registry = $registry;
@@ -110,7 +114,8 @@ class SignatureHelp
     {
         return $node instanceof MethodCall
             || $node instanceof StaticCall
-            || $node instanceof New_;
+            || $node instanceof New_
+            || $node instanceof FuncCall;
     }
 
     private function findInnermostMethodUnderCursor(array $methodCallNodes, CursorPosition $cursorPosition): Expr
@@ -151,11 +156,15 @@ class SignatureHelp
         return new SignatureHelpResponse();
     }
 
-    private function reflectMethodFromExpression(ParsedDocument $document, Expr $expression): ReflectionMethod
+    private function reflectMethodFromExpression(ParsedDocument $document, Expr $expression): ReflectionFunctionAbstract
     {
+        if ($expression instanceof FuncCall) {
+            return $this->functionReflector->reflect($expression->name->toCodeString());
+        }
+
         $type = $this->resolver->getType($document, $expression);
 
-        $reflection = $this->reflector->reflect($type);
+        $reflection = $this->classReflector->reflect($type);
 
         if ($expression instanceof New_) {
             return $reflection->getConstructor();
@@ -164,7 +173,7 @@ class SignatureHelp
         return $reflection->getMethod($expression->name->name);
     }
 
-    private function getSignatureHelpForMethod(ReflectionMethod $method, Expr $expression, CursorPosition $cursorPosition): SignatureHelpResponse
+    private function getSignatureHelpForMethod(ReflectionFunctionAbstract $method, Expr $expression, CursorPosition $cursorPosition): SignatureHelpResponse
     {
         $parameters = $this->extractParameterInfoFromMethod($method);
         $signatureLabel = $this->createSignatureLabel($parameters);
@@ -175,7 +184,7 @@ class SignatureHelp
         return new SignatureHelpResponse([$signatureInformation], 0, $activeParameterPosition);
     }
 
-    private function extractParameterInfoFromMethod(ReflectionMethod $method): array
+    private function extractParameterInfoFromMethod(ReflectionFunctionAbstract $method): array
     {
         return array_map(
             function (ReflectionParameter $param) {
@@ -205,7 +214,7 @@ class SignatureHelp
         return implode(', ', $parameterLabels);
     }
 
-    private function getActiveParameterPosition(ReflectionMethod $method, Expr $expression, CursorPosition $cursorPosition)
+    private function getActiveParameterPosition(ReflectionFunctionAbstract $method, Expr $expression, CursorPosition $cursorPosition)
     {
         $activeParameter = $this->getActiveParameterFromCursorPosition($expression, $cursorPosition);
 
