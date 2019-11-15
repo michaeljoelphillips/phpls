@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LanguageServer\Method\TextDocument;
 
 use LanguageServer\CursorPosition;
+use LanguageServer\Method\RemoteMethodInterface;
 use LanguageServer\Method\TextDocument\CompletionProvider\CompletionProviderInterface;
 use LanguageServer\Parser\DocumentParserInterface;
 use LanguageServer\Parser\ParsedDocument;
@@ -19,7 +20,7 @@ use Roave\BetterReflection\Reflector\Reflector;
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
-class Completion
+class Completion implements RemoteMethodInterface
 {
     private $parser;
     private $registry;

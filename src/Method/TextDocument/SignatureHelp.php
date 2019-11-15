@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LanguageServer\Method\TextDocument;
 
 use LanguageServer\CursorPosition;
+use LanguageServer\Method\RemoteMethodInterface;
 use LanguageServer\Parser\DocumentParserInterface;
 use LanguageServer\Parser\ParsedDocument;
 use LanguageServer\TextDocumentRegistry;
@@ -28,7 +29,7 @@ use Roave\BetterReflection\Reflector\FunctionReflector;
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
-class SignatureHelp
+class SignatureHelp implements RemoteMethodInterface
 {
     private $classReflector;
     private $functionReflector;
@@ -45,7 +46,7 @@ class SignatureHelp
         $this->registry = $registry;
     }
 
-    public function __invoke(array $params)
+    public function __invoke(array $params): ?object
     {
         return $this->getSignatureHelpResponse($params);
     }

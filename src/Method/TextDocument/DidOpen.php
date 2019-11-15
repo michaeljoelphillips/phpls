@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Method\TextDocument;
 
+use LanguageServer\Method\RemoteMethodInterface;
 use LanguageServer\Parser\DocumentParserInterface;
 use LanguageServer\TextDocument;
 use LanguageServer\TextDocumentRegistry;
@@ -11,7 +12,7 @@ use LanguageServer\TextDocumentRegistry;
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
-class DidOpen
+class DidOpen implements RemoteMethodInterface
 {
     private $registry;
     private $parser;
@@ -22,7 +23,7 @@ class DidOpen
         $this->parser = $parser;
     }
 
-    public function __invoke(array $params): void
+    public function __invoke(array $params)
     {
         $textDocument = new TextDocument(
             $params['textDocument']['uri'],
