@@ -7,6 +7,7 @@ namespace LanguageServer\Method;
 use DI\Container;
 use LanguageServer\Method\RemoteMethodInterface;
 use LanguageServerProtocol\CompletionOptions;
+use LanguageServerProtocol\InitializeResult;
 use LanguageServerProtocol\ServerCapabilities;
 use LanguageServerProtocol\SignatureHelpOptions;
 use RuntimeException;
@@ -31,7 +32,7 @@ class Initialize implements RemoteMethodInterface
         $capabilities->completionProvider = new CompletionOptions(true, [':', '>']);
         $capabilities->signatureHelpProvider = new SignatureHelpOptions(['(', ',']);
 
-        return $capabilities;
+        return new InitializeResult($capabilities);
     }
 
     private function setProjectRoot(array $params): void

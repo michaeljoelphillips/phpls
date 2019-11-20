@@ -28,8 +28,8 @@ class InitializeTest extends TestCase
             'rootUri' => 'file:///tmp/foo',
         ]);
 
-        $this->assertEquals([':', '>'], $result->completionProvider->triggerCharacters);
-        $this->assertEquals(['(', ','], $result->signatureHelpProvider->triggerCharacters);
+        $this->assertEquals([':', '>'], $result->capabilities->completionProvider->triggerCharacters);
+        $this->assertEquals(['(', ','], $result->capabilities->signatureHelpProvider->triggerCharacters);
     }
 
     public function testInitializeWithEmptyProjectRoot()

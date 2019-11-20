@@ -19,7 +19,7 @@ class ResponseMessage extends Message
     {
         $message = new self();
         $message->id = $id;
-        $message->error = $exception->getMessage();
+        $message->error = new ResponseError($exception->getMessage());
 
         return $message;
     }
