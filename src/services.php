@@ -47,7 +47,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 return [
     LoggerInterface::class => function (ContainerInterface $container) {
         $logger = new Logger('default');
-        $logger->pushHandler(new StreamHandler(fopen('/tmp/language-server.log', 'w+')));
+        $logger->pushHandler(new StreamHandler(fopen('/tmp/language-server.log', 'w+'), Logger::DEBUG));
 
         return $logger;
     },

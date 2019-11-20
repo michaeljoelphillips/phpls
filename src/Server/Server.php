@@ -40,20 +40,26 @@ class Server
         });
 
         $this->serializer->on('serialize', function (string $response) use ($stream) {
+            $this->logger->debug('Sending response', [$request]);
+
             $stream->write($response);
         });
 
-        $stream->on('data', [$this->serializer, 'deserialize']);
+        $stream->on('data', function (string $request) {
+            $this->logger->debug('Received request', [$request]);
+
+            $this->serializer->deserialize($request);
+        });
     }
 
     private function invokeRemoteMethod(RequestMessage $request): ?object
     {
-        $this->logger->debug(sprintf('Received %s', $request->method));
+        $this->logger->info(sprintf('Invoking method %s', $request->method));
 
         try {
-            $object = $this->container->get($request->method);
+            $method = $this->container->get($request->method);
 
-            return $object->__invoke($request->params);
+            return $method->__invoke($request->params ?? []);
         } catch (Throwable $t) {
             $this->logger->error(sprintf('%s: %s', get_class($t), $t->getMessage()));
 
