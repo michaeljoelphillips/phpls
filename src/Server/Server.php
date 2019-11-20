@@ -40,7 +40,7 @@ class Server
         });
 
         $this->serializer->on('serialize', function (string $response) use ($stream) {
-            $this->logger->debug('Sending response', [$request]);
+            $this->logger->debug('Sending response', [$response]);
 
             $stream->write($response);
         });
@@ -59,7 +59,7 @@ class Server
         try {
             $method = $this->container->get($request->method);
 
-            return $method->__invoke($request->params ?? []);
+            return $method->__invoke($request->params);
         } catch (Throwable $t) {
             $this->logger->error(sprintf('%s: %s', get_class($t), $t->getMessage()));
 
