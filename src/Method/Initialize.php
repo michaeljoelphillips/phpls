@@ -10,6 +10,8 @@ use LanguageServerProtocol\CompletionOptions;
 use LanguageServerProtocol\InitializeResult;
 use LanguageServerProtocol\ServerCapabilities;
 use LanguageServerProtocol\SignatureHelpOptions;
+use LanguageServerProtocol\TextDocumentSyncKind;
+use LanguageServerProtocol\TextDocumentSyncOptions;
 use RuntimeException;
 
 /**
@@ -29,6 +31,32 @@ class Initialize implements RemoteMethodInterface
         $this->setProjectRoot($params);
 
         $capabilities = new ServerCapabilities();
+        $textDocumentSync = new TextDocumentSyncOptions();
+
+        $textDocumentSync->save = true;
+        $textDocumentSync->openClose = true;
+        $textDocumentSync->willSave = false;
+        $textDocumentSync->willSaveWaitUntil = false;
+        $textDocumentSync->change = TextDocumentSyncKind::FULL;
+
+        $capabilities->hoverProvider = false;
+        $capabilities->renameProvider = false;
+        $capabilities->codeLensProvider = false;
+        $capabilities->definitionProvider = false;
+        $capabilities->referencesProvider = false;
+        $capabilities->referencesProvider = false;
+        $capabilities->codeActionProvider = false;
+        $capabilities->xdefinitionProvider = false;
+        $capabilities->dependenciesProvider = false;
+        $capabilities->documentSymbolProvider = false;
+        $capabilities->workspaceSymbolProvider = false;
+        $capabilities->documentHighlightProvider = false;
+        $capabilities->documentFormattingProvider = false;
+        $capabilities->xworkspaceReferencesProvider = false;
+        $capabilities->documentRangeFormattingProvider = false;
+        $capabilities->documentOnTypeFormattingProvider = false;
+
+        $capabilities->textDocumentSync = $textDocumentSync;
         $capabilities->completionProvider = new CompletionOptions(true, [':', '>']);
         $capabilities->signatureHelpProvider = new SignatureHelpOptions(['(', ',']);
 
