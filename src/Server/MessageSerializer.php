@@ -6,6 +6,7 @@ namespace LanguageServer\Server;
 
 use Evenement\EventEmitterInterface;
 use Evenement\EventEmitterTrait;
+use LanguageServer\Server\Protocol\RequestMessage;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 use Symfony\Component\Serializer\SerializerInterface;
 

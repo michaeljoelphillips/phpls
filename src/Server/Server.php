@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace LanguageServer\Server;
 
+use LanguageServer\Server\Protocol\RequestMessage;
+use LanguageServer\Server\Protocol\ResponseMessage;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use React\Stream\DuplexStreamInterface;
@@ -34,7 +36,7 @@ class Server
                 return;
             }
 
-            $response = $this->prepareResponse($result, $request);
+            $response = new ResponseMessage($request, $result);
 
             $this->serializer->serialize($response);
         });
@@ -65,14 +67,5 @@ class Server
 
             return $t;
         }
-    }
-
-    private function prepareResponse(object $result, RequestMessage $request): ResponseMessage
-    {
-        if ($result instanceof Throwable) {
-            return ResponseMessage::createErrorResponse($result, $request->id);
-        }
-
-        return ResponseMessage::createSuccessfulResponse($result, $request->id);
     }
 }

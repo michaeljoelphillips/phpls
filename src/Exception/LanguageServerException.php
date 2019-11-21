@@ -9,6 +9,6 @@ use RuntimeException;
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
-class LanguageServerException extends RuntimeException
+abstract class LanguageServerException extends RuntimeException
 {
 }
