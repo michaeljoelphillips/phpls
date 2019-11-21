@@ -12,15 +12,8 @@ use LanguageServer\TextDocumentRegistry;
  */
 class Exit_ implements RemoteMethodInterface
 {
-    private $registry;
-
-    public function __construct(TextDocumentRegistry $registry)
-    {
-        $this->registry = $registry;
-    }
-
     public function __invoke(array $params)
     {
-        $this->registry->clear();
+        exit(0);
     }
 }
