@@ -77,7 +77,7 @@ class Server
         try {
             $method = $this->container->get($request->method);
 
-            return $method->__invoke($request->params);
+            return $method->__invoke($request->params ?? []);
         } catch (Throwable $t) {
             $this->logger->error(sprintf('%s: %s', get_class($t), $t->getMessage()));
 
