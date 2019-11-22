@@ -13,6 +13,7 @@ use LanguageServerProtocol\SignatureHelpOptions;
 use LanguageServerProtocol\TextDocumentSyncKind;
 use LanguageServerProtocol\TextDocumentSyncOptions;
 use RuntimeException;
+use LanguageServerProtocol\SaveOptions;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
@@ -31,11 +32,14 @@ class Initialize implements RemoteMethodInterface
         $this->setProjectRoot($params);
 
         $capabilities = new ServerCapabilities();
+
+        $saveOptions = new SaveOptions();
         $textDocumentSync = new TextDocumentSyncOptions();
 
-        $textDocumentSync->save = true;
+        $saveOptions->save = false;
         $textDocumentSync->openClose = true;
         $textDocumentSync->willSave = false;
+        $textDocumentSync->save = $saveOptions;
         $textDocumentSync->willSaveWaitUntil = false;
         $textDocumentSync->change = TextDocumentSyncKind::FULL;
 
