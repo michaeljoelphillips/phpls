@@ -23,35 +23,20 @@ class Server
 {
     private $logger;
     private $container;
-    private $serializer;
-    private $stream;
+    private $requestReader;
+    private $responseWriter;
 
-    public function __construct(ContainerInterface $container, MessageSerializer $serializer, LoggerInterface $logger, DuplexStreamInterface $stream)
+    public function __construct(ContainerInterface $container, RequestReaderInterface $requestReader, ResponseWriterInterface $responseWriter, LoggerInterface $logger)
     {
-        $this->container = $container;
-        $this->serializer = $serializer;
         $this->logger = $logger;
-        $this->stream = $stream;
+        $this->container = $container;
+        $this->requestReader = $requestReader;
+        $this->responseWriter = $responseWriter;
     }
 
     public function start(): void
     {
-        $this->attachStreamEventListeners();
-
-        $this->read([$this, 'waitForInitialization']);
-    }
-
-    private function attachStreamEventListeners(): void
-    {
-        $this->stream->on('data', [$this->serializer, 'deserialize']);
-        $this->serializer->on('serialize', [$this->stream, 'write']);
-    }
-
-    private function read(callable $callback): void
-    {
-        $this->serializer->removeAllListeners('deserialize');
-
-        $this->serializer->on('deserialize', Closure::fromCallable($callback));
+        $this->requestReader->read(Closure::fromCallable([$this, 'waitForInitialization']));
     }
 
     private function waitForInitialization(RequestMessage $request): void
@@ -68,7 +53,7 @@ class Server
 
         $this->handleRequest($request);
 
-        $this->read([$this, 'handleRequest']);
+        $this->requestReader->read(Closure::fromCallable([$this, 'handleRequest']));
     }
 
     public function waitForExit(RequestMessage $request): void
@@ -79,13 +64,24 @@ class Server
             return;
         }
 
-        exit;
+        $this->exit();
+    }
+
+    private function exit(): void
+    {
+        exit();
     }
 
     public function handleRequest(RequestMessage $request)
     {
         if ($request->method === 'shutdown') {
             $this->shutdown($request);
+
+            return;
+        }
+
+        if ($request->method === 'exit') {
+            $this->exit();
 
             return;
         }
@@ -103,14 +99,14 @@ class Server
             return;
         }
 
-        $this->serializer->serialize(new ResponseMessage($request, $result));
+        $this->responseWriter->write(new ResponseMessage($request, $result));
     }
 
     private function shutdown(RequestMessage $request): void
     {
-        $this->serializer->serialize(new ResponseMessage($request, null));
+        $this->responseWriter->write(new ResponseMessage($request, null));
 
-        $this->read([$this, 'waitForExit']);
+        $this->requestReader->read(Closure::fromCallable([$this, 'waitForExit']));
     }
 
     private function invokeMethod(RemoteMethodInterface $method, RequestMessage $request): ?object
@@ -132,20 +128,20 @@ class Server
     {
         $this->logger->error('The client sent a request to the server before the server was initialized');
 
-        $this->serializer->serialize(new ResponseMessage($request, new ServerNotInitializedException()));
+        $this->responseWriter->write(new ResponseMessage($request, new ServerNotInitializedException()));
     }
 
     private function sendInvalidRequestError(RequestMessage $request): void
     {
         $this->logger->error('The client sent a request to the server after the server was shutdown');
 
-        $this->serializer->serialize(new ResponseMessage($request, new InvalidRequestException()));
+        $this->responseWriter->write(new ResponseMessage($request, new InvalidRequestException()));
     }
 
     public function sendMethodNotFoundError(RequestMessage $request): void
     {
         $this->logger->error(sprintf('Method %s could not be located', $request->method));
 
-        $this->serializer->serialize(new ResponseMessage($request, new InvalidRequestException()));
+        $this->responseWriter->write(new ResponseMessage($request, new InvalidRequestException()));
     }
 }

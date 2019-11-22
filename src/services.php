@@ -22,6 +22,7 @@ use LanguageServer\Parser\IncompleteDocumentParser;
 use LanguageServer\Parser\LenientParser;
 use LanguageServer\RegistrySourceLocator;
 use LanguageServer\Server\JsonRpcEncoder;
+use LanguageServer\Server\JsonRpcServer;
 use LanguageServer\Server\MessageSerializer;
 use LanguageServer\Server\Server;
 use LanguageServer\TextDocumentRegistry;
@@ -55,11 +56,16 @@ use Symfony\Component\Serializer\SerializerInterface;
 
 return [
     Server::class => function (ContainerInterface $container) {
+        $rpcServer = new JsonRpcServer(
+            $container->get(CompositeStream::class),
+            $container->get(MessageSerializer::class)
+        );
+
         return new Server(
             $container,
-            $container->get(MessageSerializer::class),
+            $rpcServer,
+            $rpcServer,
             $container->get(LoggerInterface::class),
-            $container->get(CompositeStream::class)
         );
     },
     CompositeStream::class => function (ContainerInterface $container) {
