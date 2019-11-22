@@ -36,7 +36,7 @@ class Initialize implements RemoteMethodInterface
         $saveOptions = new SaveOptions();
         $textDocumentSync = new TextDocumentSyncOptions();
 
-        $saveOptions->save = false;
+        $saveOptions->includeText = false;
         $textDocumentSync->openClose = true;
         $textDocumentSync->willSave = false;
         $textDocumentSync->save = $saveOptions;
