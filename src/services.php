@@ -22,6 +22,7 @@ use LanguageServer\Parser\IncompleteDocumentParser;
 use LanguageServer\Parser\LenientParser;
 use LanguageServer\RegistrySourceLocator;
 use LanguageServer\Server\JsonRpcEncoder;
+use LanguageServer\Server\MessageSerializer;
 use LanguageServer\Server\Server;
 use LanguageServer\TextDocumentRegistry;
 use LanguageServer\TypeResolver;
@@ -33,6 +34,11 @@ use PhpParser\ParserFactory;
 use ProxyManager\Factory\LazyLoadingValueHolderFactory;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
+use React\EventLoop\Factory;
+use React\EventLoop\LoopInterface;
+use React\Stream\CompositeStream;
+use React\Stream\ReadableResourceStream;
+use React\Stream\WritableResourceStream;
 use Roave\BetterReflection\Reflector\ClassReflector;
 use Roave\BetterReflection\Reflector\FunctionReflector;
 use Roave\BetterReflection\SourceLocator\Ast\Locator as AstLocator;
@@ -48,6 +54,25 @@ use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
 
 return [
+    Server::class => function (ContainerInterface $container) {
+        return new Server(
+            $container,
+            $container->get(MessageSerializer::class),
+            $container->get(LoggerInterface::class),
+            $container->get(CompositeStream::class)
+        );
+    },
+    CompositeStream::class => function (ContainerInterface $container) {
+        $loop = $container->get(LoopInterface::class);
+
+        return new CompositeStream(
+            new ReadableResourceStream(STDIN, $loop),
+            new WritableResourceStream(STDOUT, $loop)
+        );
+    },
+    LoopInterface::class => function (ContainerInterface $container) {
+        return Factory::create();
+    },
     LoggerInterface::class => function (ContainerInterface $container) {
         $logger = new Logger('default');
         $logger->pushHandler(new StreamHandler(fopen('/tmp/language-server.log', 'w+'), Logger::DEBUG));

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LanguageServer\Server;
 
 use LanguageServer\Exception\InvalidRequestException;
+use LanguageServer\Exception\ServerNotInitializedException;
 use LanguageServer\Method\NotificationHandlerInterface;
 use LanguageServer\Method\RemoteMethodInterface;
 use LanguageServer\Server\Protocol\RequestMessage;
@@ -13,6 +14,7 @@ use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use React\Stream\DuplexStreamInterface;
 use Throwable;
+use Closure;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
@@ -22,52 +24,93 @@ class Server
     private $logger;
     private $container;
     private $serializer;
-    private $shutdownRequestReceived = false;
+    private $stream;
 
-
-    public function __construct(ContainerInterface $container, MessageSerializer $serializer, LoggerInterface $logger)
+    public function __construct(ContainerInterface $container, MessageSerializer $serializer, LoggerInterface $logger, DuplexStreamInterface $stream)
     {
         $this->container = $container;
         $this->serializer = $serializer;
         $this->logger = $logger;
+        $this->stream = $stream;
     }
 
-    public function listen(DuplexStreamInterface $stream): void
+    public function start(): void
     {
-        $this->serializer->on('deserialize', function (RequestMessage $request) {
-            if ($this->shutdownRequestReceived === true) {
-                $this->sendInvalidRequestError($request);
+        $this->attachStreamEventListeners();
 
-                return;
-            }
+        $this->read([$this, 'waitForInitialization']);
+    }
 
-            if ($this->container->has($request->method) === false) {
-                $this->sendMethodNotFoundError($request);
+    private function attachStreamEventListeners(): void
+    {
+        $this->stream->on('data', [$this->serializer, 'deserialize']);
+        $this->serializer->on('serialize', [$this->stream, 'write']);
+    }
 
-                return;
-            }
+    private function read(callable $callback): void
+    {
+        $this->serializer->removeAllListeners('deserialize');
 
-            $method = $this->container->get($request->method);
-            $result = $this->invokeMethod($method, $request);
+        $this->serializer->on('deserialize', Closure::fromCallable($callback));
+    }
 
-            if ($method instanceof NotificationHandlerInterface) {
-                return;
-            }
+    private function waitForInitialization(RequestMessage $request): void
+    {
+        if ($request->method === 'exit') {
+            exit;
+        }
 
-            $this->serializer->serialize(new ResponseMessage($request, $result));
-        });
+        if ($request->method !== 'initialize') {
+            $this->sendServerNotInitializedError();
 
-        $this->serializer->on('serialize', function (string $response) use ($stream) {
-            $this->logger->debug('Sending response', [$response]);
+            return;
+        }
 
-            $stream->write($response);
-        });
+        $this->handleRequest($request);
 
-        $stream->on('data', function (string $request) {
-            $this->logger->debug('Received request', [$request]);
+        $this->read([$this, 'handleRequest']);
+    }
 
-            $this->serializer->deserialize($request);
-        });
+    public function waitForExit(RequestMessage $request): void
+    {
+        if ($request->method !== 'exit') {
+            $this->sendInvalidRequestError($request);
+
+            return;
+        }
+
+        exit;
+    }
+
+    public function handleRequest(RequestMessage $request)
+    {
+        if ($request->method === 'shutdown') {
+            $this->shutdown($request);
+
+            return;
+        }
+
+        if ($this->container->has($request->method) === false) {
+            $this->sendMethodNotFoundError($request);
+
+            return;
+        }
+
+        $method = $this->container->get($request->method);
+        $result = $this->invokeMethod($method, $request);
+
+        if ($method instanceof NotificationHandlerInterface) {
+            return;
+        }
+
+        $this->serializer->serialize(new ResponseMessage($request, $result));
+    }
+
+    private function shutdown(RequestMessage $request): void
+    {
+        $this->serializer->serialize(new ResponseMessage($request, null));
+
+        $this->read([$this, 'waitForExit']);
     }
 
     private function invokeMethod(RemoteMethodInterface $method, RequestMessage $request): ?object
@@ -85,6 +128,13 @@ class Server
         }
     }
 
+    private function sendServerNotInitializedError(RequestMessage $request): void
+    {
+        $this->logger->error('The client sent a request to the server before the server was initialized');
+
+        $this->serializer->serialize(new ResponseMessage($request, new ServerNotInitializedException()));
+    }
+
     private function sendInvalidRequestError(RequestMessage $request): void
     {
         $this->logger->error('The client sent a request to the server after the server was shutdown');
@@ -97,10 +147,5 @@ class Server
         $this->logger->error(sprintf('Method %s could not be located', $request->method));
 
         $this->serializer->serialize(new ResponseMessage($request, new InvalidRequestException()));
-    }
-
-    public function shutdown(): void
-    {
-        $this->shutdownRequestReceived = true;
     }
 }
