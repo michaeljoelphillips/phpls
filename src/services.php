@@ -5,6 +5,7 @@ declare(strict_types=1);
 use LanguageServer\Method\Exit_;
 use LanguageServer\Method\Initialize;
 use LanguageServer\Method\Initialized;
+use LanguageServer\Method\Shutdown;
 use LanguageServer\Method\TextDocument\Completion;
 use LanguageServer\Method\TextDocument\CompletionProvider\ClassConstantProvider;
 use LanguageServer\Method\TextDocument\CompletionProvider\InstanceMethodProvider;
@@ -12,6 +13,7 @@ use LanguageServer\Method\TextDocument\CompletionProvider\InstanceVariableProvid
 use LanguageServer\Method\TextDocument\CompletionProvider\StaticMethodProvider;
 use LanguageServer\Method\TextDocument\CompletionProvider\StaticPropertyProvider;
 use LanguageServer\Method\TextDocument\DidChange;
+use LanguageServer\Method\TextDocument\DidClose;
 use LanguageServer\Method\TextDocument\DidOpen;
 use LanguageServer\Method\TextDocument\DidSave;
 use LanguageServer\Method\TextDocument\SignatureHelp;
@@ -20,6 +22,7 @@ use LanguageServer\Parser\IncompleteDocumentParser;
 use LanguageServer\Parser\LenientParser;
 use LanguageServer\RegistrySourceLocator;
 use LanguageServer\Server\JsonRpcEncoder;
+use LanguageServer\Server\Server;
 use LanguageServer\TextDocumentRegistry;
 use LanguageServer\TypeResolver;
 use Monolog\Handler\StreamHandler;
@@ -146,6 +149,9 @@ return [
         return new Initialize($container);
     },
     'initialized' => DI\create(Initialized::class),
+    'shutdown' => function (ContainerInterface $container) {
+        return new Shutdown($container->get(Server::class));
+    },
     'exit' => function (ContainerInterface $container) {
         return new Exit_($container->get(TextDocumentRegistry::class));
     },
@@ -185,6 +191,6 @@ return [
         );
     },
     'textDocument/didClose' => function () {
-        return function () { return; };
+        return new DidClose();
     },
 ];
