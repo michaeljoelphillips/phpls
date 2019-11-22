@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Method\TextDocument;
 
+use LanguageServer\Method\NotificationHandlerInterface;
 use LanguageServer\Method\RemoteMethodInterface;
 use LanguageServer\TextDocument;
 use LanguageServer\TextDocumentRegistry;
@@ -11,7 +12,7 @@ use LanguageServer\TextDocumentRegistry;
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
-class DidSave implements RemoteMethodInterface
+class DidSave implements RemoteMethodInterface, NotificationHandlerInterface
 {
     private $registry;
 

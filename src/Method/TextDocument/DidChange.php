@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Method\TextDocument;
 
+use LanguageServer\Method\NotificationHandlerInterface;
 use LanguageServer\Method\RemoteMethodInterface;
 use LanguageServer\Parser\DocumentParserInterface;
 use LanguageServer\TextDocument;
@@ -12,7 +13,7 @@ use LanguageServer\TextDocumentRegistry;
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
-class DidChange implements RemoteMethodInterface
+class DidChange implements RemoteMethodInterface, NotificationHandlerInterface
 {
     private $registry;
     private $parser;
