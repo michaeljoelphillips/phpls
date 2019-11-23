@@ -6,7 +6,10 @@ namespace LanguageServer\Server;
 
 use Evenement\EventEmitterInterface;
 use Evenement\EventEmitterTrait;
+use LanguageServer\Server\Protocol\Message;
 use LanguageServer\Server\Protocol\RequestMessage;
+use LanguageServer\Server\Protocol\ResponseMessage;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 use Symfony\Component\Serializer\SerializerInterface;
 
@@ -17,34 +20,37 @@ class MessageSerializer implements EventEmitterInterface
 {
     use EventEmitterTrait;
 
-    /** @var SerializerInterface */
     private $serializer;
+    private $logger;
 
     /**
      * @param SerializerInterface $serializer
      */
-    public function __construct(SerializerInterface $serializer)
+    public function __construct(SerializerInterface $serializer, LoggerInterface $logger)
     {
         $this->serializer = $serializer;
+        $this->logger = $logger;
     }
 
     public function deserialize(string $request): void
     {
-        try {
-            $requestMessage = $this->serializer->deserialize($request, RequestMessage::class, 'jsonrpc');
+        $this->logger->debug($request);
 
-            $this->emit('deserialize', [$requestMessage]);
+        try {
+            $request = $this->serializer->deserialize($request, Message::class, 'jsonrpc');
+
+            $this->emit('deserialize', [$request]);
         } catch (NotEncodableValueException $e) {
             return;
         }
     }
 
-    public function serialize(object $response): void
+    public function serialize(ResponseMessage $response): void
     {
         try {
-            $responseBody = $this->serializer->serialize($response, 'jsonrpc');
+            $response = $this->serializer->serialize($response, 'jsonrpc');
 
-            $this->emit('serialize', [$responseBody]);
+            $this->emit('serialize', [$response]);
         } catch (NotEncodableValueException $e) {
             return;
         }

@@ -5,20 +5,21 @@ declare(strict_types=1);
 namespace LanguageServer\Method;
 
 use DI\Container;
-use LanguageServer\Method\RemoteMethodInterface;
+use LanguageServer\Server\Protocol\Message;
+use LanguageServer\Server\Protocol\ResponseMessage;
 use LanguageServerProtocol\CompletionOptions;
 use LanguageServerProtocol\InitializeResult;
+use LanguageServerProtocol\SaveOptions;
 use LanguageServerProtocol\ServerCapabilities;
 use LanguageServerProtocol\SignatureHelpOptions;
 use LanguageServerProtocol\TextDocumentSyncKind;
 use LanguageServerProtocol\TextDocumentSyncOptions;
 use RuntimeException;
-use LanguageServerProtocol\SaveOptions;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
-class Initialize implements RemoteMethodInterface
+class Initialize implements RequestHandlerInterface
 {
     private $container;
 
@@ -27,9 +28,9 @@ class Initialize implements RemoteMethodInterface
         $this->container = $container;
     }
 
-    public function __invoke(array $params)
+    public function __invoke(Message $request)
     {
-        $this->setProjectRoot($params);
+        $this->setProjectRoot($request->params);
 
         $capabilities = new ServerCapabilities();
 
@@ -64,12 +65,12 @@ class Initialize implements RemoteMethodInterface
         $capabilities->completionProvider = new CompletionOptions(true, [':', '>']);
         $capabilities->signatureHelpProvider = new SignatureHelpOptions(['(', ',']);
 
-        return new InitializeResult($capabilities);
+        return new ResponseMessage($request, new InitializeResult($capabilities));
     }
 
     private function setProjectRoot(array $params): void
     {
-        if (null === ($params['rootUri'] ?? null)) {
+        if (null === $params['rootUri']) {
             throw new RuntimeException('The project root was not specified');
         }
 

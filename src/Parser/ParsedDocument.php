@@ -132,4 +132,9 @@ class ParsedDocument
     {
         return $this->document->getSource();
     }
+
+    public function getCursorPosition(int $line, int $character): CursorPosition
+    {
+        return $this->document->getCursorPosition($line, $character);
+    }
 }

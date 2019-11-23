@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace LanguageServer\Method\TextDocument;
 
 use LanguageServer\CursorPosition;
-use LanguageServer\Method\RemoteMethodInterface;
+use LanguageServer\Method\RequestHandlerInterface;
 use LanguageServer\Method\TextDocument\CompletionProvider\CompletionProviderInterface;
 use LanguageServer\Parser\DocumentParserInterface;
 use LanguageServer\Parser\ParsedDocument;
+use LanguageServer\Server\Protocol\Message;
+use LanguageServer\Server\Protocol\ResponseMessage;
 use LanguageServer\TextDocumentRegistry;
 use LanguageServer\TypeResolver;
 use LanguageServerProtocol\CompletionList;
@@ -20,7 +22,7 @@ use Roave\BetterReflection\Reflector\Reflector;
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
-class Completion implements RemoteMethodInterface
+class Completion implements RequestHandlerInterface
 {
     private $parser;
     private $registry;
@@ -37,9 +39,9 @@ class Completion implements RemoteMethodInterface
         $this->providers = $providers;
     }
 
-    public function __invoke(array $params)
+    public function __invoke(Message $request)
     {
-        return $this->getCompletionList($params);
+        return new ResponseMessage($request, $this->getCompletionList($request->params));
     }
 
     private function getCompletionList(array $params): CompletionList

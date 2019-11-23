@@ -20,8 +20,7 @@ class ResponseMessageTest extends TestCase
 {
     public function testResponseMessageWithResult()
     {
-        $request = new RequestMessage();
-        $request->id = 1;
+        $request = new RequestMessage(1, 'textDocument/completion', []);
 
         $result = new stdClass();
         $subject = new ResponseMessage($request, $result);
@@ -33,8 +32,7 @@ class ResponseMessageTest extends TestCase
 
     public function testResponseMessageWithGenericException()
     {
-        $request = new RequestMessage();
-        $request->id = 1;
+        $request = new RequestMessage(1, 'textDocument/completion', []);
 
         $exception = new Exception('Test Exception');
         $subject = new ResponseMessage($request, $exception);
@@ -46,8 +44,7 @@ class ResponseMessageTest extends TestCase
 
     public function testResponseMessageWithException()
     {
-        $request = new RequestMessage();
-        $request->id = 1;
+        $request = new RequestMessage(1, 'textDocument/completion', []);
 
         $exception = new InvalidRequestException();
         $subject = new ResponseMessage($request, $exception);

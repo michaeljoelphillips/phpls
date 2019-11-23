@@ -12,4 +12,11 @@ class RequestMessage extends Message
     public $id;
     public $method;
     public $params;
+
+    public function __construct(int $id, string $method, ?array $params)
+    {
+        $this->id = $id;
+        $this->method = $method;
+        $this->params = $params;
+    }
 }

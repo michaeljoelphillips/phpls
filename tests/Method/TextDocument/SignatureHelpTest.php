@@ -7,6 +7,7 @@ namespace LanguageServer\Test\Method\TextDocument;
 use LanguageServer\Method\TextDocument\SignatureHelp;
 use LanguageServer\Parser\DocumentParser;
 use LanguageServer\RegistrySourceLocator;
+use LanguageServer\Server\Protocol\RequestMessage;
 use LanguageServer\Test\FixtureTestCase;
 use LanguageServer\TextDocument;
 use LanguageServer\TextDocumentRegistry;
@@ -79,7 +80,7 @@ class SignatureHelpTest extends FixtureTestCase
      */
     public function testSignatureHelp(int $line, int $character, int $activeParameter, string $label)
     {
-        $result = $this->subject->__invoke([
+        $response = $this->subject->__invoke(new RequestMessage(1, 'textDocument/signatureHelp', [
             'textDocument' => [
                 'uri' => 'file:///tmp/foo.php',
             ],
@@ -87,16 +88,16 @@ class SignatureHelpTest extends FixtureTestCase
                 'line' => $line,
                 'character' => $character,
             ],
-        ]);
+        ]));
 
-        $this->assertCount(1, $result->signatures);
-        $this->assertEquals($activeParameter, $result->activeParameter);
-        $this->assertEquals($label, $result->signatures[0]->label);
+        $this->assertCount(1, $response->result->signatures);
+        $this->assertEquals($activeParameter, $response->result->activeParameter);
+        $this->assertEquals($label, $response->result->signatures[0]->label);
     }
 
     public function testSignatureHelpReturnsEmptyResponseWhenNoExpressionFound()
     {
-        $result = $this->subject->__invoke([
+        $response = $this->subject->__invoke(new RequestMessage(1, 'textDocument/signatureHelp', [
             'textDocument' => [
                 'uri' => 'file:///tmp/foo.php',
             ],
@@ -104,14 +105,14 @@ class SignatureHelpTest extends FixtureTestCase
                 'line' => 31,
                 'character' => 9,
             ],
-        ]);
+        ]));
 
-        $this->assertEmpty($result->activeParameter);
+        $this->assertEmpty($response->result->activeParameter);
     }
 
     public function testSignatureHelpReturnsEmptyResponseWhenNoConstructorFound()
     {
-        $result = $this->subject->__invoke([
+        $response = $this->subject->__invoke(new RequestMessage(1, 'textDocument/signatureHelp', [
             'textDocument' => [
                 'uri' => 'file:///tmp/foo.php',
             ],
@@ -119,9 +120,9 @@ class SignatureHelpTest extends FixtureTestCase
                 'line' => 30,
                 'character' => 33,
             ],
-        ]);
+        ]));
 
-        $this->assertEmpty($result->activeParameter);
+        $this->assertEmpty($response->result->activeParameter);
     }
 
     public function cursorPositionsProvider(): array

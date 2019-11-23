@@ -8,6 +8,7 @@ use LanguageServer\Method\TextDocument\Completion;
 use LanguageServer\Method\TextDocument\CompletionProvider\CompletionProviderInterface;
 use LanguageServer\Parser\DocumentParser;
 use LanguageServer\RegistrySourceLocator;
+use LanguageServer\Server\Protocol\RequestMessage;
 use LanguageServer\Test\FixtureTestCase;
 use LanguageServer\TextDocument;
 use LanguageServer\TextDocumentRegistry;
@@ -58,7 +59,7 @@ class CompletionTest extends FixtureTestCase
 
     public function testCompletion()
     {
-        $result = $this->subject->__invoke([
+        $result = $this->subject->__invoke(new RequestMessage(1, 'textDocument/completion', [
             'textDocument' => [
                 'uri' => 'file:///tmp/foo.php',
             ],
@@ -66,6 +67,6 @@ class CompletionTest extends FixtureTestCase
                 'line' => 17,
                 'character' => 16,
             ],
-        ]);
+        ]));
     }
 }

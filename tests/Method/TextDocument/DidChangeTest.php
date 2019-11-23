@@ -6,6 +6,7 @@ namespace LanguageServer\Test\Method\TextDocument;
 
 use LanguageServer\Method\TextDocument\DidChange;
 use LanguageServer\Parser\DocumentParserInterface;
+use LanguageServer\Server\Protocol\RequestMessage;
 use LanguageServer\TextDocumentRegistry;
 use PHPUnit\Framework\TestCase;
 
@@ -29,7 +30,7 @@ class DidChangeTest extends TestCase
 
         $subject = new DidChange($registry, $parser);
 
-        $subject([
+        $subject(new RequestMessage(1, 'textDocument/didChange', [
             'textDocument' => [
                 'uri' => 'file:///tmp/foo.php',
                 'version' => 1,
@@ -39,6 +40,6 @@ class DidChangeTest extends TestCase
                     'text' => '<?php echo "Hi";?>',
                 ],
             ],
-        ]);
+        ]));
     }
 }

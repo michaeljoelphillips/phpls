@@ -14,6 +14,11 @@ class TextDocumentRegistry
     /** @var TextDocument[] */
     private $documents = [];
 
+    public function has(string $fileName): bool
+    {
+        return array_key_exists($this->documents, $fileName);
+    }
+
     public function get(string $fileName): TextDocument
     {
         return $this->documents[$fileName];

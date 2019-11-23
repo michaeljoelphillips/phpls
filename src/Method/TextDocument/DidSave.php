@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace LanguageServer\Method\TextDocument;
 
 use LanguageServer\Method\NotificationHandlerInterface;
-use LanguageServer\Method\RemoteMethodInterface;
+use LanguageServer\Server\Protocol\Message;
 use LanguageServer\TextDocument;
 use LanguageServer\TextDocumentRegistry;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
-class DidSave implements RemoteMethodInterface, NotificationHandlerInterface
+class DidSave implements NotificationHandlerInterface
 {
     private $registry;
 
@@ -21,12 +21,14 @@ class DidSave implements RemoteMethodInterface, NotificationHandlerInterface
         $this->registry = $registry;
     }
 
-    public function __invoke(array $params)
+    public function __invoke(Message $request)
     {
-        $uri = $params['textDocument']['uri'];
+        $uri = $request->params['textDocument']['uri'];
         $document = new TextDocument($uri, $this->read($uri), 0);
 
         $this->registry->add($document);
+
+        return null;
     }
 
     private function read(string $uri): string

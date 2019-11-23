@@ -23,7 +23,9 @@ use LanguageServer\Parser\LenientParser;
 use LanguageServer\RegistrySourceLocator;
 use LanguageServer\Server\JsonRpcEncoder;
 use LanguageServer\Server\JsonRpcServer;
+use LanguageServer\Server\MessageDenormalizer;
 use LanguageServer\Server\MessageSerializer;
+use LanguageServer\Server\RequestMessageDenormalizer;
 use LanguageServer\Server\Server;
 use LanguageServer\TextDocumentRegistry;
 use LanguageServer\TypeResolver;
@@ -88,6 +90,7 @@ return [
     SerializerInterface::class => function (ContainerInterface $container) {
         return new Serializer(
             [
+                new MessageDenormalizer(),
                 new PropertyNormalizer(),
             ],
             [

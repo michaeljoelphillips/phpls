@@ -6,6 +6,7 @@ namespace LanguageServer\Test\Method;
 
 use DI\Container;
 use LanguageServer\Method\Initialize;
+use LanguageServer\Server\Protocol\RequestMessage;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -24,12 +25,10 @@ class InitializeTest extends TestCase
             ->method('set')
             ->with('project_root', '/tmp/foo');
 
-        $result = $subject([
-            'rootUri' => 'file:///tmp/foo',
-        ]);
+        $response = $subject->__invoke(new RequestMessage(1, 'initialize', ['rootUri' => 'file:///tmp/foo']));
 
-        $this->assertEquals([':', '>'], $result->capabilities->completionProvider->triggerCharacters);
-        $this->assertEquals(['(', ','], $result->capabilities->signatureHelpProvider->triggerCharacters);
+        $this->assertEquals([':', '>'], $response->result->capabilities->completionProvider->triggerCharacters);
+        $this->assertEquals(['(', ','], $response->result->capabilities->signatureHelpProvider->triggerCharacters);
     }
 
     public function testInitializeWithEmptyProjectRoot()
@@ -39,6 +38,6 @@ class InitializeTest extends TestCase
 
         $this->expectException(RuntimeException::class);
 
-        $result = $subject([]);
+        $result = $subject(new RequestMessage(1, 'initialize', ['rootUri' => null]));
     }
 }
