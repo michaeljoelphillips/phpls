@@ -24,6 +24,9 @@ use Roave\BetterReflection\SourceLocator\Ast\Locator as AstLocator;
 class SignatureHelpTest extends FixtureTestCase
 {
     private $subject;
+    private $locator;
+    private $classReflector;
+    private $functionReflector;
 
     public function setUp(): void
     {
@@ -40,16 +43,33 @@ class SignatureHelpTest extends FixtureTestCase
             ])
         );
 
+
         $registry = $this->setUpRegistry();
+
+        $this->locator = new RegistrySourceLocator(
+            new AstLocator(
+                $phpParser,
+                function () {
+                    return $this->functionReflector();
+                }
+            ),
+            $registry
+        );
+
+        $this->classReflector = new ClassReflector($this->locator);
+        $typeResolver = new TypeResolver($this->classReflector);
         $documentParser = new DocumentParser($phpParser);
 
-        $locator = new RegistrySourceLocator(new AstLocator($phpParser), $registry);
-        $classReflector = new ClassReflector($locator);
-        $functionReflector = new FunctionReflector($locator, $classReflector);
+        $this->subject = new SignatureHelp($this->classReflector, $this->functionReflector(), $documentParser, $typeResolver, $registry);
+    }
 
-        $typeResolver = new TypeResolver($classReflector);
+    private function functionReflector(): FunctionReflector
+    {
+        if ($this->functionReflector) {
+            return $this->functionReflector;
+        }
 
-        $this->subject = new SignatureHelp($classReflector, $functionReflector, $documentParser, $typeResolver, $registry);
+        return $this->functionReflector = new FunctionReflector($this->locator, $this->classReflector);
     }
 
     private function setUpRegistry(): TextDocumentRegistry

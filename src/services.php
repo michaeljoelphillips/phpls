@@ -129,7 +129,12 @@ return [
         return $factory->createProxy(
             AggregateSourceLocator::class,
             function (&$wrappedObject, $proxy, $method, $parameters, &$initializer) use ($container) {
-                $locator = new AstLocator($container->get(MemoizingParser::class));
+                $locator = new AstLocator(
+                    $container->get(MemoizingParser::class),
+                    function () use ($container) {
+                        return $container->get(FunctionReflector::class);
+                    }
+                );
 
                 $initializer = null;
                 $wrappedObject = new AggregateSourceLocator([
