@@ -14,7 +14,7 @@ use LanguageServer\TextDocumentRegistry;
  */
 class DidSave implements NotificationHandlerInterface
 {
-    private $registry;
+    private TextDocumentRegistry $registry;
 
     public function __construct(TextDocumentRegistry $registry)
     {

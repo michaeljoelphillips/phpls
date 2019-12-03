@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LanguageServer\Server\Protocol;
 
 class NotificationMessage extends Message
 {
-    public $method;
-    public $params;
+    public string $method;
+    public ?array $params;
 
     public function __construct(string $method, ?array $params)
     {

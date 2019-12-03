@@ -18,14 +18,9 @@ use PhpParser\NodeFinder;
  */
 class ParsedDocument
 {
-    /** @var NodeAbstract[] */
-    private $nodes;
-
-    /** @var TextDocument */
-    private $document;
-
-    /** @var NodeFinder */
-    private $finder;
+    private array $nodes;
+    private TextDocument $document;
+    private NodeFinder $finder;
 
     public function __construct(array $nodes, TextDocument $document)
     {
@@ -73,8 +68,6 @@ class ParsedDocument
      * Get the FQCN for the document.
      *
      * This method expects one class per document.
-     *
-     * @return string
      */
     public function getClassName(): string
     {

@@ -14,6 +14,7 @@ use LanguageServerProtocol\ServerCapabilities;
 use LanguageServerProtocol\SignatureHelpOptions;
 use LanguageServerProtocol\TextDocumentSyncKind;
 use LanguageServerProtocol\TextDocumentSyncOptions;
+use Psr\Container\ContainerInterface;
 use RuntimeException;
 
 /**
@@ -21,7 +22,7 @@ use RuntimeException;
  */
 class Initialize implements RequestHandlerInterface
 {
-    private $container;
+    private ContainerInterface $container;
 
     public function __construct(Container $container)
     {

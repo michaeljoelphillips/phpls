@@ -4,15 +4,12 @@ declare(strict_types=1);
 
 namespace LanguageServer;
 
-use LanguageServer\TextDocumentRegistry;
-
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
 class TextDocumentRegistry
 {
-    /** @var TextDocument[] */
-    private $documents = [];
+    private array $documents = [];
 
     public function has(string $fileName): bool
     {

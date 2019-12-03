@@ -13,7 +13,7 @@ use PhpParser\Parser;
  */
 class DocumentParser implements DocumentParserInterface
 {
-    private $parser;
+    private Parser $parser;
 
     public function __construct(Parser $parser)
     {

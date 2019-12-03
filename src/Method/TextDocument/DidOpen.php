@@ -15,8 +15,8 @@ use LanguageServer\TextDocumentRegistry;
  */
 class DidOpen implements NotificationHandlerInterface
 {
-    private $registry;
-    private $parser;
+    private TextDocumentRegistry $registry;
+    private DocumentParserInterface $parser;
 
     public function __construct(TextDocumentRegistry $registry, DocumentParserInterface $parser)
     {

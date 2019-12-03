@@ -7,7 +7,6 @@ namespace LanguageServer\Server;
 use Evenement\EventEmitterInterface;
 use Evenement\EventEmitterTrait;
 use LanguageServer\Server\Protocol\Message;
-use LanguageServer\Server\Protocol\RequestMessage;
 use LanguageServer\Server\Protocol\ResponseMessage;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
@@ -20,12 +19,9 @@ class MessageSerializer implements EventEmitterInterface
 {
     use EventEmitterTrait;
 
-    private $serializer;
-    private $logger;
+    private SerializerInterface $serializer;
+    private LoggerInterface $logger;
 
-    /**
-     * @param SerializerInterface $serializer
-     */
     public function __construct(SerializerInterface $serializer, LoggerInterface $logger)
     {
         $this->serializer = $serializer;

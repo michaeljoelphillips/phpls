@@ -9,9 +9,9 @@ namespace LanguageServer;
  */
 class TextDocument
 {
-    private $uri;
-    private $source;
-    private $version;
+    private string $uri;
+    private string $source;
+    private int $version;
 
     public function __construct(string $uri, string $source, int $version)
     {
@@ -40,11 +40,6 @@ class TextDocument
      *
      * This method removes all characters proceeding the $character at $line
      * and counts the total length of the final string.
-     *
-     * @param int $line
-     * @param int $character
-     *
-     * @return CursorPosition
      */
     public function getCursorPosition(int $line, int $character): CursorPosition
     {

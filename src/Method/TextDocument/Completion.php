@@ -24,11 +24,11 @@ use Roave\BetterReflection\Reflector\Reflector;
  */
 class Completion implements RequestHandlerInterface
 {
-    private $parser;
-    private $registry;
-    private $reflector;
-    private $resolver;
-    private $providers;
+    private DocumentParserInterface $parser;
+    private TextDocumentRegistry $registry;
+    private Reflector $reflector;
+    private TypeResolver $resolver;
+    private array $providers;
 
     public function __construct(DocumentParserInterface $parser, TextDocumentRegistry $registry, Reflector $reflector, TypeResolver $resolver, CompletionProviderInterface ...$providers)
     {

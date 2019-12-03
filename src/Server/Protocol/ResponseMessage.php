@@ -11,9 +11,9 @@ use Throwable;
  */
 class ResponseMessage extends Message
 {
-    public $id;
+    public int $id;
     public $result;
-    public $error;
+    public ?ResponseError $error;
 
     public function __construct(RequestMessage $request, $result)
     {

@@ -13,7 +13,7 @@ use PhpParser\Parser;
  */
 class LenientParser implements Parser
 {
-    private $wrapped;
+    private Parser $wrapped;
 
     public function __construct(Parser $wrapped)
     {

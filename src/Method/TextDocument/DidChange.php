@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace LanguageServer\Method\TextDocument;
 
 use LanguageServer\Method\NotificationHandlerInterface;
-use LanguageServer\Method\RequestHandlerInterface;
 use LanguageServer\Parser\DocumentParserInterface;
 use LanguageServer\Server\Protocol\Message;
 use LanguageServer\TextDocument;
@@ -16,8 +15,8 @@ use LanguageServer\TextDocumentRegistry;
  */
 class DidChange implements NotificationHandlerInterface
 {
-    private $registry;
-    private $parser;
+    private TextDocumentRegistry $registry;
+    private DocumentParserInterface $parser;
 
     public function __construct(TextDocumentRegistry $registry, DocumentParserInterface $parser)
     {

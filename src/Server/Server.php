@@ -7,24 +7,20 @@ namespace LanguageServer\Server;
 use Closure;
 use LanguageServer\Exception\InvalidRequestException;
 use LanguageServer\Exception\ServerNotInitializedException;
-use LanguageServer\Method\MessageHandlerInterface;
-use LanguageServer\Method\NotificationHandlerInterface;
 use LanguageServer\Server\Protocol\Message;
 use LanguageServer\Server\Protocol\ResponseMessage;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
-use React\Stream\DuplexStreamInterface;
-use Throwable;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
 class Server
 {
-    private $logger;
-    private $container;
-    private $messageReader;
-    private $responseWriter;
+    private LoggerInterface $logger;
+    private ContainerInterface $container;
+    private RequestReaderInterface $messageReader;
+    private ResponseWriterInterface $responseWriter;
 
     public function __construct(ContainerInterface $container, RequestReaderInterface $messageReader, ResponseWriterInterface $responseWriter, LoggerInterface $logger)
     {
@@ -41,14 +37,12 @@ class Server
 
     private function waitForInitialization(Message $message): void
     {
-        if ($message->method === 'exit') {
+        if ('exit' === $message->method) {
             exit;
         }
 
-        if ($message->method !== 'initialize') {
-            $this->sendServerNotInitializedError();
-
-            return;
+        if ('initialize' !== $message->method) {
+            throw new ServerNotInitializedException();
         }
 
         $this->handleRequest($message);
@@ -58,10 +52,8 @@ class Server
 
     public function waitForExit(Message $message): void
     {
-        if ($message->method !== 'exit') {
-            $this->sendInvalidRequestError($message);
-
-            return;
+        if ('exit' !== $message->method) {
+            throw new InvalidRequestException();
         }
 
         $this->exit();
@@ -74,28 +66,28 @@ class Server
 
     public function handleRequest(Message $message): void
     {
-        if ($message->method === 'shutdown') {
+        if ('shutdown' === $message->method) {
             $this->shutdown($message);
 
             return;
         }
 
-        if ($message->method === 'exit') {
+        if ('exit' === $message->method) {
             $this->exit();
 
             return;
         }
 
-        if ($this->container->has($message->method) === false) {
-            $this->sendMethodNotFoundError($message);
-
-            return;
+        if (false === $this->container->has($message->method)) {
+            throw new InvalidRequestException();
         }
 
-        $method = $this->container->get($message->method);
-        $response = $this->invokeMethod($method, $message);
+        $this->logger->info(sprintf('Invoking method %s', $message->method));
 
-        if ($method instanceof NotificationHandlerInterface) {
+        $method = $this->container->get($message->method);
+        $response = $method->__invoke($message);
+
+        if (null === $response) {
             return;
         }
 
@@ -107,41 +99,5 @@ class Server
         $this->responseWriter->write(new ResponseMessage($message, null));
 
         $this->requestReader->read(Closure::fromCallable([$this, 'waitForExit']));
-    }
-
-    private function invokeMethod(MessageHandlerInterface $method, Message $message): ?object
-    {
-        $this->logger->info(sprintf('Invoking method %s', $message->method));
-
-        try {
-            $method = $this->container->get($message->method);
-
-            return $method->__invoke($message);
-        } catch (Throwable $t) {
-            $this->logger->error(sprintf('%s: %s', get_class($t), $t->getMessage()));
-
-            return $t;
-        }
-    }
-
-    private function sendServerNotInitializedError(Message $message): void
-    {
-        $this->logger->error('The client sent a message to the server before the server was initialized');
-
-        $this->responseWriter->write(new ResponseMessage($message, new ServerNotInitializedException()));
-    }
-
-    private function sendInvalidRequestError(Message $message): void
-    {
-        $this->logger->error('The client sent a message to the server after the server was shutdown');
-
-        $this->responseWriter->write(new ResponseMessage($message, new InvalidRequestException()));
-    }
-
-    public function sendMethodNotFoundError(Message $message): void
-    {
-        $this->logger->error(sprintf('Method %s could not be located', $message->method));
-
-        $this->responseWriter->write(new ResponseMessage($message, new InvalidRequestException()));
     }
 }

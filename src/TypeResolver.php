@@ -25,7 +25,7 @@ use Roave\BetterReflection\Reflector\Reflector;
  */
 class TypeResolver
 {
-    private $reflector;
+    private Reflector $reflector;
 
     public function __construct(Reflector $reflector)
     {
@@ -121,9 +121,6 @@ class TypeResolver
      * returned.  Otherwise, the closest assignment will be used to resolve the
      * type.
      *
-     * @param ParsedDocument $document
-     * @param Variable       $variable
-     *
      * @return string
      */
     public function getVariableType(ParsedDocument $document, Variable $variable): ?string
@@ -176,11 +173,6 @@ class TypeResolver
 
     /**
      * Get the type for the class specified by a new operator.
-     *
-     * @param ParsedDocument $document
-     * @param New_           $node
-     *
-     * @return string
      */
     private function getNewAssignmentType(ParsedDocument $document, New_ $node): string
     {
@@ -189,9 +181,6 @@ class TypeResolver
 
     /**
      * Get the type of a function parameter.
-     *
-     * @param ParsedDocument $document
-     * @param Param          $param
      */
     private function getArgumentType(ParsedDocument $document, Param $param)
     {
@@ -200,9 +189,6 @@ class TypeResolver
 
     /**
      * Get the type of a class reference.
-     *
-     * @param ParsedDocument $document
-     * @param Name           $node
      */
     private function getTypeFromClassReference(ParsedDocument $document, Name $node)
     {
@@ -215,7 +201,7 @@ class TypeResolver
         $matchingUseStatement = array_filter(
             $useStatements,
             function (UseUse $use) use ($node) {
-                if ($use->alias !== null && $use->alias->name === $node->getLast()) {
+                if (null !== $use->alias && $use->alias->name === $node->getLast()) {
                     return true;
                 }
 

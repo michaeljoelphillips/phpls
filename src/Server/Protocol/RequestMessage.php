@@ -9,9 +9,9 @@ namespace LanguageServer\Server\Protocol;
  */
 class RequestMessage extends Message
 {
-    public $id;
-    public $method;
-    public $params;
+    public int $id;
+    public string $method;
+    public ?array $params;
 
     public function __construct(int $id, string $method, ?array $params)
     {

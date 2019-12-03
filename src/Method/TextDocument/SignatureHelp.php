@@ -33,11 +33,11 @@ use Roave\BetterReflection\Reflector\FunctionReflector;
  */
 class SignatureHelp implements RequestHandlerInterface
 {
-    private $classReflector;
-    private $functionReflector;
-    private $parser;
-    private $resolver;
-    private $registry;
+    private ClassReflector $classReflector;
+    private FunctionReflector $functionReflector;
+    private DocumentParserInterface $parser;
+    private TypeResolver $resolver;
+    private TextDocumentRegistry $registry;
 
     public function __construct(ClassReflector $classReflector, FunctionReflector $functionReflector, DocumentParserInterface $parser, TypeResolver $resolver, TextDocumentRegistry $registry)
     {

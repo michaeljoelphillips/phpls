@@ -19,9 +19,8 @@ use Throwable;
  */
 class RegistrySourceLocator implements SourceLocator
 {
-    private $astLocator;
-
-    private $registry;
+    private AstLocator $astLocator;
+    private TextDocumentRegistry $registry;
 
     public function __construct(AstLocator $astLocator, TextDocumentRegistry $registry)
     {

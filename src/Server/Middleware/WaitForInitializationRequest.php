@@ -9,11 +9,11 @@ use LanguageServer\Server\Protocol\Message;
 
 class WaitForInitializationRequest
 {
-    private $initializationRequestReceieved = false;
+    private bool $initializationRequestReceieved = false;
 
     public function __invoke(Message $message, callable $next)
     {
-        if ($message->method === 'initialize') {
+        if ('initialize' === $message->method) {
             $this->initializationRequestReceieved = true;
         }
 

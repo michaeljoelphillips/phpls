@@ -11,20 +11,10 @@ use PhpParser\NodeAbstract;
  */
 class CursorPosition
 {
-    /** @var int */
-    private $line;
+    private int $line;
+    private int $character;
+    private int $relativePosition;
 
-    /** @var int */
-    private $character;
-
-    /** @var int */
-    private $relativePosition;
-
-    /**
-     * @param int $line
-     * @param int $character
-     * @param int $relativePosition
-     */
     public function __construct(int $line, int $character, int $relativePosition)
     {
         $this->line = $line;
@@ -32,25 +22,16 @@ class CursorPosition
         $this->relativePosition = $relativePosition;
     }
 
-    /**
-     * @return int
-     */
     public function getLine(): int
     {
         return $this->line;
     }
 
-    /**
-     * @return int
-     */
     public function getCharacter(): int
     {
         return $this->character;
     }
 
-    /**
-     * @return int
-     */
     public function getRelativePosition(): int
     {
         return $this->relativePosition;

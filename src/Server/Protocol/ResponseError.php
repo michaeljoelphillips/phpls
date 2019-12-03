@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LanguageServer\Server\Protocol;
 
 use LanguageServer\Exception\LanguageServerException;
@@ -8,8 +10,8 @@ use Throwable;
 
 class ResponseError
 {
-    public $code;
-    public $message;
+    public int $code;
+    public string $message;
 
     public function __construct(Throwable $t)
     {
