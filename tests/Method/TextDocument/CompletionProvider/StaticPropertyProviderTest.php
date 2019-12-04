@@ -8,6 +8,7 @@ use LanguageServer\Method\TextDocument\CompletionProvider\StaticPropertyProvider
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PHPUnit\Framework\TestCase;
+use ReflectionMethod;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionProperty;
 
@@ -45,7 +46,7 @@ class StaticPropertyProviderTest extends TestCase
 
         $reflection
             ->method('getProperties')
-            ->with(1)
+            ->with(ReflectionMethod::IS_STATIC)
             ->willReturn([$property]);
 
         $completionItems = $subject->complete($expression, $reflection);

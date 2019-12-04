@@ -8,6 +8,7 @@ use LanguageServer\Method\TextDocument\CompletionProvider\StaticMethodProvider;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PHPUnit\Framework\TestCase;
+use ReflectionMethod as CoreReflectionMethod;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionMethod;
 use Roave\BetterReflection\Reflection\ReflectionType;
@@ -51,7 +52,7 @@ class StaticMethodProviderTest extends TestCase
 
         $reflection
             ->method('getMethods')
-            ->with(1)
+            ->with(CoreReflectionMethod::IS_STATIC)
             ->willReturn([$method]);
 
         $completionItems = $subject->complete($expression, $reflection);
