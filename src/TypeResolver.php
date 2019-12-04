@@ -13,9 +13,11 @@ use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Expr\StaticPropertyFetch;
 use PhpParser\Node\Expr\Variable;
+use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
 use PhpParser\Node\Param;
 use PhpParser\Node\Stmt\Expression;
+use PhpParser\Node\Stmt\Property;
 use PhpParser\Node\Stmt\UseUse;
 use PhpParser\NodeAbstract;
 use Roave\BetterReflection\Reflector\Reflector;
@@ -221,16 +223,28 @@ class TypeResolver
         return array_pop($matchingUseStatement)->name->toCodeString();
     }
 
-    private function getPropertyType(ParsedDocument $document, PropertyFetch $property)
+    private function getPropertyType(ParsedDocument $document, PropertyFetch $property): ?string
     {
         if ('this' === $property->var->name) {
+            $propertyDeclaration = $document->getClassProperty((string) $property->name);
+
+            if (null !== $propertyDeclaration && $this->propertyHasResolvableType($propertyDeclaration)) {
+                return $this->getType($document, $propertyDeclaration->type);
+            }
+
             return $this->getPropertyTypeFromConstructorAssignment($document, $property);
         }
 
         return $this->getPropertyTypeFromDocblock($document, $property);
     }
 
-    private function getPropertyTypeFromDocblock(ParsedDocument $document, PropertyFetch $property)
+    private function propertyHasResolvableType(Property $property): bool
+    {
+        return $property->type instanceof Identifier
+            || $property->type instanceof Name;
+    }
+
+    private function getPropertyTypeFromDocblock(ParsedDocument $document, PropertyFetch $property): string
     {
         $propertyName = $property->name;
         $variableType = $this->getType($document, $property->var);
@@ -256,7 +270,7 @@ class TypeResolver
         return $this->getType($document, new Name(array_pop($docblockTypes)));
     }
 
-    private function getPropertyTypeFromConstructorAssignment(ParsedDocument $document, PropertyFetch $property)
+    private function getPropertyTypeFromConstructorAssignment(ParsedDocument $document, PropertyFetch $property): ?string
     {
         $constructor = $document->getConstructorNode();
 

@@ -229,6 +229,26 @@ class TypeResolverTest extends ParserTestCase
         $this->assertEquals('Bar\Bar', $type);
     }
 
+    public function testGetTypeForPropertyFetchOnTypedProperty()
+    {
+        $document = $this->parse('TypeResolverFixture.php');
+
+        $node = new PropertyFetch(
+            new PropertyFetch(
+                new Variable('this', [
+                    'startFilePos' => 30,
+                    'endFilePos' => 300,
+                ]),
+                new Identifier('foobar')
+            ),
+            new Identifier('baz')
+        );
+
+        $type = $this->subject->getType($document, $node);
+
+        $this->assertEquals('Foo\Bar', $type);
+    }
+
     public function testGetTypeForPropertyFetchOnMethodCallReturnType()
     {
         $document = $this->parse('TypeResolverFixture.php');

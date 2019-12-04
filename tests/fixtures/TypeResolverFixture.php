@@ -11,6 +11,7 @@ use Bar\Baz;
 class Foo
 {
     private $bar;
+    private FooBar $foobar;
 
     public function __construct(Bar $bar)
     {
