@@ -6,6 +6,7 @@ namespace LanguageServer\Method;
 
 use LanguageServer\Exception\InvalidRequestException;
 use LanguageServer\Server\MessageHandlerInterface;
+use LanguageServer\Server\Protocol\Message;
 
 class Exit_ implements MessageHandlerInterface
 {

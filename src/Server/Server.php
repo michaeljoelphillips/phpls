@@ -4,100 +4,66 @@ declare(strict_types=1);
 
 namespace LanguageServer\Server;
 
-use Closure;
-use LanguageServer\Exception\InvalidRequestException;
-use LanguageServer\Exception\ServerNotInitializedException;
 use LanguageServer\Server\Protocol\Message;
 use LanguageServer\Server\Protocol\ResponseMessage;
-use Psr\Container\ContainerInterface;
-use Psr\Log\LoggerInterface;
+use React\Stream\DuplexStreamInterface;
 
-/**
- * @author Michael Phillips <michael.phillips@realpage.com>
- */
 class Server
 {
-    private LoggerInterface $logger;
-    private ContainerInterface $container;
-    private RequestReaderInterface $messageReader;
-    private ResponseWriterInterface $responseWriter;
+    private DuplexStreamInterface $stream;
+    private MessageSerializer $serializer;
+    private $handler;
 
-    public function __construct(ContainerInterface $container, RequestReaderInterface $messageReader, ResponseWriterInterface $responseWriter, LoggerInterface $logger)
+    public function __construct(MessageSerializer $serializer, array $handlers)
     {
-        $this->logger = $logger;
-        $this->container = $container;
-        $this->requestReader = $messageReader;
-        $this->responseWriter = $responseWriter;
+        $this->serializer = $serializer;
+
+        $this->handler = function (Message $message, int $position) use ($handlers) {
+            if ($message instanceof ResponseMessage) {
+                return $message;
+            }
+
+            if (false === isset($handlers[$position + 1])) {
+                return $handlers[$position]->__invoke($message, function ($response) {
+                    return $response;
+                });
+            }
+
+            $next = function (Message $message) use ($position) {
+                return $this->handler->__invoke($message, $position + 1);
+            };
+
+            return $handlers[$position]->__invoke($message, $next);
+        };
     }
 
-    public function start(): void
+    public function listen(DuplexStreamInterface $stream): void
     {
-        $this->requestReader->read(Closure::fromCallable([$this, 'waitForInitialization']));
+        $this->stream = $stream;
+
+        $stream->on('data', function (string $message) {
+            $this->handle($message);
+        });
     }
 
-    private function waitForInitialization(Message $message): void
+    private function handle(string $request): void
     {
-        if ('exit' === $message->method) {
-            exit;
-        }
+        $message = $this->serializer->deserialize($request);
 
-        if ('initialize' !== $message->method) {
-            throw new ServerNotInitializedException();
-        }
-
-        $this->handleRequest($message);
-
-        $this->requestReader->read(Closure::fromCallable([$this, 'handleRequest']));
-    }
-
-    public function waitForExit(Message $message): void
-    {
-        if ('exit' !== $message->method) {
-            throw new InvalidRequestException();
-        }
-
-        $this->exit();
-    }
-
-    private function exit(): void
-    {
-        exit();
-    }
-
-    public function handleRequest(Message $message): void
-    {
-        if ('shutdown' === $message->method) {
-            $this->shutdown($message);
-
+        if ($message === null) {
             return;
         }
 
-        if ('exit' === $message->method) {
-            $this->exit();
+        try {
+            $response = $this->handler->__invoke($message, 0);
+        } catch (Throwable $e) {
+            $response = new ResponseMessage($message, $e);
+        }
 
+        if ($response === null) {
             return;
         }
 
-        if (false === $this->container->has($message->method)) {
-            throw new InvalidRequestException();
-        }
-
-        $this->logger->info(sprintf('Invoking method %s', $message->method));
-
-        $method = $this->container->get($message->method);
-        $response = $method->__invoke($message);
-
-        if (null === $response) {
-            return;
-        }
-
-        $this->responseWriter->write($response);
-    }
-
-    private function shutdown(Message $message): void
-    {
-        $this->responseWriter->write(new ResponseMessage($message, null));
-
-        $this->requestReader->read(Closure::fromCallable([$this, 'waitForExit']));
+        $this->stream->write($this->serializer->serialize($response));
     }
 }

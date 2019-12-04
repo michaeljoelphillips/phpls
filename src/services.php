@@ -22,10 +22,8 @@ use LanguageServer\Parser\IncompleteDocumentParser;
 use LanguageServer\Parser\LenientParser;
 use LanguageServer\RegistrySourceLocator;
 use LanguageServer\Server\JsonRpcEncoder;
-use LanguageServer\Server\JsonRpcServer;
 use LanguageServer\Server\MessageDenormalizer;
 use LanguageServer\Server\MessageSerializer;
-use LanguageServer\Server\RequestMessageDenormalizer;
 use LanguageServer\Server\Server;
 use LanguageServer\TextDocumentRegistry;
 use LanguageServer\TypeResolver;
@@ -40,6 +38,7 @@ use Psr\Log\LoggerInterface;
 use React\EventLoop\Factory;
 use React\EventLoop\LoopInterface;
 use React\Stream\CompositeStream;
+use React\Stream\DuplexStreamInterface;
 use React\Stream\ReadableResourceStream;
 use React\Stream\WritableResourceStream;
 use Roave\BetterReflection\Reflector\ClassReflector;
@@ -58,19 +57,12 @@ use Symfony\Component\Serializer\SerializerInterface;
 
 return [
     Server::class => function (ContainerInterface $container) {
-        $rpcServer = new JsonRpcServer(
-            $container->get(CompositeStream::class),
-            $container->get(MessageSerializer::class)
-        );
-
         return new Server(
-            $container,
-            $rpcServer,
-            $rpcServer,
-            $container->get(LoggerInterface::class),
+            $container->get(MessageSerializer::class),
+            $container->get('messageHandlers')
         );
     },
-    CompositeStream::class => function (ContainerInterface $container) {
+    DuplexStreamInterface::class => function (ContainerInterface $container) {
         $loop = $container->get(LoopInterface::class);
 
         return new CompositeStream(
@@ -184,22 +176,33 @@ return [
         DI\get(StaticPropertyProvider::class),
         DI\get(ClassConstantProvider::class),
     ],
-    'initialize' => function (ContainerInterface $container) {
+    'messageHandlers' => [
+        DI\get(Initialize::class),
+        DI\get(Initialized::class),
+        DI\get(DidSave::class),
+        DI\get(Completion::class),
+        DI\get(SignatureHelp::class),
+        DI\get(DidOpen::class),
+        DI\get(DidChange::class),
+        DI\get(DidClose::class),
+        DI\get(Exit_::class),
+    ],
+    Initialize::class => function (ContainerInterface $container) {
         return new Initialize($container);
     },
-    'initialized' => DI\create(Initialized::class),
-    'shutdown' => function (ContainerInterface $container) {
+    Initialized::class => DI\create(Initialized::class),
+    Shutdown::class => function (ContainerInterface $container) {
         return new Shutdown($container->get(Server::class));
     },
-    'exit' => function (ContainerInterface $container) {
+    Exit_::class => function (ContainerInterface $container) {
         return new Exit_($container->get(TextDocumentRegistry::class));
     },
-    'textDocument/didSave' => function (ContainerInterface $container) {
+    DidSave::class => function (ContainerInterface $container) {
         return new DidSave(
             $container->get(TextDocumentRegistry::class)
         );
     },
-    'textDocument/completion' => function (ContainerInterface $container) {
+    Completion::class => function (ContainerInterface $container) {
         return new Completion(
             $container->get(IncompleteDocumentParser::class),
             $container->get(TextDocumentRegistry::class),
@@ -208,7 +211,7 @@ return [
             ...$container->get('completionProviders')
         );
     },
-    'textDocument/signatureHelp' => function (ContainerInterface $container) {
+    SignatureHelp::class => function (ContainerInterface $container) {
         return new SignatureHelp(
             $container->get(ClassReflector::class),
             $container->get(FunctionReflector::class),
@@ -217,19 +220,19 @@ return [
             $container->get(TextDocumentRegistry::class)
         );
     },
-    'textDocument/didOpen' => function (ContainerInterface $container) {
+    DidOpen::class => function (ContainerInterface $container) {
         return new DidOpen(
             $container->get(TextDocumentRegistry::class),
             $container->get(IncompleteDocumentParser::class)
         );
     },
-    'textDocument/didChange' => function (ContainerInterface $container) {
+    DidChange::class => function (ContainerInterface $container) {
         return new DidChange(
             $container->get(TextDocumentRegistry::class),
             $container->get(IncompleteDocumentParser::class)
         );
     },
-    'textDocument/didClose' => function () {
+    DidClose::class => function () {
         return new DidClose();
     },
 ];
