@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Server\Middleware;
+namespace LanguageServer\Server\MessageHandler;
 
 use LanguageServer\Exception\ServerNotInitializedException;
+use LanguageServer\Method\MessageHandlerInterface;
 use LanguageServer\Server\Protocol\Message;
 
-class WaitForInitializationRequest
+class WaitForInitializationRequest implements MessageHandlerInterface
 {
     private bool $initializationRequestReceieved = false;
 
@@ -17,10 +18,10 @@ class WaitForInitializationRequest
             $this->initializationRequestReceieved = true;
         }
 
-        if (true === $this->initializationRequestReceieved || 'exit' === $message->method) {
-            return $next->__invoke($message);
+        if (false === $this->initializationRequestReceieved && 'exit' !== $message->method) {
+            throw new ServerNotInitializedException();
         }
 
-        throw new ServerNotInitializedException();
+        return $next->__invoke($message);
     }
 }

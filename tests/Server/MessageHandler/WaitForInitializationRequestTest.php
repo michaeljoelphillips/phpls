@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Tests\Server\Middleware;
+namespace Tests\Server\MessageHandler;
 
 use LanguageServer\Exception\ServerNotInitializedException;
-use LanguageServer\Server\Middleware\WaitForInitializationRequest;
+use LanguageServer\Server\MessageHandler\WaitForInitializationRequest;
 use LanguageServer\Server\Protocol\RequestMessage;
 use PHPUnit\Framework\TestCase;
 
@@ -34,5 +34,16 @@ class WaitForInitializationRequestTest extends TestCase
 
         $subject->__invoke(new RequestMessage(1, 'initialize', []), $next);
         $subject->__invoke(new RequestMessage(1, 'textDocument/didOpen', []), $next);
+    }
+
+    public function testWhenInitializationRequestWasSentButExitWasInvoked()
+    {
+        $subject = new WaitForInitializationRequest();
+
+        $next = function () {
+            $this->addToAssertionCount(1);
+        };
+
+        $subject->__invoke(new RequestMessage(1, 'exit', []), $next);
     }
 }
