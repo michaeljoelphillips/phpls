@@ -13,7 +13,7 @@ class ResponseMessage extends Message
 {
     public int $id;
     public $result;
-    public ?ResponseError $error;
+    public ?ResponseError $error = null;
 
     public function __construct(RequestMessage $request, $result)
     {
