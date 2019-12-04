@@ -8,6 +8,7 @@ use LanguageServer\CursorPosition;
 use LanguageServer\Test\ParserTestCase;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Stmt\ClassMethod;
+use PhpParser\Node\Stmt\Property;
 use PhpParser\NodeAbstract;
 
 /**
@@ -30,6 +31,26 @@ class ParsedDocumentTest extends ParserTestCase
 
         $this->assertNotNull($method);
         $this->assertEquals('testMethod', $method->name);
+    }
+
+    public function testGetClassProperty()
+    {
+        $subject = $this->parse('TypedPropertyFixture.php');
+
+        $property = $subject->getClassProperty('foo');
+
+        $this->assertNotNull($property);
+        $this->assertInstanceOf(Property::class, $property);
+        $this->assertEquals('foo', $property->props[0]->name);
+    }
+
+    public function testGetClassPropertyWithNoProperty()
+    {
+        $subject = $this->parse('TypedPropertyFixture.php');
+
+        $property = $subject->getClassProperty('baz');
+
+        $this->assertNull($property);
     }
 
     public function testFindNodes()

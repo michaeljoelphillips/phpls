@@ -9,6 +9,7 @@ use LanguageServer\TextDocument;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Namespace_;
+use PhpParser\Node\Stmt\Property;
 use PhpParser\Node\Stmt\Use_;
 use PhpParser\NodeAbstract;
 use PhpParser\NodeFinder;
@@ -82,6 +83,17 @@ class ParsedDocument
         return $this->finder->findFirst($this->nodes, function (NodeAbstract $node) use ($methodName) {
             return $node instanceof ClassMethod
                 && $node->name->name === $methodName;
+        });
+    }
+
+    public function getClassProperty(string $propertyName): ?Property
+    {
+        return $this->finder->findFirst($this->nodes, function (NodeAbstract $node) use ($propertyName) {
+            return $node instanceof Property
+                && array_filter($node->props, function (NodeAbstract $node) use ($propertyName) {
+                    return $node->name->name === $propertyName;
+                }
+            );
         });
     }
 
