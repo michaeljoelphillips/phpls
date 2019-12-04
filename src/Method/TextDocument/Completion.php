@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace LanguageServer\Method\TextDocument;
 
 use LanguageServer\CursorPosition;
-use LanguageServer\Method\RequestHandlerInterface;
 use LanguageServer\Method\TextDocument\CompletionProvider\CompletionProviderInterface;
 use LanguageServer\Parser\DocumentParserInterface;
 use LanguageServer\Parser\ParsedDocument;
+use LanguageServer\Server\MessageHandlerInterface;
 use LanguageServer\Server\Protocol\Message;
 use LanguageServer\Server\Protocol\ResponseMessage;
 use LanguageServer\TextDocumentRegistry;
@@ -22,8 +22,10 @@ use Roave\BetterReflection\Reflector\Reflector;
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
-class Completion implements RequestHandlerInterface
+class Completion implements MessageHandlerInterface
 {
+    private const METHOD_NAME = 'textDocument/completion';
+
     private DocumentParserInterface $parser;
     private TextDocumentRegistry $registry;
     private Reflector $reflector;
@@ -39,8 +41,12 @@ class Completion implements RequestHandlerInterface
         $this->providers = $providers;
     }
 
-    public function __invoke(Message $request)
+    public function __invoke(Message $message, callable $next)
     {
+        if (self::METHOD_NAME !== $message->method) {
+            return $next->__invoke($message);
+        }
+
         return new ResponseMessage($request, $this->getCompletionList($request->params));
     }
 

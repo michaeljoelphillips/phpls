@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace LanguageServer\Method;
 
 use DI\Container;
+use LanguageServer\Exception\ServerNotInitializedException;
+use LanguageServer\Server\MessageHandlerInterface;
 use LanguageServer\Server\Protocol\Message;
 use LanguageServer\Server\Protocol\ResponseMessage;
 use LanguageServerProtocol\CompletionOptions;
@@ -20,16 +22,32 @@ use RuntimeException;
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
-class Initialize implements RequestHandlerInterface
+class Initialize implements MessageHandlerInterface
 {
     private ContainerInterface $container;
+    private bool $wasInitialized = false;
 
     public function __construct(Container $container)
     {
         $this->container = $container;
     }
 
-    public function __invoke(Message $request)
+    public function __invoke(Message $request, callable $next)
+    {
+        if ('initialize' === $request->method) {
+            $this->wasInitialized = true;
+
+            return new ResponseMessage($request, $this->getInitializeResult($request));
+        }
+
+        if (false === $this->wasInitialized && 'exit' !== $request->method) {
+            throw new ServerNotInitializedException();
+        }
+
+        return $next($request);
+    }
+
+    public function getInitializeResult(Message $request): InitializeResult
     {
         $this->setProjectRoot($request->params);
 
@@ -66,7 +84,7 @@ class Initialize implements RequestHandlerInterface
         $capabilities->completionProvider = new CompletionOptions(true, [':', '>']);
         $capabilities->signatureHelpProvider = new SignatureHelpOptions(['(', ',']);
 
-        return new ResponseMessage($request, new InitializeResult($capabilities));
+        return new InitializeResult($capabilities);
     }
 
     private function setProjectRoot(array $params): void

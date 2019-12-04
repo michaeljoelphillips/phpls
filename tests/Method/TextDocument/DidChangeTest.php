@@ -28,9 +28,7 @@ class DidChangeTest extends TestCase
             ->expects($this->once())
             ->method('add');
 
-        $subject = new DidChange($registry, $parser);
-
-        $subject(new RequestMessage(1, 'textDocument/didChange', [
+        $request = new RequestMessage(1, 'textDocument/didChange', [
             'textDocument' => [
                 'uri' => 'file:///tmp/foo.php',
                 'version' => 1,
@@ -40,6 +38,14 @@ class DidChangeTest extends TestCase
                     'text' => '<?php echo "Hi";?>',
                 ],
             ],
-        ]));
+        ]);
+
+        $next = function () {
+            $this->fail('The next method should never be called');
+        };
+
+        $subject = new DidChange($registry, $parser);
+
+        $subject->__invoke($request, $next);
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LanguageServer\Test\Method;
 
 use DI\Container;
+use LanguageServer\Exception\ServerNotInitializedException;
 use LanguageServer\Method\Initialize;
 use LanguageServer\Server\Protocol\RequestMessage;
 use PHPUnit\Framework\TestCase;
@@ -25,7 +26,11 @@ class InitializeTest extends TestCase
             ->method('set')
             ->with('project_root', '/tmp/foo');
 
-        $response = $subject->__invoke(new RequestMessage(1, 'initialize', ['rootUri' => 'file:///tmp/foo']));
+        $next = function () {
+            $this->fail('The next method should never be called');
+        };
+
+        $response = $subject->__invoke(new RequestMessage(1, 'initialize', ['rootUri' => 'file:///tmp/foo']), $next);
 
         $this->assertEquals([':', '>'], $response->result->capabilities->completionProvider->triggerCharacters);
         $this->assertEquals(['(', ','], $response->result->capabilities->signatureHelpProvider->triggerCharacters);
@@ -38,6 +43,49 @@ class InitializeTest extends TestCase
 
         $this->expectException(RuntimeException::class);
 
-        $result = $subject(new RequestMessage(1, 'initialize', ['rootUri' => null]));
+        $next = function () {
+            $this->fail('The next method should never be called');
+        };
+
+        $result = $subject(new RequestMessage(1, 'initialize', ['rootUri' => null]), $next);
+    }
+
+    public function testWhenInitializationRequestWasNotSentFirst()
+    {
+        $container = $this->createMock(Container::class);
+        $subject = new Initialize($container);
+
+        $next = function () {
+            $this->fail('The next middleware should never be called');
+        };
+
+        $this->expectException(ServerNotInitializedException::class);
+
+        $subject->__invoke(new RequestMessage(1, 'textDocument/completion', []), $next);
+    }
+
+    public function testWhenInitializationRequestWasSentFirst()
+    {
+        $container = $this->createMock(Container::class);
+        $subject = new Initialize($container);
+
+        $next = function () {
+            $this->addToAssertionCount(1);
+        };
+
+        $subject->__invoke(new RequestMessage(1, 'initialize', ['rootUri' => 'file:///tmp/foo']), $next);
+        $subject->__invoke(new RequestMessage(1, 'textDocument/didOpen', []), $next);
+    }
+
+    public function testWhenInitializationRequestWasSentButExitWasInvoked()
+    {
+        $container = $this->createMock(Container::class);
+        $subject = new Initialize($container);
+
+        $next = function () {
+            $this->addToAssertionCount(1);
+        };
+
+        $subject->__invoke(new RequestMessage(1, 'exit', []), $next);
     }
 }

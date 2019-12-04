@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Method\TextDocument;
 
-use LanguageServer\Method\NotificationHandlerInterface;
+use LanguageServer\Server\MessageHandlerInterface;
 use LanguageServer\Server\Protocol\Message;
 use LanguageServer\TextDocument;
 use LanguageServer\TextDocumentRegistry;
@@ -12,7 +12,7 @@ use LanguageServer\TextDocumentRegistry;
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
-class DidSave implements NotificationHandlerInterface
+class DidSave implements MessageHandlerInterface
 {
     private TextDocumentRegistry $registry;
 
@@ -21,14 +21,12 @@ class DidSave implements NotificationHandlerInterface
         $this->registry = $registry;
     }
 
-    public function __invoke(Message $request)
+    public function __invoke(Message $request, callable $next)
     {
         $uri = $request->params['textDocument']['uri'];
         $document = new TextDocument($uri, $this->read($uri), 0);
 
         $this->registry->add($document);
-
-        return null;
     }
 
     private function read(string $uri): string

@@ -20,10 +20,18 @@ class DidSaveTest extends TestCase
             ->expects($this->once())
             ->method('add');
 
-        $subject->__invoke(new RequestMessage(1, 'textDocument/didSave', [
+        $request = new RequestMessage(1, 'textDocument/didSave', [
             'textDocument' => [
                 'uri' => __DIR__.'/../../fixtures/ParsedDocumentFixture.php'
             ],
-        ]));
+        ]);
+
+        $next = function() {
+            $this->fail('The next method should never be called');
+        };
+
+        $subject = new DidSave($registry);
+
+        $subject->__invoke($request, $next);
     }
 }

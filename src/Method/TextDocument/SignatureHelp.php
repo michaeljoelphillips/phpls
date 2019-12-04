@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace LanguageServer\Method\TextDocument;
 
 use LanguageServer\CursorPosition;
-use LanguageServer\Method\RequestHandlerInterface;
+use LanguageServer\Server\MessageHandlerInterface;
 use LanguageServer\Parser\DocumentParserInterface;
 use LanguageServer\Parser\ParsedDocument;
 use LanguageServer\Server\Protocol\Message;
@@ -31,8 +31,10 @@ use Roave\BetterReflection\Reflector\FunctionReflector;
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
-class SignatureHelp implements RequestHandlerInterface
+class SignatureHelp implements MessageHandlerInterface
 {
+    private const METHOD_NAME = 'textDocument/signatureHelp';
+
     private ClassReflector $classReflector;
     private FunctionReflector $functionReflector;
     private DocumentParserInterface $parser;
@@ -48,8 +50,12 @@ class SignatureHelp implements RequestHandlerInterface
         $this->registry = $registry;
     }
 
-    public function __invoke(Message $request)
+    public function __invoke(Message $request, callable $next)
     {
+        if (self::METHOD_NAME !== $request->method) {
+            return $next->__invoke($request);
+        }
+
         return new ResponseMessage($request, $this->getSignatureHelpResponse($request->params));
     }
 

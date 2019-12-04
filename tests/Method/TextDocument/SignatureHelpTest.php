@@ -100,7 +100,7 @@ class SignatureHelpTest extends FixtureTestCase
      */
     public function testSignatureHelp(int $line, int $character, int $activeParameter, string $label)
     {
-        $response = $this->subject->__invoke(new RequestMessage(1, 'textDocument/signatureHelp', [
+        $request = new RequestMessage(1, 'textDocument/signatureHelp', [
             'textDocument' => [
                 'uri' => 'file:///tmp/foo.php',
             ],
@@ -108,7 +108,13 @@ class SignatureHelpTest extends FixtureTestCase
                 'line' => $line,
                 'character' => $character,
             ],
-        ]));
+        ]);
+
+        $next = function() {
+            $this->fail('The next method should never be called');
+        };
+
+        $response = $this->subject->__invoke($request, $next);
 
         $this->assertCount(1, $response->result->signatures);
         $this->assertEquals($activeParameter, $response->result->activeParameter);
@@ -117,7 +123,7 @@ class SignatureHelpTest extends FixtureTestCase
 
     public function testSignatureHelpReturnsEmptyResponseWhenNoExpressionFound()
     {
-        $response = $this->subject->__invoke(new RequestMessage(1, 'textDocument/signatureHelp', [
+        $request = new RequestMessage(1, 'textDocument/signatureHelp', [
             'textDocument' => [
                 'uri' => 'file:///tmp/foo.php',
             ],
@@ -125,14 +131,20 @@ class SignatureHelpTest extends FixtureTestCase
                 'line' => 31,
                 'character' => 9,
             ],
-        ]));
+        ]);
+
+        $next = function() {
+            $this->fail('The next method should never be called');
+        };
+
+        $response = $this->subject->__invoke($request, $next);
 
         $this->assertEmpty($response->result->activeParameter);
     }
 
     public function testSignatureHelpReturnsEmptyResponseWhenNoConstructorFound()
     {
-        $response = $this->subject->__invoke(new RequestMessage(1, 'textDocument/signatureHelp', [
+        $request = new RequestMessage(1, 'textDocument/signatureHelp', [
             'textDocument' => [
                 'uri' => 'file:///tmp/foo.php',
             ],
@@ -140,7 +152,13 @@ class SignatureHelpTest extends FixtureTestCase
                 'line' => 30,
                 'character' => 33,
             ],
-        ]));
+        ]);
+
+        $next = function() {
+            $this->fail('The next method should never be called');
+        };
+
+        $response = $this->subject->__invoke($request, $next);
 
         $this->assertEmpty($response->result->activeParameter);
     }

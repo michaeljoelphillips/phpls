@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Method\TextDocument;
 
-use LanguageServer\Method\NotificationHandlerInterface;
+use LanguageServer\Server\MessageHandlerInterface;
 use LanguageServer\Parser\DocumentParserInterface;
 use LanguageServer\Server\Protocol\Message;
 use LanguageServer\TextDocument;
@@ -13,7 +13,7 @@ use LanguageServer\TextDocumentRegistry;
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
-class DidChange implements NotificationHandlerInterface
+class DidChange implements MessageHandlerInterface
 {
     private TextDocumentRegistry $registry;
     private DocumentParserInterface $parser;
@@ -24,17 +24,15 @@ class DidChange implements NotificationHandlerInterface
         $this->parser = $parser;
     }
 
-    public function __invoke(Message $request)
+    public function __invoke(Message $message, callable $next)
     {
         $document = new TextDocument(
-            $request->params['textDocument']['uri'],
-            $request->params['contentChanges'][0]['text'],
-            $request->params['textDocument']['version']
+            $message->params['textDocument']['uri'],
+            $message->params['contentChanges'][0]['text'],
+            $message->params['textDocument']['version']
         );
 
         $this->registry->add($document);
         $this->parser->parse($document);
-
-        return null;
     }
 }
