@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Server;
+namespace LanguageServer\Server\Serializer;
 
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 

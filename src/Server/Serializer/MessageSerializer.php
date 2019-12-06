@@ -2,18 +2,15 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Server;
+namespace LanguageServer\Server\Serializer;
 
-use LanguageServer\Exception\ParseErrorException;
+use LanguageServer\Server\MessageSerializerInterface;
 use LanguageServer\Server\Protocol\Message;
 use LanguageServer\Server\Protocol\ResponseMessage;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 use Symfony\Component\Serializer\SerializerInterface;
 
-/**
- * @author Michael Phillips <michael.phillips@realpage.com>
- */
-class MessageSerializer
+class MessageSerializer implements MessageSerializerInterface
 {
     private SerializerInterface $serializer;
 

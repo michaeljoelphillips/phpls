@@ -1,6 +1,8 @@
 <?php
 
-namespace LanguageServer\Server;
+declare(strict_types=1);
+
+namespace LanguageServer\Server\Serializer;
 
 use LanguageServer\Server\Protocol\Message;
 use LanguageServer\Server\Protocol\NotificationMessage;
@@ -11,7 +13,7 @@ class MessageDenormalizer implements DenormalizerInterface
 {
     public function denormalize($data, $class, $format = null, array $context = [])
     {
-        if (array_key_exists('id', $data) === false) {
+        if (false === array_key_exists('id', $data)) {
             return new NotificationMessage($data['method'], $data['params'] ?? null);
         }
 
@@ -20,6 +22,6 @@ class MessageDenormalizer implements DenormalizerInterface
 
     public function supportsDenormalization($data, $type, $format = null)
     {
-        return $type === Message::class && is_array($data);
+        return Message::class === $type && is_array($data);
     }
 }

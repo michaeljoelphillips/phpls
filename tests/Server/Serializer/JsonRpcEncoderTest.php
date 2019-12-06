@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Test\Server;
+namespace LanguageServer\Test\Server\Serializer;
 
-use LanguageServer\Server\JsonRpcEncoder;
+use LanguageServer\Server\Serializer\JsonRpcEncoder;
 use PHPUnit\Framework\TestCase;
 
 /**

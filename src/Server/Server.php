@@ -11,10 +11,10 @@ use React\Stream\DuplexStreamInterface;
 class Server
 {
     private DuplexStreamInterface $stream;
-    private MessageSerializer $serializer;
+    private MessageSerializerInterface $serializer;
     private $handler;
 
-    public function __construct(MessageSerializer $serializer, array $handlers)
+    public function __construct(MessageSerializerInterface $serializer, array $handlers)
     {
         $this->serializer = $serializer;
 
