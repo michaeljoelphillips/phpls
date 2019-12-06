@@ -21,9 +21,13 @@ class DidSave implements MessageHandlerInterface
         $this->registry = $registry;
     }
 
-    public function __invoke(Message $request, callable $next)
+    public function __invoke(Message $message, callable $next)
     {
-        $uri = $request->params['textDocument']['uri'];
+        if ($message->method !== 'textDocument/didSave') {
+            return $next->__invoke($message);
+        }
+
+        $uri = $message->params['textDocument']['uri'];
         $document = new TextDocument($uri, $this->read($uri), 0);
 
         $this->registry->add($document);

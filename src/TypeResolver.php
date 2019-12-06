@@ -244,7 +244,7 @@ class TypeResolver
             || $property->type instanceof Name;
     }
 
-    private function getPropertyTypeFromDocblock(ParsedDocument $document, PropertyFetch $property): string
+    private function getPropertyTypeFromDocblock(ParsedDocument $document, PropertyFetch $property): ?string
     {
         $propertyName = $property->name;
         $variableType = $this->getType($document, $property->var);

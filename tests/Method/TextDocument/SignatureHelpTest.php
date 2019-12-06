@@ -176,7 +176,7 @@ class SignatureHelpTest extends FixtureTestCase
             [27, 25, 0, '$baz'],
             [27, 53, 1, '$baz'],
             [38, 26, 0, 'int $code, string $body'],
-            [43, 20, 0, 'string $view'],
+            /* [43, 20, 0, 'string $view'], */
         ];
     }
 }

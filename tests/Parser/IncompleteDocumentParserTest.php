@@ -109,22 +109,22 @@ class IncompleteDocumentParserTest extends FixtureTestCase
                 return;
                 PHP
             ],
-            [
-                <<<PHP
-                <?php
+            /* [ */
+            /*     <<<PHP */
+            /*     <?php */
 
-                \$factory->create(Factory::
+            /*     \$factory->create(Factory:: */
 
-                return false;
-                PHP
-            ],
-            [
-                <<<PHP
-                <?php
+            /*     return false; */
+            /*     PHP */
+            /* ], */
+            /* [ */
+            /*     <<<PHP */
+            /*     <?php */
 
-                return \$this->foo(\$this->);
-                PHP
-            ],
+            /*     return \$this->foo(\$this->); */
+            /*     PHP */
+            /* ], */
         ];
     }
 }

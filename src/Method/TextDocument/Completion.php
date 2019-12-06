@@ -47,7 +47,7 @@ class Completion implements MessageHandlerInterface
             return $next->__invoke($message);
         }
 
-        return new ResponseMessage($request, $this->getCompletionList($request->params));
+        return new ResponseMessage($message, $this->getCompletionList($message->params));
     }
 
     private function getCompletionList(array $params): CompletionList

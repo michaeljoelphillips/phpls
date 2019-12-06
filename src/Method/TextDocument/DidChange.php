@@ -26,6 +26,10 @@ class DidChange implements MessageHandlerInterface
 
     public function __invoke(Message $message, callable $next)
     {
+        if ($message->method !== 'textDocument/didChange') {
+            return $next->__invoke($message);
+        }
+
         $document = new TextDocument(
             $message->params['textDocument']['uri'],
             $message->params['contentChanges'][0]['text'],

@@ -19,7 +19,7 @@ class Server
         $this->serializer = $serializer;
 
         $this->handler = function (Message $message, int $position) use ($handlers) {
-            if ($message instanceof ResponseMessage) {
+            if ($message instanceof ResponseMessage || null === $message) {
                 return $message;
             }
 
@@ -50,7 +50,7 @@ class Server
     {
         $message = $this->serializer->deserialize($request);
 
-        if ($message === null) {
+        if (null === $message) {
             return;
         }
 
@@ -60,7 +60,7 @@ class Server
             $response = new ResponseMessage($message, $e);
         }
 
-        if ($response === null) {
+        if (null === $response) {
             return;
         }
 

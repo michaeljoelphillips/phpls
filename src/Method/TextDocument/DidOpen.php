@@ -24,12 +24,16 @@ class DidOpen implements MessageHandlerInterface
         $this->parser = $parser;
     }
 
-    public function __invoke(Message $request, callable $next)
+    public function __invoke(Message $message, callable $next)
     {
+        if ($message->method !== 'textDocument/didOpen') {
+            return $next->__invoke($message);
+        }
+
         $textDocument = new TextDocument(
-            $request->params['textDocument']['uri'],
-            $request->params['textDocument']['text'],
-            $request->params['textDocument']['version']
+            $message->params['textDocument']['uri'],
+            $message->params['textDocument']['text'],
+            $message->params['textDocument']['version']
         );
 
         $this->parser->parse($textDocument);
