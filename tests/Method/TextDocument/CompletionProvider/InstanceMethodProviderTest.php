@@ -13,6 +13,7 @@ use PHPUnit\Framework\TestCase;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionMethod;
 use Roave\BetterReflection\Reflection\ReflectionType;
+use ReflectionMethod as CoreReflectionMethod;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
@@ -52,6 +53,10 @@ class InstanceMethodProviderTest extends TestCase
             ->method('getDocComment')
             ->willReturn('testDocumentation');
 
+        $method
+            ->method('getModifiers')
+            ->willReturn(CoreReflectionMethod::IS_STATIC + CoreReflectionMethod::IS_FINAL + CoreReflectionMethod::IS_PUBLIC);
+
         $reflection
             ->method('getMethods')
             ->willReturn([$method]);
@@ -60,8 +65,8 @@ class InstanceMethodProviderTest extends TestCase
 
         $this->assertCount(1, $completionItems);
         $this->assertEquals(2, $completionItems[0]->kind);
-        $this->assertEquals('string', $completionItems[0]->detail);
-        $this->assertEquals('testMethod', $completionItems[0]->label);
+        $this->assertEquals('final public static testMethod(): mixed', $completionItems[0]->detail);
+        $this->assertEquals('final public static testMethod(): mixed', $completionItems[0]->label);
         $this->assertEquals('testDocumentation', $completionItems[0]->documentation);
     }
 
@@ -89,6 +94,10 @@ class InstanceMethodProviderTest extends TestCase
             ->method('getDocComment')
             ->willReturn('testDocumentation');
 
+        $method
+            ->method('getModifiers')
+            ->willReturn(CoreReflectionMethod::IS_PUBLIC);
+
         $reflection
             ->method('getMethods')
             ->willReturn([$method]);
@@ -97,8 +106,8 @@ class InstanceMethodProviderTest extends TestCase
 
         $this->assertCount(1, $completionItems);
         $this->assertEquals(2, $completionItems[0]->kind);
-        $this->assertEquals('int|float', $completionItems[0]->detail);
-        $this->assertEquals('testMethod', $completionItems[0]->label);
+        $this->assertEquals('public testMethod(): mixed', $completionItems[0]->detail);
+        $this->assertEquals('public testMethod(): mixed', $completionItems[0]->label);
         $this->assertEquals('testDocumentation', $completionItems[0]->documentation);
     }
 }
