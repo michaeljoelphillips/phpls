@@ -53,7 +53,7 @@ class InstanceMethodProvider implements CompletionProviderInterface
 
         $docblockReturnTypes = $method->getDocBlockReturnTypes();
 
-        if (empty($docblockReturnType) === false) {
+        if (empty($docblockReturnTypes) === false) {
             return implode('|', $docblockReturnTypes);
         }
 
