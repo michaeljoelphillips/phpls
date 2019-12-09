@@ -6,25 +6,23 @@ namespace LanguageServer\Method\TextDocument\CompletionProvider;
 
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
+use LanguageServerProtocol\InsertTextFormat;
+use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\NodeAbstract;
+use Reflection;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionMethod;
 use Roave\BetterReflection\Reflection\ReflectionParameter;
-use LanguageServerProtocol\InsertTextFormat;
-use Reflection;
 
-/**
- * @author Michael Phillips <michael.phillips@realpage.com>
- */
-class InstanceMethodProvider implements CompletionProviderInterface
+class MethodProvider implements CompletionProviderInterface
 {
     public function complete(NodeAbstract $expression, ReflectionClass $reflection): array
     {
         $instanceMethods = array_filter(
             $reflection->getMethods(),
             function (ReflectionMethod $method) {
-                return $method->getName() !== '__construct';
+                return '__construct' !== $method->getName();
             }
         );
 
@@ -53,7 +51,7 @@ class InstanceMethodProvider implements CompletionProviderInterface
 
         $docblockReturnTypes = $method->getDocBlockReturnTypes();
 
-        if (empty($docblockReturnTypes) === false) {
+        if (false === empty($docblockReturnTypes)) {
             return implode('|', $docblockReturnTypes);
         }
 
@@ -74,12 +72,9 @@ class InstanceMethodProvider implements CompletionProviderInterface
         ));
     }
 
-    private function prepareReturnTypeInfo(ReflectionMethod $method): string
-    {
-    }
-
     public function supports(NodeAbstract $expression): bool
     {
-        return $expression instanceof PropertyFetch;
+        return $expression instanceof PropertyFetch
+            || $expression instanceof ClassConstFetch;
     }
 }

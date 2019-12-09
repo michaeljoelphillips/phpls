@@ -8,9 +8,8 @@ use LanguageServer\Method\Initialized;
 use LanguageServer\Method\Shutdown;
 use LanguageServer\Method\TextDocument\Completion;
 use LanguageServer\Method\TextDocument\CompletionProvider\ClassConstantProvider;
-use LanguageServer\Method\TextDocument\CompletionProvider\InstanceMethodProvider;
+use LanguageServer\Method\TextDocument\CompletionProvider\MethodProvider;
 use LanguageServer\Method\TextDocument\CompletionProvider\InstanceVariableProvider;
-use LanguageServer\Method\TextDocument\CompletionProvider\StaticMethodProvider;
 use LanguageServer\Method\TextDocument\CompletionProvider\StaticPropertyProvider;
 use LanguageServer\Method\TextDocument\DidChange;
 use LanguageServer\Method\TextDocument\DidClose;
@@ -154,8 +153,8 @@ return [
         return new TypeResolver($container->get(ClassReflector::class));
     },
     TextDocumentRegistry::class => DI\create(TextDocumentRegistry::class),
-    InstanceMethodProvider::class => function (ContainerInterface $container) {
-        return new InstanceMethodProvider();
+    MethodProvider::class => function (ContainerInterface $container) {
+        return new MethodProvider();
     },
     InstanceVariableProvider::class => function (ContainerInterface $container) {
         return new InstanceVariableProvider();
@@ -163,16 +162,12 @@ return [
     ClassConstantProvider::class => function (ContainerInterface $container) {
         return new ClassConstantProvider();
     },
-    StaticMethodProvider::class => function (ContainerInterface $container) {
-        return new StaticMethodProvider();
-    },
     StaticPropertyProvider::class => function (ContainerInterface $container) {
         return new StaticPropertyProvider();
     },
     'completionProviders' => [
-        DI\get(InstanceMethodProvider::class),
+        DI\get(MethodProvider::class),
         DI\get(InstanceVariableProvider::class),
-        DI\get(StaticMethodProvider::class),
         DI\get(StaticPropertyProvider::class),
         DI\get(ClassConstantProvider::class),
     ],

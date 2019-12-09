@@ -4,33 +4,33 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test\Method\TextDocument\CompletionProvider;
 
-use LanguageServer\Method\TextDocument\CompletionProvider\InstanceMethodProvider;
+use LanguageServer\Method\TextDocument\CompletionProvider\MethodProvider;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\Variable;
 use PHPUnit\Framework\TestCase;
+use ReflectionMethod as CoreReflectionMethod;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionMethod;
 use Roave\BetterReflection\Reflection\ReflectionType;
-use ReflectionMethod as CoreReflectionMethod;
 
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
-class InstanceMethodProviderTest extends TestCase
+class MethodProviderTest extends TestCase
 {
     public function testSupports()
     {
-        $subject = new InstanceMethodProvider();
+        $subject = new MethodProvider();
 
         $this->assertTrue($subject->supports(new PropertyFetch(new Variable('Foo'), 'bar')));
-        $this->assertFalse($subject->supports(new ClassConstFetch('Foo', 'bar')));
+        $this->assertTrue($subject->supports(new ClassConstFetch('Foo', 'bar')));
     }
 
     public function testCompleteWithReturnTypeDeclarations()
     {
-        $subject = new InstanceMethodProvider();
+        $subject = new MethodProvider();
 
         $expression = $this->createMock(Expr::class);
         $reflection = $this->createMock(ReflectionClass::class);
@@ -72,7 +72,7 @@ class InstanceMethodProviderTest extends TestCase
 
     public function testCompleteWithDocBlockReturnTypes()
     {
-        $subject = new InstanceMethodProvider();
+        $subject = new MethodProvider();
 
         $expression = $this->createMock(Expr::class);
         $reflection = $this->createMock(ReflectionClass::class);
@@ -106,8 +106,8 @@ class InstanceMethodProviderTest extends TestCase
 
         $this->assertCount(1, $completionItems);
         $this->assertEquals(2, $completionItems[0]->kind);
-        $this->assertEquals('public testMethod(): mixed', $completionItems[0]->detail);
-        $this->assertEquals('public testMethod(): mixed', $completionItems[0]->label);
+        $this->assertEquals('public testMethod(): int|float', $completionItems[0]->detail);
+        $this->assertEquals('public testMethod(): int|float', $completionItems[0]->label);
         $this->assertEquals('testDocumentation', $completionItems[0]->documentation);
     }
 }
