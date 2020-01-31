@@ -33,7 +33,7 @@ class MethodProvider implements CompletionProviderInterface
     {
         $signatureInfo = $this->getSignatureInfo($method);
 
-        return new CompletionItem($signatureInfo, CompletionItemKind::METHOD, $signatureInfo, $method->getDocComment(), null, null, $method->getName(), null, null, null, null, InsertTextFormat::PLAIN_TEXT);
+        return new CompletionItem($method->getName(), CompletionItemKind::METHOD, $signatureInfo, $method->getDocComment(), null, null, $method->getName(), null, null, null, null, InsertTextFormat::PLAIN_TEXT);
     }
 
     private function getSignatureInfo(ReflectionMethod $method): string
