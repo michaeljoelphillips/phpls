@@ -53,13 +53,18 @@ use Roave\BetterReflection\SourceLocator\Type\SourceLocator;
 use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
+use LanguageServer\Server\MessageSerializerInterface;
 
 return [
     Server::class => function (ContainerInterface $container) {
         return new Server(
-            $container->get(MessageSerializer::class),
+            $container->get(MessageSerializerInterface::class),
+            $container->get(LoggerInterface::class),
             $container->get('messageHandlers')
         );
+    },
+    MessageSerializerInterface::class => function (ContainerInterface $container) {
+        return $container->get(MessageSerializer::class);
     },
     DuplexStreamInterface::class => function (ContainerInterface $container) {
         $loop = $container->get(LoopInterface::class);

@@ -7,6 +7,9 @@ namespace LanguageServer\Server;
 use LanguageServer\Server\Protocol\Message;
 use LanguageServer\Server\Protocol\ResponseMessage;
 use React\Stream\DuplexStreamInterface;
+use Psr\Log\LoggerInterface;
+use LanguageServer\Server\MessageParser;
+use LanguageServer\Server\Protocol\RequestMessage;
 
 class Server
 {
@@ -14,9 +17,11 @@ class Server
     private MessageSerializerInterface $serializer;
     private $handler;
 
-    public function __construct(MessageSerializerInterface $serializer, array $handlers)
+    public function __construct(MessageSerializerInterface $serializer, LoggerInterface $logger, array $handlers)
     {
+        $this->logger = $logger;
         $this->serializer = $serializer;
+        $this->parser = new MessageParser($serializer);
 
         $this->handler = function (Message $message, int $position) use ($handlers) {
             if ($message instanceof ResponseMessage || null === $message) {
@@ -35,25 +40,19 @@ class Server
 
             return $handlers[$position]->__invoke($message, $next);
         };
+
+        $this->parser->on('message', fn (Message $request) => $this->handle($request));
     }
 
     public function listen(DuplexStreamInterface $stream): void
     {
         $this->stream = $stream;
 
-        $stream->on('data', function (string $message) {
-            $this->handle($message);
-        });
+        $stream->on('data', fn (string $request) => $this->parser->handle($request));
     }
 
-    private function handle(string $request): void
+    private function handle(Message $message): void
     {
-        $message = $this->serializer->deserialize($request);
-
-        if (null === $message) {
-            return;
-        }
-
         try {
             $response = $this->handler->__invoke($message, 0);
         } catch (Throwable $e) {
@@ -64,6 +63,8 @@ class Server
             return;
         }
 
-        $this->stream->write($this->serializer->serialize($response));
+        $response = $this->serializer->serialize($response);
+
+        $this->stream->write($response);
     }
 }
