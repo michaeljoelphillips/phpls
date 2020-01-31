@@ -81,7 +81,7 @@ class Initialize implements MessageHandlerInterface
         $capabilities->documentOnTypeFormattingProvider = false;
 
         $capabilities->textDocumentSync = $textDocumentSync;
-        $capabilities->completionProvider = new CompletionOptions(true, [':', '>']);
+        $capabilities->completionProvider = new CompletionOptions(false, [':', '>']);
         $capabilities->signatureHelpProvider = new SignatureHelpOptions(['(', ',']);
 
         return new InitializeResult($capabilities);
