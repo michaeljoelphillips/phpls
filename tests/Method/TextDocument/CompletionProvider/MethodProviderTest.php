@@ -65,9 +65,9 @@ class MethodProviderTest extends TestCase
 
         $this->assertCount(1, $completionItems);
         $this->assertEquals(2, $completionItems[0]->kind);
-        $this->assertEquals('final public static testMethod(): mixed', $completionItems[0]->detail);
-        $this->assertEquals('final public static testMethod(): mixed', $completionItems[0]->label);
+        $this->assertEquals('testMethod', $completionItems[0]->label);
         $this->assertEquals('testDocumentation', $completionItems[0]->documentation);
+        $this->assertEquals('final public static testMethod(): mixed', $completionItems[0]->detail);
     }
 
     public function testCompleteWithDocBlockReturnTypes()
@@ -106,8 +106,8 @@ class MethodProviderTest extends TestCase
 
         $this->assertCount(1, $completionItems);
         $this->assertEquals(2, $completionItems[0]->kind);
-        $this->assertEquals('public testMethod(): int|float', $completionItems[0]->detail);
-        $this->assertEquals('public testMethod(): int|float', $completionItems[0]->label);
+        $this->assertEquals('testMethod', $completionItems[0]->label);
         $this->assertEquals('testDocumentation', $completionItems[0]->documentation);
+        $this->assertEquals('public testMethod(): int|float', $completionItems[0]->detail);
     }
 }
