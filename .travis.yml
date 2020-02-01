@@ -1,0 +1,16 @@
+language: php
+
+php:
+  - 7.4
+
+cache:
+  directories:
+    - vendor
+
+install:
+  - composer install
+
+script:
+  - vendor/bin/phpunit
+  - vendor/bin/phpstan analyse src/ tests/
+  - php bin/coverage-checker.php clover.xml 70
