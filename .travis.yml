@@ -15,6 +15,10 @@ script:
   - vendor/bin/phpstan analyse -l 1 src/ tests/
   - php bin/coverage-checker.php clover.xml 70
 
+before_deploy:
+  - phpenv config-add build/phar.ini
+  - php -d phar.readonly=0 bin/build.php
+
 deploy:
   provider: releases
   api_key:
