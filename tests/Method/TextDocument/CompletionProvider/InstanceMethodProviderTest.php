@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test\Method\TextDocument\CompletionProvider;
 
-use LanguageServer\Method\TextDocument\CompletionProvider\MethodProvider;
+use LanguageServer\Method\TextDocument\CompletionProvider\InstanceMethodProvider;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\PropertyFetch;
@@ -18,19 +18,18 @@ use Roave\BetterReflection\Reflection\ReflectionType;
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
-class MethodProviderTest extends TestCase
+class InstanceProviderTest extends TestCase
 {
     public function testSupports()
     {
-        $subject = new MethodProvider();
+        $subject = new InstanceMethodProvider();
 
         $this->assertTrue($subject->supports(new PropertyFetch(new Variable('Foo'), 'bar')));
-        $this->assertTrue($subject->supports(new ClassConstFetch('Foo', 'bar')));
     }
 
     public function testCompleteWithReturnTypeDeclarations()
     {
-        $subject = new MethodProvider();
+        $subject = new InstanceMethodProvider();
 
         $expression = $this->createMock(Expr::class);
         $reflection = $this->createMock(ReflectionClass::class);
@@ -72,7 +71,7 @@ class MethodProviderTest extends TestCase
 
     public function testCompleteWithDocBlockReturnTypes()
     {
-        $subject = new MethodProvider();
+        $subject = new InstanceMethodProvider();
 
         $expression = $this->createMock(Expr::class);
         $reflection = $this->createMock(ReflectionClass::class);

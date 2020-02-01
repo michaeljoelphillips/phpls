@@ -15,7 +15,7 @@ use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionMethod;
 use Roave\BetterReflection\Reflection\ReflectionParameter;
 
-class MethodProvider implements CompletionProviderInterface
+abstract class MethodProvider implements CompletionProviderInterface
 {
     public function complete(NodeAbstract $expression, ReflectionClass $reflection): array
     {
@@ -70,11 +70,5 @@ class MethodProvider implements CompletionProviderInterface
             },
             $method->getParameters()
         ));
-    }
-
-    public function supports(NodeAbstract $expression): bool
-    {
-        return $expression instanceof PropertyFetch
-            || $expression instanceof ClassConstFetch;
     }
 }

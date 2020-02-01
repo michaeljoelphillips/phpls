@@ -8,7 +8,6 @@ use LanguageServer\Method\Initialized;
 use LanguageServer\Method\Shutdown;
 use LanguageServer\Method\TextDocument\Completion;
 use LanguageServer\Method\TextDocument\CompletionProvider\ClassConstantProvider;
-use LanguageServer\Method\TextDocument\CompletionProvider\MethodProvider;
 use LanguageServer\Method\TextDocument\CompletionProvider\InstanceVariableProvider;
 use LanguageServer\Method\TextDocument\CompletionProvider\StaticPropertyProvider;
 use LanguageServer\Method\TextDocument\DidChange;
@@ -54,6 +53,8 @@ use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
 use LanguageServer\Server\MessageSerializerInterface;
+use LanguageServer\Method\TextDocument\CompletionProvider\StaticMethodProvider;
+use LanguageServer\Method\TextDocument\CompletionProvider\InstanceMethodProvider;
 
 return [
     Server::class => function (ContainerInterface $container) {
@@ -158,8 +159,11 @@ return [
         return new TypeResolver($container->get(ClassReflector::class));
     },
     TextDocumentRegistry::class => DI\create(TextDocumentRegistry::class),
-    MethodProvider::class => function (ContainerInterface $container) {
-        return new MethodProvider();
+    StaticMethodProvider::class => function (ContainerInterface $container) {
+        return new StaticMethodProvider();
+    },
+    InstanceMethodProvider::class => function (ContainerInterface $container) {
+        return new InstanceMethodProvider();
     },
     InstanceVariableProvider::class => function (ContainerInterface $container) {
         return new InstanceVariableProvider();
@@ -171,7 +175,8 @@ return [
         return new StaticPropertyProvider();
     },
     'completionProviders' => [
-        DI\get(MethodProvider::class),
+        DI\get(InstanceMethodProvider::class),
+        DI\get(StaticMethodProvider::class),
         DI\get(InstanceVariableProvider::class),
         DI\get(StaticPropertyProvider::class),
         DI\get(ClassConstantProvider::class),
