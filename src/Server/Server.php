@@ -10,11 +10,14 @@ use React\Stream\DuplexStreamInterface;
 use Psr\Log\LoggerInterface;
 use LanguageServer\Server\MessageParser;
 use LanguageServer\Server\Protocol\RequestMessage;
+use Throwable;
 
 class Server
 {
     private DuplexStreamInterface $stream;
     private MessageSerializerInterface $serializer;
+    private LoggerInterface $logger;
+    private MessageParser $parser;
     private $handler;
 
     public function __construct(MessageSerializerInterface $serializer, LoggerInterface $logger, array $handlers)
@@ -41,7 +44,9 @@ class Server
             return $handlers[$position]->__invoke($message, $next);
         };
 
-        $this->parser->on('message', fn (Message $request) => $this->handle($request));
+        $this->parser->on('message', function (Message $request) {
+            $this->handle($request);
+        });
     }
 
     public function listen(DuplexStreamInterface $stream): void

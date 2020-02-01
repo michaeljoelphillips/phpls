@@ -67,7 +67,7 @@ class MessageParser implements EventEmitterInterface
     {
         $length = $this->findContentLength($terminatorPosition);
 
-        return [$length, $content];
+        return [$length];
     }
 
     private function findContentLength(int $terminatorPosition): int

@@ -33,6 +33,7 @@ class MessageSerializer implements MessageSerializerInterface
         try {
             return $this->serializer->serialize($response, 'jsonrpc');
         } catch (NotEncodableValueException $e) {
+            return '{}';
         }
     }
 }

@@ -196,11 +196,8 @@ return [
         return new Initialize($container);
     },
     Initialized::class => DI\create(Initialized::class),
-    Shutdown::class => function (ContainerInterface $container) {
-        return new Shutdown($container->get(Server::class));
-    },
     Exit_::class => function (ContainerInterface $container) {
-        return new Exit_($container->get(TextDocumentRegistry::class));
+        return new Exit_();
     },
     DidSave::class => function (ContainerInterface $container) {
         return new DidSave(

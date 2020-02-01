@@ -18,7 +18,7 @@ use Roave\BetterReflection\Reflection\ReflectionType;
 /**
  * @author Michael Phillips <michael.phillips@realpage.com>
  */
-class InstanceProviderTest extends TestCase
+class InstanceMethodProviderTest extends TestCase
 {
     public function testSupports()
     {

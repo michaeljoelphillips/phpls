@@ -1,2 +1,6 @@
 includes:
-    - ./vendor/phpstan/phpstan/conf/config.levelmax.neon
+    - ./vendor/phpstan/phpstan-php-parser/extension.neon
+
+parameters:
+    excludes_analyse:
+        - tests/fixtures
