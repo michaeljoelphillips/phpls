@@ -14,3 +14,14 @@ script:
   - vendor/bin/phpunit
   - vendor/bin/phpstan analyse -l 1 src/ tests/
   - php bin/coverage-checker.php clover.xml 70
+
+deploy:
+  provider: releases
+  api_key:
+    secure: kjq6MaH18ukU9s9EbBL0p8UXb7S/Ihg+sy0fidXjTDNQJS+BqKASY/KoJkpkKG0FeLyf3g7Z7DgSuHqwGDYypoK3OtSx7e3zCCmdE6YESSeWNu0RVDF1i/fYJSv3obxYE7/bfvGSyNxHipkn7Uzeyfhiv0+ZAnogtmxVEIjbuycw4l16Dk4nsSChh2nU0DskJ2E5uJ/3aTFvTvHszOn3FWyFtKI1w63/g12qPdhKtCwZJSqVr0M3VVuBlHp55P1lJwQhosg9U8sWOrgN9F/pZNu+x0K2jjWXPUETvhwlKue0DbU9pYThmOKCbAfbHQtWbJd0Ies1BpoW+VwDKonICEYfEF4gXPTCShE3rChgUkF9Wou3+WSEdgnsrybqoyXtnUqtXj4qTFb55UfpufN/3QxnhFaQoamnTEN9BLv8KUMbmCiW6HKcDLwBC4nk/nkwzYhHMo2uduxJ4dHuZypXZUr1lP8AXsyi0bYLXT9Pz+t1kcRV2qk0KLy/NzbqfDBbR7+xsI8NYV65HtwgS18oyCYTWNMb3Tf+SLYr5m4ZDCtizn3renc5RAnrkb6ala3vhzMtfhMS5QY51RZuHLwgmP7AEObCw4PEwUn75VXiNz+XsrqZEfSFBlzoYQlcerYKhyHxoG/YH11t7UMBUld7fao+Um0DwNpX5dSDSKpwtHg=
+  file: build/phpls.phar
+  skip_cleanup: true
+  on:
+    tags: true
+    repo: michaeljoelphillips/phpls
+
