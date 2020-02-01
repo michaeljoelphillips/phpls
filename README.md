@@ -12,8 +12,7 @@ For NeoVim users, see
 ## Requirements
 
 PHPLS will only work with Composer projects running PHP7.  Projects that do not
-use Composer for autoloading cannot be analyzed by PHPLS.  PHPLS also expects
-Composer dependencies to be installed.
+use Composer for autoloading cannot be analyzed by PHPLS.
 
 ## Features
 
