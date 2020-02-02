@@ -55,6 +55,10 @@ use Symfony\Component\Serializer\SerializerInterface;
 use LanguageServer\Server\MessageSerializerInterface;
 use LanguageServer\Method\TextDocument\CompletionProvider\StaticMethodProvider;
 use LanguageServer\Method\TextDocument\CompletionProvider\InstanceMethodProvider;
+use Symfony\Component\Config\Definition\Processor;
+use LanguageServer\Config\ServerConfiguration;
+use LanguageServer\Config\ConfigFactory;
+use Monolog\Handler\NullHandler;
 
 return [
     Server::class => function (ContainerInterface $container) {
@@ -79,8 +83,17 @@ return [
         return Factory::create();
     },
     LoggerInterface::class => function (ContainerInterface $container) {
+        $config = $container->get('config')['log'];
+
         $logger = new Logger('default');
-        $logger->pushHandler(new StreamHandler(fopen('/tmp/language-server.log', 'w+'), Logger::DEBUG));
+
+        if ($config['enabled'] === true) {
+            $logLevel = $config['level'] === 'debug' ? Logger::DEBUG : Logger::INFO;
+
+            $logger->pushHandler(new StreamHandler(fopen($config['path'], 'w+'), $logLevel));
+        } else {
+            $logger->pushHandler(new NullHandler());
+        }
 
         return $logger;
     },
@@ -237,4 +250,7 @@ return [
     DidClose::class => function () {
         return new DidClose();
     },
+    'config' => function () {
+        return (new ConfigFactory())->__invoke();
+    }
 ];
