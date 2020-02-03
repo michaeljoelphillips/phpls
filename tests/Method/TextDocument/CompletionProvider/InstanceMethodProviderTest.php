@@ -54,7 +54,7 @@ class InstanceMethodProviderTest extends TestCase
 
         $method
             ->method('getModifiers')
-            ->willReturn(CoreReflectionMethod::IS_STATIC + CoreReflectionMethod::IS_FINAL + CoreReflectionMethod::IS_PUBLIC);
+            ->willReturn(CoreReflectionMethod::IS_FINAL + CoreReflectionMethod::IS_PUBLIC);
 
         $reflection
             ->method('getMethods')
@@ -66,7 +66,7 @@ class InstanceMethodProviderTest extends TestCase
         $this->assertEquals(2, $completionItems[0]->kind);
         $this->assertEquals('testMethod', $completionItems[0]->label);
         $this->assertEquals('testDocumentation', $completionItems[0]->documentation);
-        $this->assertEquals('final public static testMethod(): mixed', $completionItems[0]->detail);
+        $this->assertEquals('final public testMethod(): mixed', $completionItems[0]->detail);
     }
 
     public function testCompleteWithDocBlockReturnTypes()
@@ -108,5 +108,67 @@ class InstanceMethodProviderTest extends TestCase
         $this->assertEquals('testMethod', $completionItems[0]->label);
         $this->assertEquals('testDocumentation', $completionItems[0]->documentation);
         $this->assertEquals('public testMethod(): int|float', $completionItems[0]->detail);
+    }
+
+    public function testCompleteOnNullableType()
+    {
+        $subject = new InstanceMethodProvider();
+
+        $expression = $this->createMock(Expr::class);
+        $reflection = $this->createMock(ReflectionClass::class);
+        $method = $this->createMock(ReflectionMethod::class);
+
+        $method
+            ->method('getName')
+            ->willReturn('testMethod');
+
+        $method
+            ->method('getReturnType')
+            ->willReturn(null);
+
+        $method
+            ->method('getDocBlockReturnTypes')
+            ->willReturn(['int', 'float']);
+
+        $method
+            ->method('getDocComment')
+            ->willReturn('testDocumentation');
+
+        $method
+            ->method('getModifiers')
+            ->willReturn(CoreReflectionMethod::IS_PUBLIC);
+
+        $reflection
+            ->method('getMethods')
+            ->willReturn([$method]);
+
+        $completionItems = $subject->complete($expression, $reflection);
+
+        $this->assertCount(1, $completionItems);
+        $this->assertEquals(2, $completionItems[0]->kind);
+        $this->assertEquals('testMethod', $completionItems[0]->label);
+        $this->assertEquals('testDocumentation', $completionItems[0]->documentation);
+        $this->assertEquals('public testMethod(): int|float', $completionItems[0]->detail);
+    }
+
+    public function testCompleteReturnsOnlyNonStaticMethods()
+    {
+        $subject = new InstanceMethodProvider();
+
+        $expression = $this->createMock(Expr::class);
+        $reflection = $this->createMock(ReflectionClass::class);
+        $method = $this->createMock(ReflectionMethod::class);
+
+        $method
+            ->method('isStatic')
+            ->willReturn(true);
+
+        $reflection
+            ->method('getMethods')
+            ->willReturn([$method]);
+
+        $completionItems = $subject->complete($expression, $reflection);
+
+        $this->assertEmpty($completionItems);
     }
 }

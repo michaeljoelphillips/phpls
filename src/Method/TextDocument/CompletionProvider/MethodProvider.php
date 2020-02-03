@@ -22,12 +22,15 @@ abstract class MethodProvider implements CompletionProviderInterface
         $instanceMethods = array_filter(
             $reflection->getMethods(),
             function (ReflectionMethod $method) {
-                return '__construct' !== $method->getName();
+                return '__construct' !== $method->getName()
+                    && $this->filterMethod($method);
             }
         );
 
         return array_values(array_map([$this, 'buildCompletionItem'], $instanceMethods));
     }
+
+    abstract protected function filterMethod(ReflectionMethod $method): bool;
 
     private function buildCompletionItem(ReflectionMethod $method): CompletionItem
     {
