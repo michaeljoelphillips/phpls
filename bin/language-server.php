@@ -17,7 +17,7 @@ $container = (new ContainerBuilder())
 $server = $container->get(LSPServer::class);
 $loop = $container->get(LoopInterface::class);
 
-$socket = new Server('127.0.0.1:9999', $loop);
+$socket = new Server(sprintf('127.0.0.1:%d', $argv[1]), $loop);
 
 $server->listen($socket);
 
