@@ -11,6 +11,8 @@ use Psr\Log\LoggerInterface;
 use LanguageServer\Server\MessageParser;
 use LanguageServer\Server\Protocol\RequestMessage;
 use Throwable;
+use React\Socket\ServerInterface;
+use React\Socket\ConnectionInterface;
 
 class Server
 {
@@ -49,11 +51,15 @@ class Server
         });
     }
 
-    public function listen(DuplexStreamInterface $stream): void
+    public function listen($stream): void
     {
-        $this->stream = $stream;
+        $stream->on('connection', function (ConnectionInterface $connection) {
+            $this->stream = $connection;
 
-        $stream->on('data', fn (string $request) => $this->parser->handle($request));
+            $connection->on('data', function ($data) use ($connection) {
+                $this->parser->handle($data);
+            });
+        });
     }
 
     private function handle(Message $message): void

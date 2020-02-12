@@ -10,7 +10,7 @@ use LanguageServer\Server\Protocol\Message;
 
 class Exit_ implements MessageHandlerInterface
 {
-    private bool $wasShutdown;
+    private bool $wasShutdown = false;
 
     public function __invoke(Message $message, callable $next)
     {
