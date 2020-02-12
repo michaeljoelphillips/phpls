@@ -24,13 +24,13 @@ class InitializeTest extends TestCase
         $container
             ->expects($this->once())
             ->method('set')
-            ->with('project_root', '/tmp/foo');
+            ->with('project_root', '/tmp');
 
         $next = function () {
             $this->fail('The next method should never be called');
         };
 
-        $response = $subject->__invoke(new RequestMessage(1, 'initialize', ['rootUri' => 'file:///tmp/foo']), $next);
+        $response = $subject->__invoke(new RequestMessage(1, 'initialize', ['rootUri' => 'file:///tmp']), $next);
 
         $this->assertEquals([':', '>'], $response->result->capabilities->completionProvider->triggerCharacters);
         $this->assertEquals(['(', ','], $response->result->capabilities->signatureHelpProvider->triggerCharacters);
@@ -73,7 +73,7 @@ class InitializeTest extends TestCase
             $this->addToAssertionCount(1);
         };
 
-        $subject->__invoke(new RequestMessage(1, 'initialize', ['rootUri' => 'file:///tmp/foo']), $next);
+        $subject->__invoke(new RequestMessage(1, 'initialize', ['rootUri' => 'file:///tmp']), $next);
         $subject->__invoke(new RequestMessage(1, 'textDocument/didOpen', []), $next);
     }
 

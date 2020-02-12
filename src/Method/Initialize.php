@@ -93,6 +93,19 @@ class Initialize implements MessageHandlerInterface
             throw new RuntimeException('The project root was not specified');
         }
 
-        $this->container->set('project_root', str_replace('file://', '', $params['rootUri']));
+        $projectRoot = $this->parseProjectRootUri($params['rootUri']);
+
+        $this->container->set('project_root', $projectRoot);
+    }
+
+    private function parseProjectRootUri(string $uri): string
+    {
+        $path = realpath(urldecode(parse_url($uri, PHP_URL_PATH)));
+
+        if ($path === false) {
+            throw new RuntimeException('The specified project root does not exist');
+        }
+
+        return $path;
     }
 }
