@@ -16,8 +16,7 @@ if (file_exists(BUILD_PATH.'.gz')) {
 
 $builder = new Phar(BUILD_PATH);
 
-$builder->buildFromIterator(new RecursiveIteratorIterator(new RecursiveDirectoryIterator(SRC_PATH)), PROJECT_ROOT);
-$builder->buildFromIterator(new RecursiveIteratorIterator(new RecursiveDirectoryIterator(VENDOR_PATH)), PROJECT_ROOT);
+$builder->buildFromDirectory(PROJECT_ROOT);
 
 $builder->addFile('bin/language-server.php');
 $builder->setStub($builder->createDefaultStub('bin/language-server.php'));
