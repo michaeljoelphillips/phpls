@@ -36,9 +36,6 @@ use Psr\Log\LoggerInterface;
 use React\EventLoop\Factory;
 use React\EventLoop\LoopInterface;
 use React\Stream\CompositeStream;
-use React\Stream\DuplexStreamInterface;
-use React\Stream\ReadableResourceStream;
-use React\Stream\WritableResourceStream;
 use Roave\BetterReflection\Reflector\ClassReflector;
 use Roave\BetterReflection\Reflector\FunctionReflector;
 use Roave\BetterReflection\SourceLocator\Ast\Locator as AstLocator;
@@ -59,6 +56,8 @@ use Symfony\Component\Config\Definition\Processor;
 use LanguageServer\Config\ServerConfiguration;
 use LanguageServer\Config\ConfigFactory;
 use Monolog\Handler\NullHandler;
+use Symfony\Component\Console\Application;
+use LanguageServer\Console\RunCommand;
 
 return [
     Server::class => function (ContainerInterface $container) {
@@ -71,16 +70,15 @@ return [
     MessageSerializerInterface::class => function (ContainerInterface $container) {
         return $container->get(MessageSerializer::class);
     },
-    DuplexStreamInterface::class => function (ContainerInterface $container) {
-        $loop = $container->get(LoopInterface::class);
-
-        return new CompositeStream(
-            new ReadableResourceStream(STDIN, $loop),
-            new WritableResourceStream(STDOUT, $loop)
-        );
-    },
     LoopInterface::class => function (ContainerInterface $container) {
         return Factory::create();
+    },
+    Application::class => function (ContainerInterface $container) {
+        $app = new Application();
+        $app->add($container->get(RunCommand::class));
+        $app->setDefaultCommand('phpls:run', true);
+
+        return $app;
     },
     LoggerInterface::class => function (ContainerInterface $container) {
         $config = $container->get('config')['log'];

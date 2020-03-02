@@ -11,6 +11,10 @@ use Psr\Log\LoggerInterface;
 use LanguageServer\Server\MessageParser;
 use LanguageServer\Server\Protocol\RequestMessage;
 use Throwable;
+use React\Socket\ServerInterface;
+use React\Socket\ConnectionInterface;
+use InvalidArgumentException;
+use React\Socket\Server as TcpServer;
 
 class Server
 {
@@ -49,11 +53,25 @@ class Server
         });
     }
 
-    public function listen(DuplexStreamInterface $stream): void
+    public function listen($stream): void
     {
-        $this->stream = $stream;
+        if ($stream instanceof TcpServer) {
+            $stream->on('connection', function (ConnectionInterface $connection) {
+                $this->listen($connection);
+            });
 
-        $stream->on('data', fn (string $request) => $this->parser->handle($request));
+            return;
+        }
+
+        if ($stream instanceof DuplexStreamInterface) {
+            $this->stream = $stream;
+
+            $stream->on('data', fn (string $data) => $this->parser->handle($data));
+
+            return;
+        }
+
+        throw new InvalidArgumentException();
     }
 
     private function handle(Message $message): void
