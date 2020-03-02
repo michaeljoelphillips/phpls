@@ -34,7 +34,7 @@ class RunCommand extends Command
     {
         $this
             ->setDescription('Start PHPLS')
-            ->addOption('port', null, InputOption::VALUE_OPTIONAL, 'TCP port');
+            ->addOption('port', null, InputOption::VALUE_OPTIONAL, 'Run over TCP with the specified port');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
