@@ -1,8 +1,11 @@
-/vendor/
-tags*
-.nvimrc
-clover.xml
-build
 .php_cs.cache
 .phpunit.result.cache
 .vscode
+.nvimrc
+
+tags*
+clover.xml
+
+build/
+tools/
+vendor/

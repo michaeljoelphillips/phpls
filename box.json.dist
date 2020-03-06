@@ -1,0 +1,13 @@
+{
+    "compression": "GZ",
+    "output": "build/phpls.phar",
+    "main": "bin/language-server.php",
+    "compactors": [
+        "KevinGH\\Box\\Compactor\\Json",
+        "KevinGH\\Box\\Compactor\\Php"
+    ],
+    "directories": [
+        "src",
+        "vendor"
+    ]
+}

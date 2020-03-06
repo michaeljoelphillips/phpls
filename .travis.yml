@@ -6,6 +6,7 @@ php:
 cache:
   directories:
     - vendor
+    - tools
 
 install:
   - composer install
@@ -16,8 +17,12 @@ script:
   - php bin/coverage-checker.php clover.xml 70
 
 before_deploy:
-  - phpenv config-add build/phar.ini
-  - php -d phar.readonly=0 bin/build.php
+  - |
+    if [ ! -f tools/box.phar ]; then
+      mkdir -p tools
+      wget -O tools/box https://github.com/humbug/box/releases/download/3.8.4/box.phar
+    fi
+    php tools/box compile
 
 deploy:
   provider: releases
