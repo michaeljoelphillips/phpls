@@ -21,10 +21,15 @@ use PhpParser\Node\Stmt\Property;
 use PhpParser\Node\Stmt\UseUse;
 use PhpParser\NodeAbstract;
 use Roave\BetterReflection\Reflector\Reflector;
+use function array_column;
+use function array_filter;
+use function array_merge;
+use function array_pop;
+use function array_values;
+use function end;
+use function sprintf;
+use function usort;
 
-/**
- * @author Michael Phillips <michael.phillips@realpage.com>
- */
 class TypeResolver
 {
     private Reflector $reflector;
@@ -34,14 +39,13 @@ class TypeResolver
         $this->reflector = $reflector;
     }
 
-    public function getType(ParsedDocument $document, $node): ?string
+    public function getType(ParsedDocument $document, ?NodeAbstract $node) : ?string
     {
         if ($node instanceof Variable) {
             return $this->getVariableType($document, $node);
         }
 
-        if (
-            $node instanceof StaticPropertyFetch ||
+        if ($node instanceof StaticPropertyFetch ||
             $node instanceof ClassConstFetch
         ) {
             return $this->getType($document, $node->class);
@@ -94,22 +98,22 @@ class TypeResolver
         return null;
     }
 
-    private function getReturnType(ParsedDocument $document, MethodCall $methodCall): ?string
+    private function getReturnType(ParsedDocument $document, MethodCall $methodCall) : ?string
     {
         $variableType = $this->getType($document, $methodCall);
 
-        if (null === $variableType) {
+        if ($variableType === null) {
             return null;
         }
 
         $methodName = $methodCall->name;
 
-        $reflectedClass = $this->reflector->reflect($variableType);
+        $reflectedClass  = $this->reflector->reflect($variableType);
         $reflectedMethod = $reflectedClass->getMethod($methodName->name);
 
         $type = (string) $reflectedMethod->getReturnType();
 
-        if ('' === $type) {
+        if ($type === '') {
             return null;
         }
 
@@ -122,25 +126,23 @@ class TypeResolver
      * If $node is an instance variable, the document classname will be
      * returned.  Otherwise, the closest assignment will be used to resolve the
      * type.
-     *
-     * @return string
      */
-    public function getVariableType(ParsedDocument $document, Variable $variable): ?string
+    public function getVariableType(ParsedDocument $document, Variable $variable) : ?string
     {
-        if ('this' === $variable->name) {
+        if ($variable->name === 'this') {
             return $document->getClassName();
         }
 
         $closestVariable = $this->findClosestVariableReferencesInDocument($variable, $document);
 
-        if (null === $closestVariable) {
+        if ($closestVariable === null) {
             return null;
         }
 
         return $this->getType($document, $closestVariable);
     }
 
-    private function findClosestVariableReferencesInDocument(Variable $variable, ParsedDocument $document): ?NodeAbstract
+    private function findClosestVariableReferencesInDocument(Variable $variable, ParsedDocument $document) : ?NodeAbstract
     {
         $expressions = $this->findVariableReferencesInDocument($variable, $document);
 
@@ -153,10 +155,13 @@ class TypeResolver
         return end($orderedExpressions);
     }
 
-    private function findVariableReferencesInDocument(Variable $variable, ParsedDocument $document): array
+    /**
+     * @return NodeAbstract[]
+     */
+    private function findVariableReferencesInDocument(Variable $variable, ParsedDocument $document) : array
     {
         return $document->searchNodes(
-            function (NodeAbstract $node) use ($variable) {
+            static function (NodeAbstract $node) use ($variable) {
                 return ($node instanceof Assign || $node instanceof Param)
                     && $node->var->name === $variable->name
                     && $node->getEndFilePos() < $variable->getEndFilePos();
@@ -164,9 +169,14 @@ class TypeResolver
         );
     }
 
-    private function sortNodesByEndingLocation(array $expressions): array
+    /**
+     * @param NodeAbstract[] $expressions
+     *
+     * @return NodeAbstract[]
+     */
+    private function sortNodesByEndingLocation(array $expressions) : array
     {
-        usort($expressions, function (NodeAbstract $a, NodeAbstract $b) {
+        usort($expressions, static function (NodeAbstract $a, NodeAbstract $b) {
             return $a->getEndFilePos() <=> $b->getEndFilePos();
         });
 
@@ -176,25 +186,19 @@ class TypeResolver
     /**
      * Get the type for the class specified by a new operator.
      */
-    private function getNewAssignmentType(ParsedDocument $document, New_ $node): string
+    private function getNewAssignmentType(ParsedDocument $document, New_ $node) : string
     {
         return $this->getType($document, $node->class);
     }
 
-    /**
-     * Get the type of a function parameter.
-     */
-    private function getArgumentType(ParsedDocument $document, Param $param)
+    private function getArgumentType(ParsedDocument $document, Param $param) : ?string
     {
         return $this->getType($document, $param->type);
     }
 
-    /**
-     * Get the type of a class reference.
-     */
-    private function getTypeFromClassReference(ParsedDocument $document, Name $node)
+    private function getTypeFromClassReference(ParsedDocument $document, Name $node) : ?string
     {
-        if ('self' === (string) $node) {
+        if ((string) $node === 'self') {
             return $document->getClassName();
         }
 
@@ -202,8 +206,8 @@ class TypeResolver
 
         $matchingUseStatement = array_filter(
             $useStatements,
-            function (UseUse $use) use ($node) {
-                if (null !== $use->alias && $use->alias->name === $node->getLast()) {
+            static function (UseUse $use) use ($node) {
+                if ($use->alias !== null && $use->alias->name === $node->getLast()) {
                     return true;
                 }
 
@@ -223,12 +227,12 @@ class TypeResolver
         return array_pop($matchingUseStatement)->name->toCodeString();
     }
 
-    private function getPropertyType(ParsedDocument $document, PropertyFetch $property): ?string
+    private function getPropertyType(ParsedDocument $document, PropertyFetch $property) : ?string
     {
-        if ('this' === $property->var->name) {
+        if ($property->var->name === 'this') {
             $propertyDeclaration = $document->getClassProperty((string) $property->name);
 
-            if (null !== $propertyDeclaration && $this->propertyHasResolvableType($propertyDeclaration)) {
+            if ($propertyDeclaration !== null && $this->propertyHasResolvableType($propertyDeclaration)) {
                 return $this->getType($document, $propertyDeclaration->type);
             }
 
@@ -238,25 +242,25 @@ class TypeResolver
         return $this->getPropertyTypeFromDocblock($document, $property);
     }
 
-    private function propertyHasResolvableType(Property $property): bool
+    private function propertyHasResolvableType(Property $property) : bool
     {
         return $property->type instanceof Identifier
             || $property->type instanceof Name;
     }
 
-    private function getPropertyTypeFromDocblock(ParsedDocument $document, PropertyFetch $property): ?string
+    private function getPropertyTypeFromDocblock(ParsedDocument $document, PropertyFetch $property) : ?string
     {
         $propertyName = $property->name;
         $variableType = $this->getType($document, $property->var);
 
-        if (null === $variableType) {
+        if ($variableType === null) {
             return null;
         }
 
-        $reflectedClass = $this->reflector->reflect($variableType);
+        $reflectedClass    = $this->reflector->reflect($variableType);
         $reflectedProperty = $reflectedClass->getProperty($propertyName->name);
 
-        if (null === $reflectedProperty) {
+        if ($reflectedProperty === null) {
             return null;
         }
 
@@ -270,17 +274,17 @@ class TypeResolver
         return $this->getType($document, new Name(array_pop($docblockTypes)));
     }
 
-    private function getPropertyTypeFromConstructorAssignment(ParsedDocument $document, PropertyFetch $property): ?string
+    private function getPropertyTypeFromConstructorAssignment(ParsedDocument $document, PropertyFetch $property) : ?string
     {
         $constructor = $document->getConstructorNode();
 
-        if (null === $constructor) {
+        if ($constructor === null) {
             return null;
         }
 
         $propertyAssignment = array_values(array_filter(
             $constructor->stmts,
-            function (NodeAbstract $node) use ($property) {
+            static function (NodeAbstract $node) use ($property) {
                 return $node instanceof Expression
                     && $node->expr->var->name->name === $property->name->name;
             }

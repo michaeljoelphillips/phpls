@@ -1,10 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LanguageServer\Exception;
 
-use LanguageServer\Exception\LanguageServerException;
-
-class ServerNotInitializedException extends LanguageServerException
+class ServerNotInitialized extends LanguageServerException
 {
     private const MESSAGE = 'The server has not been initialized';
 

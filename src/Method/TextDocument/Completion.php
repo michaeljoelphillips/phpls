@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace LanguageServer\Method\TextDocument;
 
 use LanguageServer\CursorPosition;
-use LanguageServer\Method\TextDocument\CompletionProvider\CompletionProviderInterface;
-use LanguageServer\Parser\DocumentParserInterface;
+use LanguageServer\Method\TextDocument\CompletionProvider\CompletionProvider;
+use LanguageServer\Parser\DocumentParser;
 use LanguageServer\Parser\ParsedDocument;
-use LanguageServer\Server\MessageHandlerInterface;
+use LanguageServer\Server\MessageHandler;
 use LanguageServer\Server\Protocol\Message;
 use LanguageServer\Server\Protocol\ResponseMessage;
 use LanguageServer\TextDocumentRegistry;
@@ -18,41 +18,49 @@ use PhpParser\Node\Expr;
 use PhpParser\NodeAbstract;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflector\Reflector;
+use function array_filter;
+use function array_merge;
+use function array_values;
 
-/**
- * @author Michael Phillips <michael.phillips@realpage.com>
- */
-class Completion implements MessageHandlerInterface
+class Completion implements MessageHandler
 {
     private const METHOD_NAME = 'textDocument/completion';
 
-    private DocumentParserInterface $parser;
+    private DocumentParser $parser;
     private TextDocumentRegistry $registry;
     private Reflector $reflector;
     private TypeResolver $resolver;
+
+    /** @var CompletionProvider[] */
     private array $providers;
 
-    public function __construct(DocumentParserInterface $parser, TextDocumentRegistry $registry, Reflector $reflector, TypeResolver $resolver, CompletionProviderInterface ...$providers)
+    public function __construct(DocumentParser $parser, TextDocumentRegistry $registry, Reflector $reflector, TypeResolver $resolver, CompletionProvider ...$providers)
     {
-        $this->parser = $parser;
-        $this->registry = $registry;
+        $this->parser    = $parser;
+        $this->registry  = $registry;
         $this->reflector = $reflector;
-        $this->resolver = $resolver;
+        $this->resolver  = $resolver;
         $this->providers = $providers;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function __invoke(Message $message, callable $next)
     {
-        if (self::METHOD_NAME !== $message->method) {
+        if ($message->method !== self::METHOD_NAME) {
             return $next->__invoke($message);
         }
 
         return new ResponseMessage($message, $this->getCompletionList($message->params));
     }
 
-    private function getCompletionList(array $params): CompletionList
+    /**
+     * @param array<string, mixed> $params
+     */
+    private function getCompletionList(array $params) : CompletionList
     {
-        $document = $this->registry->get($params['textDocument']['uri']);
+        $document       = $this->registry->get($params['textDocument']['uri']);
         $parsedDocument = $this->parser->parse($document);
 
         $cursorPosition = $document->getCursorPosition(
@@ -62,13 +70,13 @@ class Completion implements MessageHandlerInterface
 
         $expression = $this->findExpressionAtCursor($parsedDocument, $cursorPosition);
 
-        if (null === $expression) {
+        if ($expression === null) {
             return $this->emptyCompletionList();
         }
 
         $type = $this->resolver->getType($parsedDocument, $expression);
 
-        if (null === $type) {
+        if ($type === null) {
             return $this->emptyCompletionList();
         }
 
@@ -77,15 +85,15 @@ class Completion implements MessageHandlerInterface
         return $this->completeExpression($expression, $reflection);
     }
 
-    private function findExpressionAtCursor(ParsedDocument $document, CursorPosition $cursor): ?Expr
+    private function findExpressionAtCursor(ParsedDocument $document, CursorPosition $cursor) : ?Expr
     {
         $surroundingNodes = $document->getNodesAtCursor($cursor);
-        $completableNodes = array_values(array_filter($surroundingNodes, [$this, 'completable']));
+        $completableNodes = array_values(array_filter($surroundingNodes, fn(NodeAbstract $node) => $this->completable($node)));
 
         return $completableNodes[0] ?? null;
     }
 
-    private function completable(NodeAbstract $node): bool
+    private function completable(NodeAbstract $node) : bool
     {
         foreach ($this->providers as $provider) {
             if ($provider->supports($node)) {
@@ -96,21 +104,23 @@ class Completion implements MessageHandlerInterface
         return false;
     }
 
-    private function emptyCompletionList(): CompletionList
+    private function emptyCompletionList() : CompletionList
     {
         return new CompletionList();
     }
 
-    private function completeExpression(Expr $expression, ReflectionClass $reflection): CompletionList
+    private function completeExpression(Expr $expression, ReflectionClass $reflection) : CompletionList
     {
         $completionItems = [];
         foreach ($this->providers as $provider) {
-            if ($provider->supports($expression)) {
-                $completionItems = array_merge(
-                    $completionItems,
-                    $provider->complete($expression, $reflection)
-                );
+            if (! $provider->supports($expression)) {
+                continue;
             }
+
+            $completionItems = array_merge(
+                $completionItems,
+                $provider->complete($expression, $reflection)
+            );
         }
 
         return new CompletionList($completionItems);

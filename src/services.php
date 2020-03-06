@@ -2,20 +2,22 @@
 
 declare(strict_types=1);
 
+use LanguageServer\Config\ConfigFactory;
+use LanguageServer\Console\RunCommand;
 use LanguageServer\Method\Exit_;
 use LanguageServer\Method\Initialize;
 use LanguageServer\Method\Initialized;
-use LanguageServer\Method\Shutdown;
 use LanguageServer\Method\TextDocument\Completion;
 use LanguageServer\Method\TextDocument\CompletionProvider\ClassConstantProvider;
+use LanguageServer\Method\TextDocument\CompletionProvider\InstanceMethodProvider;
 use LanguageServer\Method\TextDocument\CompletionProvider\InstanceVariableProvider;
+use LanguageServer\Method\TextDocument\CompletionProvider\StaticMethodProvider;
 use LanguageServer\Method\TextDocument\CompletionProvider\StaticPropertyProvider;
 use LanguageServer\Method\TextDocument\DidChange;
 use LanguageServer\Method\TextDocument\DidClose;
 use LanguageServer\Method\TextDocument\DidOpen;
 use LanguageServer\Method\TextDocument\DidSave;
 use LanguageServer\Method\TextDocument\SignatureHelp;
-use LanguageServer\Parser\DocumentParser;
 use LanguageServer\Parser\IncompleteDocumentParser;
 use LanguageServer\Parser\LenientParser;
 use LanguageServer\RegistrySourceLocator;
@@ -25,6 +27,7 @@ use LanguageServer\Server\Serializer\MessageSerializer;
 use LanguageServer\Server\Server;
 use LanguageServer\TextDocumentRegistry;
 use LanguageServer\TypeResolver;
+use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use PhpParser\Lexer;
@@ -35,7 +38,6 @@ use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use React\EventLoop\Factory;
 use React\EventLoop\LoopInterface;
-use React\Stream\CompositeStream;
 use Roave\BetterReflection\Reflector\ClassReflector;
 use Roave\BetterReflection\Reflector\FunctionReflector;
 use Roave\BetterReflection\SourceLocator\Ast\Locator as AstLocator;
@@ -46,41 +48,32 @@ use Roave\BetterReflection\SourceLocator\Type\Composer\Factory\MakeLocatorForCom
 use Roave\BetterReflection\SourceLocator\Type\MemoizingSourceLocator;
 use Roave\BetterReflection\SourceLocator\Type\PhpInternalSourceLocator;
 use Roave\BetterReflection\SourceLocator\Type\SourceLocator;
+use Symfony\Component\Console\Application;
 use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
-use LanguageServer\Server\MessageSerializerInterface;
-use LanguageServer\Method\TextDocument\CompletionProvider\StaticMethodProvider;
-use LanguageServer\Method\TextDocument\CompletionProvider\InstanceMethodProvider;
-use Symfony\Component\Config\Definition\Processor;
-use LanguageServer\Config\ServerConfiguration;
-use LanguageServer\Config\ConfigFactory;
-use Monolog\Handler\NullHandler;
-use Symfony\Component\Console\Application;
-use LanguageServer\Console\RunCommand;
 
 return [
-    Server::class => function (ContainerInterface $container) {
+    Server::class => static function (ContainerInterface $container) {
         return new Server(
-            $container->get(MessageSerializerInterface::class),
-            $container->get(LoggerInterface::class),
+            $container->get(MessageSerializer::class),
             $container->get('messageHandlers')
         );
     },
-    MessageSerializerInterface::class => function (ContainerInterface $container) {
-        return $container->get(MessageSerializer::class);
+    MessageSerializer::class => static function (ContainerInterface $container) {
+        return new MessageSerializer($container->get(SerializerInterface::class));
     },
-    LoopInterface::class => function (ContainerInterface $container) {
+    LoopInterface::class => static function (ContainerInterface $container) {
         return Factory::create();
     },
-    Application::class => function (ContainerInterface $container) {
+    Application::class => static function (ContainerInterface $container) {
         $app = new Application();
         $app->add($container->get(RunCommand::class));
         $app->setDefaultCommand('phpls:run', true);
 
         return $app;
     },
-    LoggerInterface::class => function (ContainerInterface $container) {
+    LoggerInterface::class => static function (ContainerInterface $container) {
         $config = $container->get('config')['log'];
 
         $logger = new Logger('default');
@@ -95,7 +88,7 @@ return [
 
         return $logger;
     },
-    SerializerInterface::class => function (ContainerInterface $container) {
+    SerializerInterface::class => static function (ContainerInterface $container) {
         return new Serializer(
             [
                 new MessageDenormalizer(),
@@ -106,7 +99,7 @@ return [
             ]
         );
     },
-    Parser::class => function (ContainerInterface $container) {
+    Parser::class => static function (ContainerInterface $container) {
         return new LenientParser(
             (new ParserFactory())->create(
                 ParserFactory::ONLY_PHP7,
@@ -122,29 +115,26 @@ return [
             )
         );
     },
-    MemoizingParser::class => function (ContainerInterface $container) {
+    MemoizingParser::class => static function (ContainerInterface $container) {
         return new MemoizingParser($container->get(Parser::class));
     },
-    DocumentParser::class => function (ContainerInterface $container) {
-        return new DocumentParser($container->get(MemoizingParser::class));
-    },
-    IncompleteDocumentParser::class => function (ContainerInterface $container) {
+    IncompleteDocumentParser::class => static function (ContainerInterface $container) {
         return new IncompleteDocumentParser($container->get(MemoizingParser::class));
     },
-    SourceLocator::class => function (ContainerInterface $container) {
+    SourceLocator::class => static function (ContainerInterface $container) {
         $factory = new LazyLoadingValueHolderFactory();
 
         return $factory->createProxy(
             AggregateSourceLocator::class,
-            function (&$wrappedObject, $proxy, $method, $parameters, &$initializer) use ($container) {
+            static function (&$wrappedObject, $proxy, $method, $parameters, &$initializer) use ($container) : void {
                 $locator = new AstLocator(
                     $container->get(MemoizingParser::class),
-                    function () use ($container) {
+                    static function () use ($container) {
                         return $container->get(FunctionReflector::class);
                     }
                 );
 
-                $initializer = null;
+                $initializer   = null;
                 $wrappedObject = new AggregateSourceLocator([
                     new RegistrySourceLocator($locator, $container->get(TextDocumentRegistry::class)),
                     new MemoizingSourceLocator(
@@ -157,32 +147,32 @@ return [
             }
         );
     },
-    ClassReflector::class => function (ContainerInterface $container) {
+    ClassReflector::class => static function (ContainerInterface $container) {
         return new ClassReflector($container->get(SourceLocator::class));
     },
-    FunctionReflector::class => function (ContainerInterface $container) {
+    FunctionReflector::class => static function (ContainerInterface $container) {
         return new FunctionReflector(
             $container->get(SourceLocator::class),
             $container->get(ClassReflector::class)
         );
     },
-    TypeResolver::class => function (ContainerInterface $container) {
+    TypeResolver::class => static function (ContainerInterface $container) {
         return new TypeResolver($container->get(ClassReflector::class));
     },
     TextDocumentRegistry::class => DI\create(TextDocumentRegistry::class),
-    StaticMethodProvider::class => function (ContainerInterface $container) {
+    StaticMethodProvider::class => static function (ContainerInterface $container) {
         return new StaticMethodProvider();
     },
-    InstanceMethodProvider::class => function (ContainerInterface $container) {
+    InstanceMethodProvider::class => static function (ContainerInterface $container) {
         return new InstanceMethodProvider();
     },
-    InstanceVariableProvider::class => function (ContainerInterface $container) {
+    InstanceVariableProvider::class => static function (ContainerInterface $container) {
         return new InstanceVariableProvider();
     },
-    ClassConstantProvider::class => function (ContainerInterface $container) {
+    ClassConstantProvider::class => static function (ContainerInterface $container) {
         return new ClassConstantProvider();
     },
-    StaticPropertyProvider::class => function (ContainerInterface $container) {
+    StaticPropertyProvider::class => static function (ContainerInterface $container) {
         return new StaticPropertyProvider();
     },
     'completionProviders' => [
@@ -203,19 +193,19 @@ return [
         DI\get(DidClose::class),
         DI\get(Exit_::class),
     ],
-    Initialize::class => function (ContainerInterface $container) {
+    Initialize::class => static function (ContainerInterface $container) {
         return new Initialize($container);
     },
     Initialized::class => DI\create(Initialized::class),
-    Exit_::class => function (ContainerInterface $container) {
+    Exit_::class => static function (ContainerInterface $container) {
         return new Exit_();
     },
-    DidSave::class => function (ContainerInterface $container) {
+    DidSave::class => static function (ContainerInterface $container) {
         return new DidSave(
             $container->get(TextDocumentRegistry::class)
         );
     },
-    Completion::class => function (ContainerInterface $container) {
+    Completion::class => static function (ContainerInterface $container) {
         return new Completion(
             $container->get(IncompleteDocumentParser::class),
             $container->get(TextDocumentRegistry::class),
@@ -224,7 +214,7 @@ return [
             ...$container->get('completionProviders')
         );
     },
-    SignatureHelp::class => function (ContainerInterface $container) {
+    SignatureHelp::class => static function (ContainerInterface $container) {
         return new SignatureHelp(
             $container->get(ClassReflector::class),
             $container->get(FunctionReflector::class),
@@ -233,22 +223,22 @@ return [
             $container->get(TextDocumentRegistry::class)
         );
     },
-    DidOpen::class => function (ContainerInterface $container) {
+    DidOpen::class => static function (ContainerInterface $container) {
         return new DidOpen(
             $container->get(TextDocumentRegistry::class),
             $container->get(IncompleteDocumentParser::class)
         );
     },
-    DidChange::class => function (ContainerInterface $container) {
+    DidChange::class => static function (ContainerInterface $container) {
         return new DidChange(
             $container->get(TextDocumentRegistry::class),
             $container->get(IncompleteDocumentParser::class)
         );
     },
-    DidClose::class => function () {
+    DidClose::class => static function () {
         return new DidClose();
     },
-    'config' => function () {
+    'config' => static function () {
         return (new ConfigFactory())->__invoke();
-    }
+    },
 ];

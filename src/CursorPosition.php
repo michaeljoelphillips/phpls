@@ -6,9 +6,6 @@ namespace LanguageServer;
 
 use PhpParser\NodeAbstract;
 
-/**
- * @author Michael Phillips <michael.phillips@realpage.com>
- */
 class CursorPosition
 {
     private int $line;
@@ -17,44 +14,44 @@ class CursorPosition
 
     public function __construct(int $line, int $character, int $relativePosition)
     {
-        $this->line = $line;
-        $this->character = $character;
+        $this->line             = $line;
+        $this->character        = $character;
         $this->relativePosition = $relativePosition;
     }
 
-    public function getLine(): int
+    public function getLine() : int
     {
         return $this->line;
     }
 
-    public function getCharacter(): int
+    public function getCharacter() : int
     {
         return $this->character;
     }
 
-    public function getRelativePosition(): int
+    public function getRelativePosition() : int
     {
         return $this->relativePosition;
     }
 
-    public function contains(NodeAbstract $node): bool
+    public function contains(NodeAbstract $node) : bool
     {
         return $this->isWithin($node) || $this->isSurrounding($node);
     }
 
-    public function isSurrounding(NodeAbstract $node): bool
+    public function isSurrounding(NodeAbstract $node) : bool
     {
-        return $node->getStartFilePos() - 1 == $this->getRelativePosition()
-            || $node->getEndFilePos() + 1 == $this->getRelativePosition();
+        return $node->getStartFilePos() - 1 === $this->getRelativePosition()
+            || $node->getEndFilePos() + 1 === $this->getRelativePosition();
     }
 
-    public function isBordering(NodeAbstract $node): bool
+    public function isBordering(NodeAbstract $node) : bool
     {
-        return $node->getStartFilePos() == $this->getRelativePosition()
-            || $node->getEndFilePos() == $this->getRelativePosition();
+        return $node->getStartFilePos() === $this->getRelativePosition()
+            || $node->getEndFilePos() === $this->getRelativePosition();
     }
 
-    public function isWithin(NodeAbstract $node): bool
+    public function isWithin(NodeAbstract $node) : bool
     {
         return $node->getStartFilePos() <= $this->getRelativePosition()
             && $node->getEndFilePos() >= $this->getRelativePosition();

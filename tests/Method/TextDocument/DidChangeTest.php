@@ -5,20 +5,17 @@ declare(strict_types=1);
 namespace LanguageServer\Test\Method\TextDocument;
 
 use LanguageServer\Method\TextDocument\DidChange;
-use LanguageServer\Parser\DocumentParserInterface;
+use LanguageServer\Parser\DocumentParser;
 use LanguageServer\Server\Protocol\RequestMessage;
 use LanguageServer\TextDocumentRegistry;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @author Michael Phillips <michael.phillips@realpage.com>
- */
 class DidChangeTest extends TestCase
 {
-    public function testDidChange()
+    public function testDidChange() : void
     {
         $registry = $this->createMock(TextDocumentRegistry::class);
-        $parser = $this->createMock(DocumentParserInterface::class);
+        $parser   = $this->createMock(DocumentParser::class);
 
         $parser
             ->expects($this->once())
@@ -34,13 +31,11 @@ class DidChangeTest extends TestCase
                 'version' => 1,
             ],
             'contentChanges' => [
-                [
-                    'text' => '<?php echo "Hi";?>',
-                ],
+                ['text' => '<?php echo "Hi";?>'],
             ],
         ]);
 
-        $next = function () {
+        $next = function () : void {
             $this->fail('The next method should never be called');
         };
 

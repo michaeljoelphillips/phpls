@@ -11,16 +11,19 @@ use PhpParser\NodeAbstract;
 use ReflectionProperty as CoreReflectionProperty;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionProperty;
+use function array_map;
+use function array_values;
+use function implode;
 
-/**
- * @author Michael Phillips <michael.phillips@realpage.com>
- */
-class StaticPropertyProvider implements CompletionProviderInterface
+class StaticPropertyProvider implements CompletionProvider
 {
-    public function complete(NodeAbstract $expression, ReflectionClass $reflection): array
+    /**
+     * {@inheritdoc}
+     */
+    public function complete(NodeAbstract $expression, ReflectionClass $reflection) : array
     {
         return array_values(array_map(
-            function (ReflectionProperty $property) {
+            static function (ReflectionProperty $property) {
                 return new CompletionItem(
                     $property->getName(),
                     CompletionItemKind::PROPERTY,
@@ -32,7 +35,7 @@ class StaticPropertyProvider implements CompletionProviderInterface
         ));
     }
 
-    public function supports(NodeAbstract $expression): bool
+    public function supports(NodeAbstract $expression) : bool
     {
         return $expression instanceof ClassConstFetch;
     }

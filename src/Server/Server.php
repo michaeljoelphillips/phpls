@@ -4,39 +4,38 @@ declare(strict_types=1);
 
 namespace LanguageServer\Server;
 
+use InvalidArgumentException;
 use LanguageServer\Server\Protocol\Message;
 use LanguageServer\Server\Protocol\ResponseMessage;
-use React\Stream\DuplexStreamInterface;
-use Psr\Log\LoggerInterface;
-use LanguageServer\Server\MessageParser;
-use LanguageServer\Server\Protocol\RequestMessage;
-use Throwable;
-use React\Socket\ServerInterface;
 use React\Socket\ConnectionInterface;
-use InvalidArgumentException;
 use React\Socket\Server as TcpServer;
+use React\Stream\DuplexStreamInterface;
+use Throwable;
 
 class Server
 {
     private DuplexStreamInterface $stream;
-    private MessageSerializerInterface $serializer;
-    private LoggerInterface $logger;
+    private MessageSerializer $serializer;
     private MessageParser $parser;
+
+    /** @var callable */
     private $handler;
 
-    public function __construct(MessageSerializerInterface $serializer, LoggerInterface $logger, array $handlers)
+    /**
+     * @param array<int, MessageHandler> $handlers
+     */
+    public function __construct(MessageSerializer $serializer, array $handlers)
     {
-        $this->logger = $logger;
         $this->serializer = $serializer;
-        $this->parser = new MessageParser($serializer);
+        $this->parser     = new MessageParser($serializer);
 
         $this->handler = function (Message $message, int $position) use ($handlers) {
-            if ($message instanceof ResponseMessage || null === $message) {
+            if ($message instanceof ResponseMessage || $message === null) {
                 return $message;
             }
 
-            if (false === isset($handlers[$position + 1])) {
-                return $handlers[$position]->__invoke($message, function ($response) {
+            if (isset($handlers[$position + 1]) === false) {
+                return $handlers[$position]->__invoke($message, static function ($response) {
                     return $response;
                 });
             }
@@ -48,15 +47,18 @@ class Server
             return $handlers[$position]->__invoke($message, $next);
         };
 
-        $this->parser->on('message', function (Message $request) {
+        $this->parser->on('message', function (Message $request) : void {
             $this->handle($request);
         });
     }
 
-    public function listen($stream): void
+    /**
+     * @param TcpServer|DuplexStreamInterface $stream
+     */
+    public function listen($stream) : void
     {
         if ($stream instanceof TcpServer) {
-            $stream->on('connection', function (ConnectionInterface $connection) {
+            $stream->on('connection', function (ConnectionInterface $connection) : void {
                 $this->listen($connection);
             });
 
@@ -74,7 +76,7 @@ class Server
         throw new InvalidArgumentException();
     }
 
-    private function handle(Message $message): void
+    private function handle(Message $message) : void
     {
         try {
             $response = $this->handler->__invoke($message, 0);
@@ -82,7 +84,7 @@ class Server
             $response = new ResponseMessage($message, $e);
         }
 
-        if (null === $response) {
+        if ($response === null) {
             return;
         }
 

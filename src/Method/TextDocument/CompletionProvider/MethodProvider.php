@@ -7,46 +7,52 @@ namespace LanguageServer\Method\TextDocument\CompletionProvider;
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
 use LanguageServerProtocol\InsertTextFormat;
-use PhpParser\Node\Expr\ClassConstFetch;
-use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\NodeAbstract;
 use Reflection;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionMethod;
 use Roave\BetterReflection\Reflection\ReflectionParameter;
+use function array_filter;
+use function array_map;
+use function array_values;
+use function implode;
+use function sprintf;
 
-abstract class MethodProvider implements CompletionProviderInterface
+abstract class MethodProvider implements CompletionProvider
 {
-    public function complete(NodeAbstract $expression, ReflectionClass $reflection): array
+    /**
+     * {@inheritdoc}
+     */
+    public function complete(NodeAbstract $expression, ReflectionClass $reflection) : array
     {
         $instanceMethods = array_filter(
             $reflection->getMethods(),
             function (ReflectionMethod $method) {
-                return '__construct' !== $method->getName()
+                return $method->getName() !== '__construct'
                     && $this->filterMethod($method);
             }
         );
 
-        return array_values(array_map([$this, 'buildCompletionItem'], $instanceMethods));
+        return array_values(array_map(fn(ReflectionMethod $method) => $this->buildCompletionItem($method), $instanceMethods));
     }
 
-    abstract protected function filterMethod(ReflectionMethod $method): bool;
+    abstract protected function filterMethod(ReflectionMethod $method) : bool;
 
-    private function buildCompletionItem(ReflectionMethod $method): CompletionItem
+    private function buildCompletionItem(ReflectionMethod $method) : CompletionItem
     {
         $signatureInfo = $this->getSignatureInfo($method);
 
         return new CompletionItem($method->getName(), CompletionItemKind::METHOD, $signatureInfo, $method->getDocComment(), null, null, $method->getName(), null, null, null, null, InsertTextFormat::PLAIN_TEXT);
     }
 
-    private function getSignatureInfo(ReflectionMethod $method): string
+    private function getSignatureInfo(ReflectionMethod $method) : string
     {
         $modifiers = implode(' ', Reflection::getModifierNames($method->getModifiers()));
 
         return sprintf('%s %s(%s): %s', $modifiers, $method->getName(), $this->getParameterInfoString($method), $this->getReturnTypeString($method));
     }
 
-    private function getReturnTypeString(ReflectionMethod $method): string
+    private function getReturnTypeString(ReflectionMethod $method) : string
     {
         if ($method->hasReturnType()) {
             return (string) $method->getReturnType();
@@ -54,17 +60,17 @@ abstract class MethodProvider implements CompletionProviderInterface
 
         $docblockReturnTypes = $method->getDocBlockReturnTypes();
 
-        if (false === empty($docblockReturnTypes)) {
+        if (empty($docblockReturnTypes) === false) {
             return implode('|', $docblockReturnTypes);
         }
 
         return 'mixed';
     }
 
-    private function getParameterInfoString(ReflectionMethod $method): string
+    private function getParameterInfoString(ReflectionMethod $method) : string
     {
         return implode(', ', array_map(
-            function (ReflectionParameter $parameter) {
+            static function (ReflectionParameter $parameter) {
                 if ($parameter->hasType()) {
                     return sprintf('%s $%s', $parameter->getType(), $parameter->getName());
                 }

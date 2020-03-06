@@ -6,15 +6,18 @@ namespace LanguageServer\Server\Protocol;
 
 use Throwable;
 
-/**
- * @author Michael Phillips <michael.phillips@realpage.com>
- */
 class ResponseMessage extends Message
 {
     public int $id;
+
+    /** @var mixed|ResponseError|null */
     public $result;
+
     public ?ResponseError $error = null;
 
+    /**
+     * @param mixed|Throwable|null $result
+     */
     public function __construct(RequestMessage $request, $result)
     {
         $this->id = $request->id;

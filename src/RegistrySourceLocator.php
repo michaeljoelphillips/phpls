@@ -13,10 +13,10 @@ use Roave\BetterReflection\SourceLocator\Type\AggregateSourceLocator;
 use Roave\BetterReflection\SourceLocator\Type\SourceLocator;
 use Roave\BetterReflection\SourceLocator\Type\StringSourceLocator;
 use Throwable;
+use function array_filter;
+use function array_map;
+use function array_values;
 
-/**
- * @author Michael Phillips <michael.phillips@realpage.com>
- */
 class RegistrySourceLocator implements SourceLocator
 {
     private AstLocator $astLocator;
@@ -25,24 +25,27 @@ class RegistrySourceLocator implements SourceLocator
     public function __construct(AstLocator $astLocator, TextDocumentRegistry $registry)
     {
         $this->astLocator = $astLocator;
-        $this->registry = $registry;
+        $this->registry   = $registry;
     }
 
-    public function locateIdentifier(Reflector $reflector, Identifier $identifier): ?Reflection
+    public function locateIdentifier(Reflector $reflector, Identifier $identifier) : ?Reflection
     {
         $aggregateLocator = $this->getAggregateLocator();
 
         return $aggregateLocator->locateIdentifier($reflector, $identifier);
     }
 
-    public function locateIdentifiersByType(Reflector $reflector, IdentifierType $identifierType): array
+    /**
+     * @return Reflection[]
+     */
+    public function locateIdentifiersByType(Reflector $reflector, IdentifierType $identifierType) : array
     {
         $aggregateLocator = $this->getAggregateLocator();
 
         return $aggregateLocator->locateIdentifiersByType($reflector, $identifierType);
     }
 
-    private function getAggregateLocator(): AggregateSourceLocator
+    private function getAggregateLocator() : AggregateSourceLocator
     {
         $documents = $this->registry->getAll();
 

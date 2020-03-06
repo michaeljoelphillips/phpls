@@ -17,34 +17,31 @@ use Roave\BetterReflection\Reflection\ReflectionProperty;
 use Roave\BetterReflection\Reflection\ReflectionType;
 use Roave\BetterReflection\Reflector\Reflector;
 
-/**
- * @author Michael Phillips <michael.phillips@realpage.com>
- */
 class TypeResolverTest extends ParserTestCase
 {
-    private $subject;
-    private $reflector;
+    private TypeResolver $subject;
+    private Reflector $reflector;
 
-    public function setUp(): void
+    public function setUp() : void
     {
         $this->reflector = $this->createMock(Reflector::class);
-        $this->subject = new TypeResolver($this->reflector);
+        $this->subject   = new TypeResolver($this->reflector);
     }
 
-    public function testGetTypeForThis()
+    public function testGetTypeForThis() : void
     {
         $document = $this->parse('TypeResolverFixture.php');
-        $node = new Variable('this');
+        $node     = new Variable('this');
 
         $type = $this->subject->getType($document, $node);
 
         $this->assertEquals('Fixtures\Foo', $type);
     }
 
-    public function testGetTypeForLocalVariable()
+    public function testGetTypeForLocalVariable() : void
     {
         $document = $this->parse('TypeResolverFixture.php');
-        $node = new Variable('localVariable', [
+        $node     = new Variable('localVariable', [
             'startFilePos' => 1,
             'endFilePos' => 900,
         ]);
@@ -54,10 +51,10 @@ class TypeResolverTest extends ParserTestCase
         $this->assertEquals('Bar\Baz', $type);
     }
 
-    public function testGetTypeForNonExistentLocalVariable()
+    public function testGetTypeForNonExistentLocalVariable() : void
     {
         $document = $this->parse('TypeResolverFixture.php');
-        $node = new Variable('nonExistentVariable', [
+        $node     = new Variable('nonExistentVariable', [
             'startFilePos' => 1,
             'endFilePos' => 250,
         ]);
@@ -67,60 +64,60 @@ class TypeResolverTest extends ParserTestCase
         $this->assertNull($type);
     }
 
-    public function testGetTypeForClassName()
+    public function testGetTypeForClassName() : void
     {
         $document = $this->parse('TypeResolverFixture.php');
-        $node = new Name('Baz');
+        $node     = new Name('Baz');
 
         $type = $this->subject->getType($document, $node);
 
         $this->assertEquals('Bar\Baz', $type);
     }
 
-    public function testGetTypeForClassAlias()
+    public function testGetTypeForClassAlias() : void
     {
         $document = $this->parse('TypeResolverFixture.php');
-        $node = new Name('FooBar');
+        $node     = new Name('FooBar');
 
         $type = $this->subject->getType($document, $node);
 
         $this->assertEquals('Foo\Bar', $type);
     }
 
-    public function testGetTypeForUntypedParameter()
+    public function testGetTypeForUntypedParameter() : void
     {
         $document = $this->parse('TypeResolverFixture.php');
-        $node = new Param(new Variable('parameter'));
+        $node     = new Param(new Variable('parameter'));
 
         $type = $this->subject->getType($document, $node);
 
         $this->assertNull($type);
     }
 
-    public function testGetTypeForTypedParameter()
+    public function testGetTypeForTypedParameter() : void
     {
         $document = $this->parse('TypeResolverFixture.php');
-        $node = new Param(new Variable('parameter'), null, new Name('Baz'));
+        $node     = new Param(new Variable('parameter'), null, new Name('Baz'));
 
         $type = $this->subject->getType($document, $node);
 
         $this->assertEquals('Bar\Baz', $type);
     }
 
-    public function testGetTypeDefaultsToNull()
+    public function testGetTypeDefaultsToNull() : void
     {
         $document = $this->parse('TypeResolverFixture.php');
-        $node = new Identifier('Foo');
+        $node     = new Identifier('Foo');
 
         $type = $this->subject->getType($document, $node);
 
         $this->assertNull($type);
     }
 
-    public function testGetTypeForPropertyFetchOnVariable()
+    public function testGetTypeForPropertyFetchOnVariable() : void
     {
         $document = $this->parse('TypeResolverFixture.php');
-        $node = new PropertyFetch(
+        $node     = new PropertyFetch(
             new Variable('parameter', [
                 'startFilePos' => 30,
                 'endFilePos' => 900,
@@ -128,7 +125,7 @@ class TypeResolverTest extends ParserTestCase
             new Identifier('foo')
         );
 
-        $reflectedClass = $this->createMock(ReflectionClass::class);
+        $reflectedClass    = $this->createMock(ReflectionClass::class);
         $reflectedProperty = $this->createMock(ReflectionProperty::class);
 
         $this
@@ -149,10 +146,10 @@ class TypeResolverTest extends ParserTestCase
         $this->assertEquals('Bar\Baz', $type);
     }
 
-    public function testGetTypeForPropertyFetchOnNonExistentVariable()
+    public function testGetTypeForPropertyFetchOnNonExistentVariable() : void
     {
         $document = $this->parse('TypeResolverFixture.php');
-        $node = new PropertyFetch(
+        $node     = new PropertyFetch(
             new Variable('nonExistentVariable', [
                 'startFilePos' => 30,
                 'endFilePos' => 300,
@@ -165,10 +162,10 @@ class TypeResolverTest extends ParserTestCase
         $this->assertNull($type);
     }
 
-    public function testGetTypeForPropertyFetchOnUndefinedPropertyOnTheClass()
+    public function testGetTypeForPropertyFetchOnUndefinedPropertyOnTheClass() : void
     {
         $document = $this->parse('TypeResolverFixture.php');
-        $node = new PropertyFetch(
+        $node     = new PropertyFetch(
             new Variable('parameter', [
                 'startFilePos' => 30,
                 'endFilePos' => 300,
@@ -176,7 +173,7 @@ class TypeResolverTest extends ParserTestCase
             new Identifier('foo')
         );
 
-        $reflectedClass = $this->createMock(ReflectionClass::class);
+        $reflectedClass    = $this->createMock(ReflectionClass::class);
         $reflectedProperty = $this->createMock(ReflectionProperty::class);
 
         $this
@@ -193,7 +190,7 @@ class TypeResolverTest extends ParserTestCase
         $this->assertNull($type);
     }
 
-    public function testGetTypeForPropertyFetchOnPropertyAssignedInTheConstructor()
+    public function testGetTypeForPropertyFetchOnPropertyAssignedInTheConstructor() : void
     {
         $document = $this->parse('TypeResolverFixture.php');
 
@@ -208,7 +205,7 @@ class TypeResolverTest extends ParserTestCase
             new Identifier('baz')
         );
 
-        $reflectedClass = $this->createMock(ReflectionClass::class);
+        $reflectedClass    = $this->createMock(ReflectionClass::class);
         $reflectedProperty = $this->createMock(ReflectionProperty::class);
 
         $this
@@ -229,7 +226,7 @@ class TypeResolverTest extends ParserTestCase
         $this->assertEquals('Bar\Bar', $type);
     }
 
-    public function testGetTypeForPropertyFetchOnTypedProperty()
+    public function testGetTypeForPropertyFetchOnTypedProperty() : void
     {
         $document = $this->parse('TypeResolverFixture.php');
 
@@ -249,7 +246,7 @@ class TypeResolverTest extends ParserTestCase
         $this->assertEquals('Foo\Bar', $type);
     }
 
-    public function testGetTypeForPropertyFetchOnMethodCallReturnType()
+    public function testGetTypeForPropertyFetchOnMethodCallReturnType() : void
     {
         $document = $this->parse('TypeResolverFixture.php');
 
@@ -261,9 +258,9 @@ class TypeResolverTest extends ParserTestCase
             new Identifier('bar')
         );
 
-        $reflectedClass = $this->createMock(ReflectionClass::class);
+        $reflectedClass  = $this->createMock(ReflectionClass::class);
         $reflectedMethod = $this->createMock(ReflectionMethod::class);
-        $reflectionType = $this->createMock(ReflectionType::class);
+        $reflectionType  = $this->createMock(ReflectionType::class);
 
         $reflectionType
             ->method('__toString')
@@ -287,7 +284,7 @@ class TypeResolverTest extends ParserTestCase
         $this->assertEquals('Fixtures\Foo', $type);
     }
 
-    public function testGetTypeForMethodCallOnMethodCallReturnType()
+    public function testGetTypeForMethodCallOnMethodCallReturnType() : void
     {
         $document = $this->parse('TypeResolverFixture.php');
 
@@ -299,9 +296,9 @@ class TypeResolverTest extends ParserTestCase
             new Identifier('methodCallTestMethod')
         );
 
-        $reflectedClass = $this->createMock(ReflectionClass::class);
+        $reflectedClass  = $this->createMock(ReflectionClass::class);
         $reflectedMethod = $this->createMock(ReflectionMethod::class);
-        $reflectionType = $this->createMock(ReflectionType::class);
+        $reflectionType  = $this->createMock(ReflectionType::class);
 
         $this
             ->reflector
@@ -325,7 +322,7 @@ class TypeResolverTest extends ParserTestCase
         $this->assertEquals('Bar\Bar', $type);
     }
 
-    public function testGetTypeForMethodCallWithNoReturnType()
+    public function testGetTypeForMethodCallWithNoReturnType() : void
     {
         $document = $this->parse('TypeResolverFixture.php');
 
@@ -337,9 +334,9 @@ class TypeResolverTest extends ParserTestCase
             new Identifier('methodCallTestMethod')
         );
 
-        $reflectedClass = $this->createMock(ReflectionClass::class);
+        $reflectedClass  = $this->createMock(ReflectionClass::class);
         $reflectedMethod = $this->createMock(ReflectionMethod::class);
-        $reflectionType = $this->createMock(ReflectionType::class);
+        $reflectionType  = $this->createMock(ReflectionType::class);
 
         $this
             ->reflector

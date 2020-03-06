@@ -11,25 +11,22 @@ use PHPUnit\Framework\TestCase;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionClassConstant;
 
-/**
- * @author Michael Phillips <michael.phillips@realpage.com>
- */
 class ClassConstantProviderTest extends TestCase
 {
-    public function testSupports()
+    public function testSupports() : void
     {
         $subject = new ClassConstantProvider();
 
         $this->assertTrue($subject->supports(new ClassConstFetch('Foo', 'bar')));
     }
 
-    public function testComplete()
+    public function testComplete() : void
     {
         $subject = new ClassConstantProvider();
 
         $expression = $this->createMock(Expr::class);
         $reflection = $this->createMock(ReflectionClass::class);
-        $constant = $this->createMock(ReflectionClassConstant::class);
+        $constant   = $this->createMock(ReflectionClassConstant::class);
 
         $constant
             ->method('getName')

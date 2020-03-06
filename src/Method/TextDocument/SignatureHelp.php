@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace LanguageServer\Method\TextDocument;
 
 use LanguageServer\CursorPosition;
-use LanguageServer\Server\MessageHandlerInterface;
-use LanguageServer\Parser\DocumentParserInterface;
+use LanguageServer\Parser\DocumentParser;
 use LanguageServer\Parser\ParsedDocument;
+use LanguageServer\Server\MessageHandler;
 use LanguageServer\Server\Protocol\Message;
 use LanguageServer\Server\Protocol\ResponseMessage;
 use LanguageServer\TextDocumentRegistry;
@@ -27,41 +27,52 @@ use Roave\BetterReflection\Reflection\ReflectionFunctionAbstract;
 use Roave\BetterReflection\Reflection\ReflectionParameter;
 use Roave\BetterReflection\Reflector\ClassReflector;
 use Roave\BetterReflection\Reflector\FunctionReflector;
+use function array_column;
+use function array_filter;
+use function array_map;
+use function array_merge;
+use function array_search;
+use function array_values;
+use function implode;
+use function usort;
 
-/**
- * @author Michael Phillips <michael.phillips@realpage.com>
- */
-class SignatureHelp implements MessageHandlerInterface
+class SignatureHelp implements MessageHandler
 {
     private const METHOD_NAME = 'textDocument/signatureHelp';
 
     private ClassReflector $classReflector;
     private FunctionReflector $functionReflector;
-    private DocumentParserInterface $parser;
+    private DocumentParser $parser;
     private TypeResolver $resolver;
     private TextDocumentRegistry $registry;
 
-    public function __construct(ClassReflector $classReflector, FunctionReflector $functionReflector, DocumentParserInterface $parser, TypeResolver $resolver, TextDocumentRegistry $registry)
+    public function __construct(ClassReflector $classReflector, FunctionReflector $functionReflector, DocumentParser $parser, TypeResolver $resolver, TextDocumentRegistry $registry)
     {
-        $this->classReflector = $classReflector;
+        $this->classReflector    = $classReflector;
         $this->functionReflector = $functionReflector;
-        $this->parser = $parser;
-        $this->resolver = $resolver;
-        $this->registry = $registry;
+        $this->parser            = $parser;
+        $this->resolver          = $resolver;
+        $this->registry          = $registry;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function __invoke(Message $request, callable $next)
     {
-        if (self::METHOD_NAME !== $request->method) {
+        if ($request->method !== self::METHOD_NAME) {
             return $next->__invoke($request);
         }
 
         return new ResponseMessage($request, $this->getSignatureHelpResponse($request->params));
     }
 
-    private function getSignatureHelpResponse($params)
+    /**
+     * @param array<string, mixed> $params
+     */
+    private function getSignatureHelpResponse(array $params) : SignatureHelpResponse
     {
-        $document = $this->registry->get($params['textDocument']['uri']);
+        $document       = $this->registry->get($params['textDocument']['uri']);
         $parsedDocument = $this->parser->parse($document);
 
         $cursorPosition = $document->getCursorPosition(
@@ -71,21 +82,20 @@ class SignatureHelp implements MessageHandlerInterface
 
         $expression = $this->findExpressionAtCursor($parsedDocument, $cursorPosition);
 
-        if (null === $expression) {
+        if ($expression === null) {
             return $this->emptySignatureHelpResponse();
         }
 
         try {
             $method = $this->reflectMethodFromExpression($parsedDocument, $expression);
-            $signatures = $this->getSignatureHelpForMethod($method, $expression, $cursorPosition);
 
-            return $signatures;
+            return $this->getSignatureHelpForMethod($method, $expression, $cursorPosition);
         } catch (OutOfBoundsException $e) {
             return $this->emptySignatureHelpResponse();
         }
     }
 
-    private function findExpressionAtCursor(ParsedDocument $document, CursorPosition $cursorPosition): ?Expr
+    private function findExpressionAtCursor(ParsedDocument $document, CursorPosition $cursorPosition) : ?Expr
     {
         $methodCallNodes = $this->findMethodCallsNearCursor($document, $cursorPosition);
 
@@ -96,10 +106,13 @@ class SignatureHelp implements MessageHandlerInterface
         return $this->findInnermostMethodUnderCursor($methodCallNodes, $cursorPosition);
     }
 
-    private function findMethodCallsNearCursor(ParsedDocument $document, CursorPosition $cursorPosition): array
+    /**
+     * @return NodeAbstract[]
+     */
+    private function findMethodCallsNearCursor(ParsedDocument $document, CursorPosition $cursorPosition) : array
     {
         $surroundingNodes = $document->getNodesAtCursor($cursorPosition);
-        $methodNodes = array_filter($surroundingNodes, [$this, 'hasSignature']);
+        $methodNodes      = array_filter($surroundingNodes, [$this, 'hasSignature']);
 
         $this->sortNodesByDistanceFromCursor($methodNodes, $cursorPosition);
 
@@ -107,9 +120,14 @@ class SignatureHelp implements MessageHandlerInterface
         return array_values($methodNodes);
     }
 
-    private function sortNodesByDistanceFromCursor(array &$nodes, CursorPosition $cursorPosition): array
+    /**
+     * @param NodeAbstract[] $nodes
+     *
+     * @return NodeAbstract[]
+     */
+    private function sortNodesByDistanceFromCursor(array &$nodes, CursorPosition $cursorPosition) : array
     {
-        usort($nodes, function (NodeAbstract $a, NodeAbstract $b) use ($cursorPosition) {
+        usort($nodes, static function (NodeAbstract $a, NodeAbstract $b) use ($cursorPosition) {
             $distanceFromA = $cursorPosition->getRelativePosition() - $a->getStartFilePos();
             $distanceFromB = $cursorPosition->getRelativePosition() - $b->getStartFilePos();
 
@@ -119,7 +137,7 @@ class SignatureHelp implements MessageHandlerInterface
         return $nodes;
     }
 
-    private function hasSignature(NodeAbstract $node): bool
+    private function hasSignature(NodeAbstract $node) : bool
     {
         return $node instanceof MethodCall
             || $node instanceof StaticCall
@@ -127,10 +145,13 @@ class SignatureHelp implements MessageHandlerInterface
             || $node instanceof FuncCall;
     }
 
-    private function findInnermostMethodUnderCursor(array $methodCallNodes, CursorPosition $cursorPosition): Expr
+    /**
+     * @param NodeAbstract[] $methodCallNodes
+     */
+    private function findInnermostMethodUnderCursor(array $methodCallNodes, CursorPosition $cursorPosition) : NodeAbstract
     {
-        $closestMethodCall = $methodCallNodes[0];
-        $argumentNodes = array_merge(...array_column($methodCallNodes, 'args'));
+        $closestMethodCall    = $methodCallNodes[0];
+        $argumentNodes        = array_merge(...array_column($methodCallNodes, 'args'));
         $argumentsUnderCursor = array_values(array_filter($argumentNodes, [$cursorPosition, 'contains']));
 
         if (empty($argumentsUnderCursor)) {
@@ -145,27 +166,28 @@ class SignatureHelp implements MessageHandlerInterface
             return $this->findInnermostMethodUnderCursor([$closestArgumentUnderCursor->value], $cursorPosition);
         }
 
-        $methodForClosestArgument = $this->findOwningMethodByArgument($methodCallNodes, $closestArgumentUnderCursor);
-
-        return $methodForClosestArgument;
+        return $this->findOwningMethodByArgument($methodCallNodes, $closestArgumentUnderCursor);
     }
 
-    private function findOwningMethodByArgument(array $methodCalls, Arg $argument): NodeAbstract
+    /**
+     * @param NodeAbstract[] $methodCalls
+     */
+    private function findOwningMethodByArgument(array $methodCalls, Arg $argument) : NodeAbstract
     {
         return array_values(array_filter(
             $methodCalls,
-            function (NodeAbstract $node) use ($argument) {
-                return false !== array_search($argument, $node->args);
+            static function (NodeAbstract $node) use ($argument) {
+                return array_search($argument, $node->args) !== false;
             }
         ))[0];
     }
 
-    private function emptySignatureHelpResponse(): SignatureHelpResponse
+    private function emptySignatureHelpResponse() : SignatureHelpResponse
     {
         return new SignatureHelpResponse();
     }
 
-    private function reflectMethodFromExpression(ParsedDocument $document, Expr $expression): ReflectionFunctionAbstract
+    private function reflectMethodFromExpression(ParsedDocument $document, Expr $expression) : ReflectionFunctionAbstract
     {
         if ($expression instanceof FuncCall) {
             return $this->functionReflector->reflect($expression->name->toCodeString());
@@ -182,10 +204,10 @@ class SignatureHelp implements MessageHandlerInterface
         return $reflection->getMethod($expression->name->name);
     }
 
-    private function getSignatureHelpForMethod(ReflectionFunctionAbstract $method, Expr $expression, CursorPosition $cursorPosition): SignatureHelpResponse
+    private function getSignatureHelpForMethod(ReflectionFunctionAbstract $method, Expr $expression, CursorPosition $cursorPosition) : SignatureHelpResponse
     {
-        $parameters = $this->extractParameterInfoFromMethod($method);
-        $signatureLabel = $this->createSignatureLabel($parameters);
+        $parameters           = $this->extractParameterInfoFromMethod($method);
+        $signatureLabel       = $this->createSignatureLabel($parameters);
         $signatureInformation = new SignatureInformation($signatureLabel, $parameters, $method->getDocComment());
 
         $activeParameterPosition = $this->getActiveParameterPosition($method, $expression, $cursorPosition);
@@ -193,17 +215,20 @@ class SignatureHelp implements MessageHandlerInterface
         return new SignatureHelpResponse([$signatureInformation], 0, $activeParameterPosition);
     }
 
-    private function extractParameterInfoFromMethod(ReflectionFunctionAbstract $method): array
+    /**
+     * @return ParameterInformation[]
+     */
+    private function extractParameterInfoFromMethod(ReflectionFunctionAbstract $method) : array
     {
         return array_map(
-            function (ReflectionParameter $param) {
+            static function (ReflectionParameter $param) {
                 $label = '';
 
-                if (null !== $param->getType()) {
-                    $label .= (string) $param->getType().' ';
+                if ($param->getType() !== null) {
+                    $label .= (string) $param->getType() . ' ';
                 }
 
-                $label .= '$'.(string) $param->getName();
+                $label .= '$' . (string) $param->getName();
 
                 return new ParameterInformation($label, null);
             },
@@ -211,10 +236,13 @@ class SignatureHelp implements MessageHandlerInterface
         );
     }
 
-    private function createSignatureLabel(array $parameters): string
+    /**
+     * @param ParameterInformation[] $parameters
+     */
+    private function createSignatureLabel(array $parameters) : string
     {
         $parameterLabels = array_map(
-            function (ParameterInformation $parameter) {
+            static function (ParameterInformation $parameter) {
                 return $parameter->label;
             },
             $parameters
@@ -223,15 +251,15 @@ class SignatureHelp implements MessageHandlerInterface
         return implode(', ', $parameterLabels);
     }
 
-    private function getActiveParameterPosition(ReflectionFunctionAbstract $method, Expr $expression, CursorPosition $cursorPosition)
+    private function getActiveParameterPosition(ReflectionFunctionAbstract $method, Expr $expression, CursorPosition $cursorPosition) : int
     {
         $activeParameter = $this->getActiveParameterFromCursorPosition($expression, $cursorPosition);
 
-        if (null === $activeParameter) {
+        if ($activeParameter === null) {
             return 0;
         }
 
-        $activeParameterPosition = array_search($activeParameter, $expression->args);
+        $activeParameterPosition  = array_search($activeParameter, $expression->args);
         $maximumParameterPosition = $method->getNumberOfParameters();
 
         if ($activeParameterPosition <= $maximumParameterPosition) {
@@ -241,7 +269,7 @@ class SignatureHelp implements MessageHandlerInterface
         return $maximumParameterPosition;
     }
 
-    private function getActiveParameterFromCursorPosition(Expr $expression, CursorPosition $cursorPosition): ?Arg
+    private function getActiveParameterFromCursorPosition(Expr $expression, CursorPosition $cursorPosition) : ?Arg
     {
         foreach ($expression->args as $argument) {
             if ($cursorPosition->isWithin($argument) || $cursorPosition->isSurrounding($argument)) {

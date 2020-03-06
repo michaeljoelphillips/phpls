@@ -6,22 +6,24 @@ namespace LanguageServer\Method\TextDocument\CompletionProvider;
 
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
-use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\NodeAbstract;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionProperty;
+use function array_map;
+use function array_values;
+use function implode;
 
-/**
- * @author Michael Phillips <michael.phillips@realpage.com>
- */
-class InstanceVariableProvider implements CompletionProviderInterface
+class InstanceVariableProvider implements CompletionProvider
 {
-    public function complete(NodeAbstract $expression, ReflectionClass $reflection): array
+    /**
+     * {@inheritdoc}
+     */
+    public function complete(NodeAbstract $expression, ReflectionClass $reflection) : array
     {
         return array_values(array_map(
-            function (ReflectionProperty $parameter) {
+            static function (ReflectionProperty $parameter) {
                 return new CompletionItem(
                     $parameter->getName(),
                     CompletionItemKind::PROPERTY,
@@ -33,8 +35,8 @@ class InstanceVariableProvider implements CompletionProviderInterface
         ));
     }
 
-    public function supports(NodeAbstract $expression): bool
+    public function supports(NodeAbstract $expression) : bool
     {
-        return $expression instanceof PropertyFetch && !$expression->var instanceof MethodCall;
+        return $expression instanceof PropertyFetch && ! $expression->var instanceof MethodCall;
     }
 }

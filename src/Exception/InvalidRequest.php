@@ -1,11 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LanguageServer\Exception;
 
-use LanguageServer\Exception\LanguageServerException;
 use LanguageServerProtocol\ErrorCode;
 
-class InvalidRequestException extends LanguageServerException
+class InvalidRequest extends LanguageServerException
 {
     private const MESSAGE = 'The server has been shutdown and may no longer receive requests';
 

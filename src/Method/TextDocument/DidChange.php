@@ -4,26 +4,26 @@ declare(strict_types=1);
 
 namespace LanguageServer\Method\TextDocument;
 
-use LanguageServer\Server\MessageHandlerInterface;
-use LanguageServer\Parser\DocumentParserInterface;
+use LanguageServer\Parser\DocumentParser;
+use LanguageServer\Server\MessageHandler;
 use LanguageServer\Server\Protocol\Message;
 use LanguageServer\TextDocument;
 use LanguageServer\TextDocumentRegistry;
 
-/**
- * @author Michael Phillips <michael.phillips@realpage.com>
- */
-class DidChange implements MessageHandlerInterface
+class DidChange implements MessageHandler
 {
     private TextDocumentRegistry $registry;
-    private DocumentParserInterface $parser;
+    private DocumentParser $parser;
 
-    public function __construct(TextDocumentRegistry $registry, DocumentParserInterface $parser)
+    public function __construct(TextDocumentRegistry $registry, DocumentParser $parser)
     {
         $this->registry = $registry;
-        $this->parser = $parser;
+        $this->parser   = $parser;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function __invoke(Message $message, callable $next)
     {
         if ($message->method !== 'textDocument/didChange') {

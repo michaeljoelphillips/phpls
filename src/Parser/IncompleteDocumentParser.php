@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace LanguageServer\Parser;
 
 use LanguageServer\TextDocument;
-use PhpParser\ErrorHandler\Collecting;
 use PhpParser\Parser;
+use function preg_replace;
+use function preg_replace_callback;
+use function sprintf;
+use const PHP_EOL;
 
-/**
- * @author Michael Phillips <michael.phillips@realpage.com>
- */
-class IncompleteDocumentParser implements DocumentParserInterface
+class IncompleteDocumentParser implements DocumentParser
 {
     private Parser $parser;
 
@@ -20,7 +20,7 @@ class IncompleteDocumentParser implements DocumentParserInterface
         $this->parser = $parser;
     }
 
-    public function parse(TextDocument $document): ParsedDocument
+    public function parse(TextDocument $document) : ParsedDocument
     {
         $documentSource = $this->amendDocumentSource($document->getSource());
 
@@ -29,7 +29,7 @@ class IncompleteDocumentParser implements DocumentParserInterface
         return new ParsedDocument($nodes, $document);
     }
 
-    private function amendDocumentSource(string $source): string
+    private function amendDocumentSource(string $source) : string
     {
         $source = $this->stubIncompleteAccessors($source);
         $source = $this->stubIncompleteStaticAccessors($source);
@@ -37,25 +37,25 @@ class IncompleteDocumentParser implements DocumentParserInterface
         return $source;
     }
 
-    private function stubIncompleteAccessors(string $source): string
+    private function stubIncompleteAccessors(string $source) : string
     {
         return preg_replace_callback(
             '/((\()*\$(\w+(\([$\w]*\))?->\w*)*)\n/',
-            function (array $matches) {
+            static function (array $matches) {
                 $result = sprintf('%slspSyntaxStub', $matches[1]);
 
-                if (isset($matches[2]) && '(' === $matches[2]) {
+                if (isset($matches[2]) && $matches[2] === '(') {
                     $result .= ')';
                 }
 
-                return $result .= ';'.PHP_EOL;
+                return $result .= ';' . PHP_EOL;
             },
             $source
         );
     }
 
-    private function stubIncompleteStaticAccessors(string $source): string
+    private function stubIncompleteStaticAccessors(string $source) : string
     {
-        return preg_replace('/(\w+::)\n/', '${1}LSP_SYNTAX_STUB;'.PHP_EOL, $source);
+        return preg_replace('/(\w+::)\n/', '${1}LSP_SYNTAX_STUB;' . PHP_EOL, $source);
     }
 }
