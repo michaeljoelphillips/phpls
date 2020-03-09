@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace LanguageServer\Test\Method\TextDocument;
 
 use LanguageServer\Method\TextDocument\SignatureHelp;
-use LanguageServer\Parser\DocumentParser;
+use LanguageServer\Parser\IncompleteDocumentParser;
 use LanguageServer\RegistrySourceLocator;
 use LanguageServer\Server\Protocol\RequestMessage;
 use LanguageServer\Test\FixtureTestCase;
@@ -18,17 +18,14 @@ use Roave\BetterReflection\Reflector\ClassReflector;
 use Roave\BetterReflection\Reflector\FunctionReflector;
 use Roave\BetterReflection\SourceLocator\Ast\Locator as AstLocator;
 
-/**
- * @author Michael Phillips <michael.phillips@realpage.com>
- */
 class SignatureHelpTest extends FixtureTestCase
 {
-    private $subject;
-    private $locator;
-    private $classReflector;
-    private $functionReflector;
+    private SignatureHelp $subject;
+    private RegistrySourceLocator $locator;
+    private ClassReflector $classReflector;
+    private ?FunctionReflector $functionReflector = null;
 
-    public function setUp(): void
+    public function setUp() : void
     {
         $phpParser = (new ParserFactory())->create(
             ParserFactory::PREFER_PHP7,
@@ -43,7 +40,6 @@ class SignatureHelpTest extends FixtureTestCase
             ])
         );
 
-
         $registry = $this->setUpRegistry();
 
         $this->locator = new RegistrySourceLocator(
@@ -57,13 +53,13 @@ class SignatureHelpTest extends FixtureTestCase
         );
 
         $this->classReflector = new ClassReflector($this->locator);
-        $typeResolver = new TypeResolver($this->classReflector);
-        $documentParser = new DocumentParser($phpParser);
+        $typeResolver         = new TypeResolver($this->classReflector);
+        $documentParser       = new IncompleteDocumentParser($phpParser);
 
         $this->subject = new SignatureHelp($this->classReflector, $this->functionReflector(), $documentParser, $typeResolver, $registry);
     }
 
-    private function functionReflector(): FunctionReflector
+    private function functionReflector() : FunctionReflector
     {
         if ($this->functionReflector) {
             return $this->functionReflector;
@@ -72,7 +68,7 @@ class SignatureHelpTest extends FixtureTestCase
         return $this->functionReflector = new FunctionReflector($this->locator, $this->classReflector);
     }
 
-    private function setUpRegistry(): TextDocumentRegistry
+    private function setUpRegistry() : TextDocumentRegistry
     {
         $registry = new TextDocumentRegistry();
 
@@ -98,19 +94,17 @@ class SignatureHelpTest extends FixtureTestCase
     /**
      * @dataProvider cursorPositionsProvider
      */
-    public function testSignatureHelp(int $line, int $character, int $activeParameter, string $label)
+    public function testSignatureHelp(int $line, int $character, int $activeParameter, string $label) : void
     {
         $request = new RequestMessage(1, 'textDocument/signatureHelp', [
-            'textDocument' => [
-                'uri' => 'file:///tmp/foo.php',
-            ],
+            'textDocument' => ['uri' => 'file:///tmp/foo.php'],
             'position' => [
                 'line' => $line,
                 'character' => $character,
             ],
         ]);
 
-        $next = function() {
+        $next = function () : void {
             $this->fail('The next method should never be called');
         };
 
@@ -121,19 +115,17 @@ class SignatureHelpTest extends FixtureTestCase
         $this->assertEquals($label, $response->result->signatures[0]->label);
     }
 
-    public function testSignatureHelpReturnsEmptyResponseWhenNoExpressionFound()
+    public function testSignatureHelpReturnsEmptyResponseWhenNoExpressionFound() : void
     {
         $request = new RequestMessage(1, 'textDocument/signatureHelp', [
-            'textDocument' => [
-                'uri' => 'file:///tmp/foo.php',
-            ],
+            'textDocument' => ['uri' => 'file:///tmp/foo.php'],
             'position' => [
                 'line' => 31,
                 'character' => 9,
             ],
         ]);
 
-        $next = function() {
+        $next = function () : void {
             $this->fail('The next method should never be called');
         };
 
@@ -142,19 +134,17 @@ class SignatureHelpTest extends FixtureTestCase
         $this->assertEmpty($response->result->activeParameter);
     }
 
-    public function testSignatureHelpReturnsEmptyResponseWhenNoConstructorFound()
+    public function testSignatureHelpReturnsEmptyResponseWhenNoConstructorFound() : void
     {
         $request = new RequestMessage(1, 'textDocument/signatureHelp', [
-            'textDocument' => [
-                'uri' => 'file:///tmp/foo.php',
-            ],
+            'textDocument' => ['uri' => 'file:///tmp/foo.php'],
             'position' => [
                 'line' => 30,
                 'character' => 33,
             ],
         ]);
 
-        $next = function() {
+        $next = function () : void {
             $this->fail('The next method should never be called');
         };
 
@@ -163,7 +153,10 @@ class SignatureHelpTest extends FixtureTestCase
         $this->assertEmpty($response->result->activeParameter);
     }
 
-    public function cursorPositionsProvider(): array
+    /**
+     * @return array<int, array<int, mixed>>
+     */
+    public function cursorPositionsProvider() : array
     {
         return [
             [18, 19, 0, 'stdClass $bar, array $baz'],

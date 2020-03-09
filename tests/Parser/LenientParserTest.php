@@ -8,14 +8,11 @@ use LanguageServer\Parser\LenientParser;
 use PhpParser\ParserFactory;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @author Michael Phillips <michael.phillips@realpage.com>
- */
 class LenientParserTest extends TestCase
 {
-    public function testParseCollectsExceptions(): void
+    public function testParseCollectsExceptions() : void
     {
-        $parser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
+        $parser  = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
         $subject = new LenientParser($parser);
 
         $subject->parse('<?php $foo->;');
@@ -24,9 +21,9 @@ class LenientParserTest extends TestCase
         $this->addToAssertionCount(1);
     }
 
-    public function testParseReturnsEmptyArrayWhenParserFails()
+    public function testParseReturnsEmptyArrayWhenParserFails() : void
     {
-        $parser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
+        $parser  = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
         $subject = new LenientParser($parser);
 
         $subject->parse('<?php $foo(try {;');

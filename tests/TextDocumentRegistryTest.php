@@ -8,14 +8,11 @@ use LanguageServer\TextDocument;
 use LanguageServer\TextDocumentRegistry;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @author Michael Phillips <michael.phillips@realpage.com>
- */
 class TextDocumentRegistryTest extends TestCase
 {
-    public function testAddOnlyStoresLatestVersion()
+    public function testAddOnlyStoresLatestVersion() : void
     {
-        $subject = new TextDocumentRegistry();
+        $subject    = new TextDocumentRegistry();
         $versionOne = new TextDocument('file:///tmp/foo.php', '<?php ', 0);
         $versionTwo = new TextDocument('file:///tmp/foo.php', '<?php ', 1);
 
@@ -25,9 +22,9 @@ class TextDocumentRegistryTest extends TestCase
         $this->assertSame($versionTwo, $subject->get('file:///tmp/foo.php'));
     }
 
-    public function testGetAll()
+    public function testGetAll() : void
     {
-        $subject = new TextDocumentRegistry();
+        $subject    = new TextDocumentRegistry();
         $versionOne = new TextDocument('file:///tmp/foo.php', '<?php ', 0);
         $versionTwo = new TextDocument('file:///tmp/bar.php', '<?php ', 1);
 
@@ -37,9 +34,9 @@ class TextDocumentRegistryTest extends TestCase
         $this->assertCount(2, $subject->getAll());
     }
 
-    public function testClear()
+    public function testClear() : void
     {
-        $subject = new TextDocumentRegistry();
+        $subject    = new TextDocumentRegistry();
         $versionOne = new TextDocument('file:///tmp/foo.php', '<?php ', 0);
 
         $subject->add($versionOne);

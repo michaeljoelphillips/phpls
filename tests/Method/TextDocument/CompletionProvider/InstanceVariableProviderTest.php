@@ -13,12 +13,9 @@ use PHPUnit\Framework\TestCase;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionProperty;
 
-/**
- * @author Michael Phillips <michael.phillips@realpage.com>
- */
 class InstanceVariableProviderTest extends TestCase
 {
-    public function testSupports()
+    public function testSupports() : void
     {
         $subject = new InstanceVariableProvider();
 
@@ -26,13 +23,13 @@ class InstanceVariableProviderTest extends TestCase
         $this->assertFalse($subject->supports(new ClassConstFetch('Foo', 'bar')));
     }
 
-    public function testComplete()
+    public function testComplete() : void
     {
         $subject = new InstanceVariableProvider();
 
         $expression = $this->createMock(Expr::class);
         $reflection = $this->createMock(ReflectionClass::class);
-        $variable = $this->createMock(ReflectionProperty::class);
+        $variable   = $this->createMock(ReflectionProperty::class);
 
         $variable
             ->method('getName')

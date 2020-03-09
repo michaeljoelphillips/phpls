@@ -4,20 +4,17 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test;
 
-use LanguageServer\Parser\DocumentParser;
+use LanguageServer\Parser\IncompleteDocumentParser;
 use LanguageServer\Parser\ParsedDocument;
 use LanguageServer\TextDocument;
 use PhpParser\Lexer;
 use PhpParser\ParserFactory;
 
-/**
- * @author Michael Phillips <michael.phillips@realpage.com>
- */
 abstract class ParserTestCase extends FixtureTestCase
 {
-    protected function getParser()
+    protected function getParser() : IncompleteDocumentParser
     {
-        return new DocumentParser(
+        return new IncompleteDocumentParser(
             (new ParserFactory())->create(
                 ParserFactory::PREFER_PHP7,
                 new Lexer([
@@ -29,10 +26,11 @@ abstract class ParserTestCase extends FixtureTestCase
                         'endFilePos',
                     ],
                 ])
-            ));
+            )
+        );
     }
 
-    protected function parse(string $file): ParsedDocument
+    protected function parse(string $file) : ParsedDocument
     {
         $parser = $this->getParser();
 

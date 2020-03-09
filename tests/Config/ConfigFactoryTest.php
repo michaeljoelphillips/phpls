@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test\Config;
 
-use PHPUnit\Framework\TestCase;
 use LanguageServer\Config\ConfigFactory;
+use PHPUnit\Framework\TestCase;
+use function chmod;
+use function putenv;
+use function sprintf;
 
 class ConfigFactoryTest extends TestCase
 {
-    public function testFactoryReturnsDefaultConfigWhenXDGConfigIsNotSet(): void
+    public function testFactoryReturnsDefaultConfigWhenXDGConfigIsNotSet() : void
     {
         putenv('XDG_CONFIG_HOME');
 
@@ -17,15 +20,13 @@ class ConfigFactoryTest extends TestCase
 
         $this->assertEquals(
             [
-                'log' => [
-                    'enabled' => false,
-                ]
+                'log' => ['enabled' => false],
             ],
             $subject->__invoke()
         );
     }
 
-    public function testFactoryReturnsDefaultConfigWhenConfigDirectoryCannotBeLocated(): void
+    public function testFactoryReturnsDefaultConfigWhenConfigDirectoryCannotBeLocated() : void
     {
         putenv('XDG_CONFIG_HOME=/tmp/empty-dir');
 
@@ -33,37 +34,33 @@ class ConfigFactoryTest extends TestCase
 
         $this->assertEquals(
             [
-                'log' => [
-                    'enabled' => false,
-                ]
+                'log' => ['enabled' => false],
             ],
             $subject->__invoke()
         );
     }
 
-    public function testFactoryReturnsDefaultConfigWhenNoConfigIsFound(): void
+    public function testFactoryReturnsDefaultConfigWhenNoConfigIsFound() : void
     {
-        $emptyConfigDir = __DIR__.'/../fixtures/config-directories/empty-config';
+        $emptyConfigDir = __DIR__ . '/../fixtures/config-directories/empty-config';
 
-        putenv("XDG_CONFIG_HOME=$emptyConfigDir");
+        putenv(sprintf('XDG_CONFIG_HOME=%s', $emptyConfigDir));
 
         $subject = new ConfigFactory();
 
         $this->assertEquals(
             [
-                'log' => [
-                    'enabled' => false,
-                ]
+                'log' => ['enabled' => false],
             ],
             $subject->__invoke()
         );
     }
 
-    public function testFactoryReturnsGlobalConfigWhenGlobalConfigExists(): void
+    public function testFactoryReturnsGlobalConfigWhenGlobalConfigExists() : void
     {
-        $emptyConfigDir = __DIR__.'/../fixtures/config-directories/nonempty-config';
+        $emptyConfigDir = __DIR__ . '/../fixtures/config-directories/nonempty-config';
 
-        putenv("XDG_CONFIG_HOME=$emptyConfigDir");
+        putenv(sprintf('XDG_CONFIG_HOME=%s', $emptyConfigDir));
 
         $subject = new ConfigFactory();
 
@@ -73,17 +70,17 @@ class ConfigFactoryTest extends TestCase
                     'enabled' => true,
                     'level' => 'info',
                     'path' => '/tmp/log',
-                ]
+                ],
             ],
             $subject->__invoke()
         );
     }
 
-    public function testFactoryReturnsDefaultConfigWhenConfigIsNotReadable(): void
+    public function testFactoryReturnsDefaultConfigWhenConfigIsNotReadable() : void
     {
-        $emptyConfigDir = __DIR__.'/../fixtures/config-directories/unreadable-config';
+        $emptyConfigDir = __DIR__ . '/../fixtures/config-directories/unreadable-config';
 
-        putenv("XDG_CONFIG_HOME=$emptyConfigDir");
+        putenv(sprintf('XDG_CONFIG_HOME=%s', $emptyConfigDir));
 
         chmod(sprintf('%s/phpls/config.php', $emptyConfigDir), 200);
 
@@ -91,9 +88,7 @@ class ConfigFactoryTest extends TestCase
 
         $this->assertEquals(
             [
-                'log' => [
-                    'enabled' => false,
-                ]
+                'log' => ['enabled' => false],
             ],
             $subject->__invoke()
         );

@@ -4,33 +4,37 @@ declare(strict_types=1);
 
 namespace LanguageServer\Method;
 
-use LanguageServer\Exception\InvalidRequestException;
-use LanguageServer\Server\MessageHandlerInterface;
+use LanguageServer\Exception\InvalidRequest;
+use LanguageServer\Server\MessageHandler;
 use LanguageServer\Server\Protocol\Message;
 
-class Exit_ implements MessageHandlerInterface
+// phpcs:ignore
+class Exit_ implements MessageHandler
 {
     private bool $wasShutdown = false;
 
+    /**
+     * @return mixed
+     */
     public function __invoke(Message $message, callable $next)
     {
-        if (true === $this->wasShutdown) {
-            if ('exit' !== $message->method) {
-                throw new InvalidRequestException();
+        if ($this->wasShutdown === true) {
+            if ($message->method !== 'exit') {
+                throw new InvalidRequest();
             }
 
             $this->exit();
         }
 
-        if ('shutdown' === $message->method) {
+        if ($message->method === 'shutdown') {
             $this->wasShutdown = true;
         }
 
         return $next->__invoke($message);
     }
 
-    private function exit(): void
+    private function exit() : void
     {
-        exit();
+        exit;
     }
 }

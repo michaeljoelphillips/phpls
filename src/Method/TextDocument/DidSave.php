@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace LanguageServer\Method\TextDocument;
 
-use LanguageServer\Server\MessageHandlerInterface;
+use LanguageServer\Server\MessageHandler;
 use LanguageServer\Server\Protocol\Message;
 use LanguageServer\TextDocument;
 use LanguageServer\TextDocumentRegistry;
+use function file_get_contents;
 
-/**
- * @author Michael Phillips <michael.phillips@realpage.com>
- */
-class DidSave implements MessageHandlerInterface
+class DidSave implements MessageHandler
 {
     private TextDocumentRegistry $registry;
 
@@ -21,19 +19,22 @@ class DidSave implements MessageHandlerInterface
         $this->registry = $registry;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function __invoke(Message $message, callable $next)
     {
         if ($message->method !== 'textDocument/didSave') {
             return $next->__invoke($message);
         }
 
-        $uri = $message->params['textDocument']['uri'];
+        $uri      = $message->params['textDocument']['uri'];
         $document = new TextDocument($uri, $this->read($uri), 0);
 
         $this->registry->add($document);
     }
 
-    private function read(string $uri): string
+    private function read(string $uri) : string
     {
         return file_get_contents($uri) ?: '';
     }

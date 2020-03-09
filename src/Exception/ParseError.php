@@ -6,7 +6,7 @@ namespace LanguageServer\Exception;
 
 use LanguageServerProtocol\ErrorCode;
 
-class ParseErrorException extends LanguageServerException
+class ParseError extends LanguageServerException
 {
     private const MESSAGE = 'The server could not parse the request';
 

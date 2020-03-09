@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace LanguageServer\Method;
 
 use DI\Container;
-use LanguageServer\Exception\ServerNotInitializedException;
-use LanguageServer\Server\MessageHandlerInterface;
+use LanguageServer\Exception\ServerNotInitialized;
+use LanguageServer\Server\MessageHandler;
 use LanguageServer\Server\Protocol\Message;
 use LanguageServer\Server\Protocol\ResponseMessage;
 use LanguageServerProtocol\CompletionOptions;
@@ -18,11 +18,12 @@ use LanguageServerProtocol\TextDocumentSyncKind;
 use LanguageServerProtocol\TextDocumentSyncOptions;
 use Psr\Container\ContainerInterface;
 use RuntimeException;
+use function parse_url;
+use function realpath;
+use function urldecode;
+use const PHP_URL_PATH;
 
-/**
- * @author Michael Phillips <michael.phillips@realpage.com>
- */
-class Initialize implements MessageHandlerInterface
+class Initialize implements MessageHandler
 {
     private ContainerInterface $container;
     private bool $wasInitialized = false;
@@ -32,64 +33,70 @@ class Initialize implements MessageHandlerInterface
         $this->container = $container;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function __invoke(Message $request, callable $next)
     {
-        if ('initialize' === $request->method) {
+        if ($request->method === 'initialize') {
             $this->wasInitialized = true;
 
             return new ResponseMessage($request, $this->getInitializeResult($request));
         }
 
-        if (false === $this->wasInitialized && 'exit' !== $request->method) {
-            throw new ServerNotInitializedException();
+        if ($this->wasInitialized === false && $request->method !== 'exit') {
+            throw new ServerNotInitialized();
         }
 
         return $next($request);
     }
 
-    public function getInitializeResult(Message $request): InitializeResult
+    public function getInitializeResult(Message $request) : InitializeResult
     {
         $this->setProjectRoot($request->params);
 
         $capabilities = new ServerCapabilities();
 
-        $saveOptions = new SaveOptions();
+        $saveOptions      = new SaveOptions();
         $textDocumentSync = new TextDocumentSyncOptions();
 
-        $saveOptions->includeText = false;
-        $textDocumentSync->openClose = true;
-        $textDocumentSync->willSave = false;
-        $textDocumentSync->save = $saveOptions;
+        $saveOptions->includeText            = false;
+        $textDocumentSync->openClose         = true;
+        $textDocumentSync->willSave          = false;
+        $textDocumentSync->save              = $saveOptions;
         $textDocumentSync->willSaveWaitUntil = false;
-        $textDocumentSync->change = TextDocumentSyncKind::FULL;
+        $textDocumentSync->change            = TextDocumentSyncKind::FULL;
 
-        $capabilities->hoverProvider = false;
-        $capabilities->renameProvider = false;
-        $capabilities->codeLensProvider = false;
-        $capabilities->definitionProvider = false;
-        $capabilities->referencesProvider = false;
-        $capabilities->referencesProvider = false;
-        $capabilities->codeActionProvider = false;
-        $capabilities->xdefinitionProvider = false;
-        $capabilities->dependenciesProvider = false;
-        $capabilities->documentSymbolProvider = false;
-        $capabilities->workspaceSymbolProvider = false;
-        $capabilities->documentHighlightProvider = false;
-        $capabilities->documentFormattingProvider = false;
-        $capabilities->xworkspaceReferencesProvider = false;
-        $capabilities->documentRangeFormattingProvider = false;
+        $capabilities->hoverProvider                    = false;
+        $capabilities->renameProvider                   = false;
+        $capabilities->codeLensProvider                 = false;
+        $capabilities->definitionProvider               = false;
+        $capabilities->referencesProvider               = false;
+        $capabilities->referencesProvider               = false;
+        $capabilities->codeActionProvider               = false;
+        $capabilities->xdefinitionProvider              = false;
+        $capabilities->dependenciesProvider             = false;
+        $capabilities->documentSymbolProvider           = false;
+        $capabilities->workspaceSymbolProvider          = false;
+        $capabilities->documentHighlightProvider        = false;
+        $capabilities->documentFormattingProvider       = false;
+        $capabilities->xworkspaceReferencesProvider     = false;
+        $capabilities->documentRangeFormattingProvider  = false;
         $capabilities->documentOnTypeFormattingProvider = false;
 
-        $capabilities->textDocumentSync = $textDocumentSync;
-        $capabilities->completionProvider = new CompletionOptions(false, [':', '>']);
+        $capabilities->textDocumentSync      = $textDocumentSync;
+        $capabilities->completionProvider    = new CompletionOptions(false, [':', '>']);
         $capabilities->signatureHelpProvider = new SignatureHelpOptions(['(', ',']);
 
         return new InitializeResult($capabilities);
     }
 
-    private function setProjectRoot(array $params): void
+    /**
+     * @param array<string, mixed> $params
+     */
+    private function setProjectRoot(array $params) : void
     {
-        if (null === $params['rootUri']) {
+        if ($params['rootUri'] === null) {
             throw new RuntimeException('The project root was not specified');
         }
 
@@ -98,7 +105,7 @@ class Initialize implements MessageHandlerInterface
         $this->container->set('project_root', $projectRoot);
     }
 
-    private function parseProjectRootUri(string $uri): string
+    private function parseProjectRootUri(string $uri) : string
     {
         $path = realpath(urldecode(parse_url($uri, PHP_URL_PATH)));
 

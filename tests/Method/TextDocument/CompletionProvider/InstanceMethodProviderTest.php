@@ -6,7 +6,6 @@ namespace LanguageServer\Test\Method\TextDocument\CompletionProvider;
 
 use LanguageServer\Method\TextDocument\CompletionProvider\InstanceMethodProvider;
 use PhpParser\Node\Expr;
-use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\Variable;
 use PHPUnit\Framework\TestCase;
@@ -15,26 +14,23 @@ use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionMethod;
 use Roave\BetterReflection\Reflection\ReflectionType;
 
-/**
- * @author Michael Phillips <michael.phillips@realpage.com>
- */
 class InstanceMethodProviderTest extends TestCase
 {
-    public function testSupports()
+    public function testSupports() : void
     {
         $subject = new InstanceMethodProvider();
 
         $this->assertTrue($subject->supports(new PropertyFetch(new Variable('Foo'), 'bar')));
     }
 
-    public function testCompleteWithReturnTypeDeclarations()
+    public function testCompleteWithReturnTypeDeclarations() : void
     {
         $subject = new InstanceMethodProvider();
 
         $expression = $this->createMock(Expr::class);
         $reflection = $this->createMock(ReflectionClass::class);
-        $method = $this->createMock(ReflectionMethod::class);
-        $type = $this->createMock(ReflectionType::class);
+        $method     = $this->createMock(ReflectionMethod::class);
+        $type       = $this->createMock(ReflectionType::class);
 
         $type
             ->method('__toString')
@@ -69,13 +65,13 @@ class InstanceMethodProviderTest extends TestCase
         $this->assertEquals('final public testMethod(): mixed', $completionItems[0]->detail);
     }
 
-    public function testCompleteWithDocBlockReturnTypes()
+    public function testCompleteWithDocBlockReturnTypes() : void
     {
         $subject = new InstanceMethodProvider();
 
         $expression = $this->createMock(Expr::class);
         $reflection = $this->createMock(ReflectionClass::class);
-        $method = $this->createMock(ReflectionMethod::class);
+        $method     = $this->createMock(ReflectionMethod::class);
 
         $method
             ->method('getName')
@@ -110,13 +106,13 @@ class InstanceMethodProviderTest extends TestCase
         $this->assertEquals('public testMethod(): int|float', $completionItems[0]->detail);
     }
 
-    public function testCompleteOnNullableType()
+    public function testCompleteOnNullableType() : void
     {
         $subject = new InstanceMethodProvider();
 
         $expression = $this->createMock(Expr::class);
         $reflection = $this->createMock(ReflectionClass::class);
-        $method = $this->createMock(ReflectionMethod::class);
+        $method     = $this->createMock(ReflectionMethod::class);
 
         $method
             ->method('getName')
@@ -151,13 +147,13 @@ class InstanceMethodProviderTest extends TestCase
         $this->assertEquals('public testMethod(): int|float', $completionItems[0]->detail);
     }
 
-    public function testCompleteReturnsOnlyNonStaticMethods()
+    public function testCompleteReturnsOnlyNonStaticMethods() : void
     {
         $subject = new InstanceMethodProvider();
 
         $expression = $this->createMock(Expr::class);
         $reflection = $this->createMock(ReflectionClass::class);
-        $method = $this->createMock(ReflectionMethod::class);
+        $method     = $this->createMock(ReflectionMethod::class);
 
         $method
             ->method('isStatic')

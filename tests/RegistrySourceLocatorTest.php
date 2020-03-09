@@ -5,31 +5,28 @@ declare(strict_types=1);
 namespace LanguageServer\Test;
 
 use LanguageServer\RegistrySourceLocator;
+use LanguageServer\TextDocument;
 use LanguageServer\TextDocumentRegistry;
 use PHPUnit\Framework\TestCase;
 use Roave\BetterReflection\Identifier\Identifier;
 use Roave\BetterReflection\Identifier\IdentifierType;
 use Roave\BetterReflection\Reflector\Reflector;
 use Roave\BetterReflection\SourceLocator\Ast\Locator;
-use LanguageServer\TextDocument;
 
-/**
- * @author Michael Phillips <michael.phillips@realpage.com>
- */
 class RegistrySourceLocatorTest extends TestCase
 {
-    private $subject;
-    private $registry;
+    private RegistrySourceLocator $subject;
+    private TextDocumentRegistry $registry;
 
-    public function setUp(): void
+    public function setUp() : void
     {
-        $astLocator = $this->createMock(Locator::class);
+        $astLocator     = $this->createMock(Locator::class);
         $this->registry = $this->createMock(TextDocumentRegistry::class);
 
         $this->subject = new RegistrySourceLocator($astLocator, $this->registry);
     }
 
-    public function testLocateIdentifier()
+    public function testLocateIdentifier() : void
     {
         $this
             ->registry
@@ -42,7 +39,7 @@ class RegistrySourceLocatorTest extends TestCase
         $this->subject->locateIdentifier($reflector, new Identifier('Foo', new IdentifierType()));
     }
 
-    public function testLocateIdentifierWhenRegistryContainsAnEmptyTextDocument()
+    public function testLocateIdentifierWhenRegistryContainsAnEmptyTextDocument() : void
     {
         $this
             ->registry
@@ -55,7 +52,7 @@ class RegistrySourceLocatorTest extends TestCase
         $this->subject->locateIdentifier($reflector, new Identifier('Foo', new IdentifierType()));
     }
 
-    public function testLocateIdentifiersByType()
+    public function testLocateIdentifiersByType() : void
     {
         $this
             ->registry

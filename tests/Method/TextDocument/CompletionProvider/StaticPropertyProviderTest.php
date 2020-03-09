@@ -12,25 +12,22 @@ use ReflectionMethod;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionProperty;
 
-/**
- * @author Michael Phillips <michael.phillips@realpage.com>
- */
 class StaticPropertyProviderTest extends TestCase
 {
-    public function testSupports()
+    public function testSupports() : void
     {
         $subject = new StaticPropertyProvider();
 
         $this->assertTrue($subject->supports(new ClassConstFetch('Foo', 'bar')));
     }
 
-    public function testComplete()
+    public function testComplete() : void
     {
         $subject = new StaticPropertyProvider();
 
         $expression = $this->createMock(Expr::class);
         $reflection = $this->createMock(ReflectionClass::class);
-        $property = $this->createMock(ReflectionProperty::class);
+        $property   = $this->createMock(ReflectionProperty::class);
 
         $property
             ->method('getName')

@@ -4,19 +4,23 @@ declare(strict_types=1);
 
 namespace LanguageServer\Console;
 
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 use LanguageServer\Server\Server as LanguageServer;
 use React\EventLoop\LoopInterface;
+use React\Socket\Server;
+use React\Stream\CompositeStream;
 use React\Stream\ReadableResourceStream;
 use React\Stream\WritableResourceStream;
-use React\Stream\CompositeStream;
-use React\Socket\Server;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
+use function sprintf;
+use const STDIN;
+use const STDOUT;
 
 class RunCommand extends Command
 {
+    // phpcs:ignore
     protected static $defaultName = 'phpls:run';
 
     private LanguageServer $server;
@@ -27,17 +31,17 @@ class RunCommand extends Command
         parent::__construct();
 
         $this->server = $server;
-        $this->loop = $loop;
+        $this->loop   = $loop;
     }
 
-    protected function configure()
+    protected function configure() : void
     {
         $this
             ->setDescription('Start PHPLS')
             ->addOption('port', null, InputOption::VALUE_OPTIONAL, 'Run over TCP with the specified port');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output) : void
     {
         $stream = $this->openStream($input->getOption('port'));
 
@@ -46,6 +50,9 @@ class RunCommand extends Command
         $this->loop->run();
     }
 
+    /**
+     * @return Server|CompositeStream
+     */
     private function openStream(?string $port)
     {
         if ($port === null) {

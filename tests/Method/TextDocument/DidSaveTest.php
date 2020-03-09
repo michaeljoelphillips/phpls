@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace LanguageServer\Test\Method\TextDocument;
 
 use LanguageServer\Method\TextDocument\DidSave;
+use LanguageServer\Server\Protocol\RequestMessage;
 use LanguageServer\TextDocumentRegistry;
 use PHPUnit\Framework\TestCase;
-use LanguageServer\Server\Protocol\RequestMessage;
 
 class DidSaveTest extends TestCase
 {
-    public function testDidSave()
+    public function testDidSave() : void
     {
         $registry = $this->createMock(TextDocumentRegistry::class);
-        $subject = new DidSave($registry);
+        $subject  = new DidSave($registry);
 
         $registry
             ->expects($this->once())
@@ -22,11 +22,11 @@ class DidSaveTest extends TestCase
 
         $request = new RequestMessage(1, 'textDocument/didSave', [
             'textDocument' => [
-                'uri' => __DIR__.'/../../fixtures/ParsedDocumentFixture.php'
+                'uri' => __DIR__ . '/../../fixtures/ParsedDocumentFixture.php',
             ],
         ]);
 
-        $next = function() {
+        $next = function () : void {
             $this->fail('The next method should never be called');
         };
 

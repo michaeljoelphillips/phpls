@@ -6,7 +6,10 @@ namespace LanguageServer\Server;
 
 use LanguageServer\Server\Protocol\Message;
 
-interface MessageHandlerInterface
+interface MessageHandler
 {
+    /**
+     * @return mixed
+     */
     public function __invoke(Message $request, callable $next);
 }

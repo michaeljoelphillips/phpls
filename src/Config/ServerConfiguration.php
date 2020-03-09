@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace LanguageServer\Config;
 
-use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
+use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 class ServerConfiguration implements ConfigurationInterface
 {

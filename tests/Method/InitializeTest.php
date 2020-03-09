@@ -5,28 +5,25 @@ declare(strict_types=1);
 namespace LanguageServer\Test\Method;
 
 use DI\Container;
-use LanguageServer\Exception\ServerNotInitializedException;
+use LanguageServer\Exception\ServerNotInitialized;
 use LanguageServer\Method\Initialize;
 use LanguageServer\Server\Protocol\RequestMessage;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
-/**
- * @author Michael Phillips <michael.phillips@realpage.com>
- */
 class InitializeTest extends TestCase
 {
-    public function testInitialize()
+    public function testInitialize() : void
     {
         $container = $this->createMock(Container::class);
-        $subject = new Initialize($container);
+        $subject   = new Initialize($container);
 
         $container
             ->expects($this->once())
             ->method('set')
             ->with('project_root', '/tmp');
 
-        $next = function () {
+        $next = function () : void {
             $this->fail('The next method should never be called');
         };
 
@@ -36,40 +33,40 @@ class InitializeTest extends TestCase
         $this->assertEquals(['(', ','], $response->result->capabilities->signatureHelpProvider->triggerCharacters);
     }
 
-    public function testInitializeWithEmptyProjectRoot()
+    public function testInitializeWithEmptyProjectRoot() : void
     {
         $container = $this->createMock(Container::class);
-        $subject = new Initialize($container);
+        $subject   = new Initialize($container);
 
         $this->expectException(RuntimeException::class);
 
-        $next = function () {
+        $next = function () : void {
             $this->fail('The next method should never be called');
         };
 
         $result = $subject(new RequestMessage(1, 'initialize', ['rootUri' => null]), $next);
     }
 
-    public function testWhenInitializationRequestWasNotSentFirst()
+    public function testWhenInitializationRequestWasNotSentFirst() : void
     {
         $container = $this->createMock(Container::class);
-        $subject = new Initialize($container);
+        $subject   = new Initialize($container);
 
-        $next = function () {
+        $next = function () : void {
             $this->fail('The next middleware should never be called');
         };
 
-        $this->expectException(ServerNotInitializedException::class);
+        $this->expectException(ServerNotInitialized::class);
 
         $subject->__invoke(new RequestMessage(1, 'textDocument/completion', []), $next);
     }
 
-    public function testWhenInitializationRequestWasSentFirst()
+    public function testWhenInitializationRequestWasSentFirst() : void
     {
         $container = $this->createMock(Container::class);
-        $subject = new Initialize($container);
+        $subject   = new Initialize($container);
 
-        $next = function () {
+        $next = function () : void {
             $this->addToAssertionCount(1);
         };
 
@@ -77,12 +74,12 @@ class InitializeTest extends TestCase
         $subject->__invoke(new RequestMessage(1, 'textDocument/didOpen', []), $next);
     }
 
-    public function testWhenInitializationRequestWasSentButExitWasInvoked()
+    public function testWhenInitializationRequestWasSentButExitWasInvoked() : void
     {
         $container = $this->createMock(Container::class);
-        $subject = new Initialize($container);
+        $subject   = new Initialize($container);
 
-        $next = function () {
+        $next = function () : void {
             $this->addToAssertionCount(1);
         };
 

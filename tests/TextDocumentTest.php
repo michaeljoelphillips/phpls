@@ -7,12 +7,9 @@ namespace LanguageServer\Test;
 use LanguageServer\CursorPosition;
 use LanguageServer\TextDocument;
 
-/**
- * @author Michael Phillips <michael.phillips@realpage.com>
- */
 class TextDocumentTest extends FixtureTestCase
 {
-    public function testGetters()
+    public function testGetters() : void
     {
         $subject = new TextDocument('file:///tmp/Foo.php', $source = $this->loadFixture('TextDocumentFixture.php'), 0);
 
@@ -21,10 +18,10 @@ class TextDocumentTest extends FixtureTestCase
         $this->assertEquals(0, $subject->getVersion());
     }
 
-    public function testGetCursorPosition()
+    public function testGetCursorPosition() : void
     {
         $subject = new TextDocument('file:///tmp/Foo.php', $this->loadFixture('TextDocumentFixture.php'), 0);
-        $cursor = new CursorPosition(10, 32, 151);
+        $cursor  = new CursorPosition(10, 32, 151);
 
         $this->assertEquals($cursor, $subject->getCursorPosition(10, 32));
     }
