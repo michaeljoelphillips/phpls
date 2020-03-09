@@ -23,20 +23,20 @@ abstract class MethodProvider implements CompletionProvider
     /**
      * {@inheritdoc}
      */
-    public function complete(NodeAbstract $expression, ReflectionClass $reflection) : array
+    public function complete(NodeAbstract $expression, ReflectionClass $class) : array
     {
         $instanceMethods = array_filter(
-            $reflection->getMethods(),
-            function (ReflectionMethod $method) {
+            $class->getMethods(),
+            function (ReflectionMethod $method) use ($expression, $class) {
                 return $method->getName() !== '__construct'
-                    && $this->filterMethod($method);
+                    && $this->filterMethod($expression, $class, $method);
             }
         );
 
         return array_values(array_map(fn(ReflectionMethod $method) => $this->buildCompletionItem($method), $instanceMethods));
     }
 
-    abstract protected function filterMethod(ReflectionMethod $method) : bool;
+    abstract protected function filterMethod(NodeAbstract $expression, ReflectionClass $class, ReflectionMethod $method) : bool;
 
     private function buildCompletionItem(ReflectionMethod $method) : CompletionItem
     {

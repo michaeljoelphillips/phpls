@@ -6,6 +6,7 @@ namespace LanguageServer\Method\TextDocument\CompletionProvider;
 
 use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\NodeAbstract;
+use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionMethod;
 
 class StaticMethodProvider extends MethodProvider
@@ -15,8 +16,28 @@ class StaticMethodProvider extends MethodProvider
         return $expression instanceof ClassConstFetch;
     }
 
-    protected function filterMethod(ReflectionMethod $method) : bool
+    protected function filterMethod(NodeAbstract $expression, ReflectionClass $class, ReflectionMethod $method) : bool
     {
-        return $method->isStatic();
+        if ($method->isStatic() === false) {
+            return false;
+        }
+
+        if ($method->isPublic()) {
+            return true;
+        }
+
+        if ($expression->class->name->name === 'self') {
+            if ($method->isPrivate() === true) {
+                return $method->getDeclaringClass() === $class;
+            }
+
+            return true;
+        }
+
+        if ($expression->class->name->name === 'parent') {
+            return $method->isProtected();
+        }
+
+        return false;
     }
 }
