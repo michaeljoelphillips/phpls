@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace LanguageServer\Test\Method\TextDocument\CompletionProvider;
 
 use LanguageServer\Method\TextDocument\CompletionProvider\InstanceMethodProvider;
-use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\Variable;
 use PHPUnit\Framework\TestCase;
@@ -13,6 +12,7 @@ use ReflectionMethod as CoreReflectionMethod;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionMethod;
 use Roave\BetterReflection\Reflection\ReflectionType;
+use stdClass;
 
 class InstanceMethodProviderTest extends TestCase
 {
@@ -20,14 +20,14 @@ class InstanceMethodProviderTest extends TestCase
     {
         $subject = new InstanceMethodProvider();
 
-        $this->assertTrue($subject->supports(new PropertyFetch(new Variable('Foo'), 'bar')));
+        $this->assertTrue($subject->supports(new PropertyFetch(new Variable('foo'), 'bar')));
     }
 
     public function testCompleteWithReturnTypeDeclarations() : void
     {
         $subject = new InstanceMethodProvider();
 
-        $expression = $this->createMock(Expr::class);
+        $expression = new PropertyFetch(new Variable('foo'), 'bar');
         $reflection = $this->createMock(ReflectionClass::class);
         $method     = $this->createMock(ReflectionMethod::class);
         $type       = $this->createMock(ReflectionType::class);
@@ -52,6 +52,10 @@ class InstanceMethodProviderTest extends TestCase
             ->method('getModifiers')
             ->willReturn(CoreReflectionMethod::IS_FINAL + CoreReflectionMethod::IS_PUBLIC);
 
+        $method
+            ->method('isPublic')
+            ->willReturn(true);
+
         $reflection
             ->method('getMethods')
             ->willReturn([$method]);
@@ -69,7 +73,7 @@ class InstanceMethodProviderTest extends TestCase
     {
         $subject = new InstanceMethodProvider();
 
-        $expression = $this->createMock(Expr::class);
+        $expression = new PropertyFetch(new Variable('foo'), 'bar');
         $reflection = $this->createMock(ReflectionClass::class);
         $method     = $this->createMock(ReflectionMethod::class);
 
@@ -92,6 +96,10 @@ class InstanceMethodProviderTest extends TestCase
         $method
             ->method('getModifiers')
             ->willReturn(CoreReflectionMethod::IS_PUBLIC);
+
+        $method
+            ->method('isPublic')
+            ->willReturn(true);
 
         $reflection
             ->method('getMethods')
@@ -110,7 +118,7 @@ class InstanceMethodProviderTest extends TestCase
     {
         $subject = new InstanceMethodProvider();
 
-        $expression = $this->createMock(Expr::class);
+        $expression = new PropertyFetch(new Variable('foo'), 'bar');
         $reflection = $this->createMock(ReflectionClass::class);
         $method     = $this->createMock(ReflectionMethod::class);
 
@@ -134,6 +142,10 @@ class InstanceMethodProviderTest extends TestCase
             ->method('getModifiers')
             ->willReturn(CoreReflectionMethod::IS_PUBLIC);
 
+        $method
+            ->method('isPublic')
+            ->willReturn(true);
+
         $reflection
             ->method('getMethods')
             ->willReturn([$method]);
@@ -151,12 +163,16 @@ class InstanceMethodProviderTest extends TestCase
     {
         $subject = new InstanceMethodProvider();
 
-        $expression = $this->createMock(Expr::class);
+        $expression = new PropertyFetch(new Variable('foo'), 'bar');
         $reflection = $this->createMock(ReflectionClass::class);
         $method     = $this->createMock(ReflectionMethod::class);
 
         $method
             ->method('isStatic')
+            ->willReturn(true);
+
+        $method
+            ->method('isPublic')
             ->willReturn(true);
 
         $reflection
@@ -166,5 +182,106 @@ class InstanceMethodProviderTest extends TestCase
         $completionItems = $subject->complete($expression, $reflection);
 
         $this->assertEmpty($completionItems);
+    }
+
+    /**
+     * @dataProvider methodProvider
+     */
+    public function testCompleteReturnsMethodsInScope(string $variable, stdClass $visibility, bool $expectation, bool $declaredOnParent = false) : void
+    {
+        $subject = new InstanceMethodProvider();
+
+        $expression = new PropertyFetch(new Variable($variable), 'bar');
+        $reflection = $this->createMock(ReflectionClass::class);
+        $method     = $this->createMock(ReflectionMethod::class);
+
+        $method
+            ->method('isPublic')
+            ->willReturn($visibility->public);
+
+        $method
+            ->method('isProtected')
+            ->willReturn($visibility->protected);
+
+        $method
+            ->method('isPrivate')
+            ->willReturn($visibility->private);
+
+        $method
+            ->method('getDeclaringClass')
+            ->willReturn($declaredOnParent === false ? $reflection : $this->createMock(ReflectionClass::class));
+
+        $reflection
+            ->method('getMethods')
+            ->willReturn([$method]);
+
+        $completionItems = $subject->complete($expression, $reflection);
+
+        $this->assertEquals($expectation, empty($completionItems) === false);
+    }
+
+    /**
+     * @return array<int, array<int, mixed>>
+     */
+    public function methodProvider() : array
+    {
+        return [
+            [
+                'this',
+                (object) [
+                    'public' => true,
+                    'protected' => false,
+                    'private' => false,
+                ],
+                true,
+            ],
+            [
+                'this',
+                (object) [
+                    'public' => false,
+                    'protected' => false,
+                    'private' => true,
+                ],
+                true,
+            ],
+            [
+                'this',
+                (object) [
+                    'public' => false,
+                    'protected' => false,
+                    'private' => true,
+                ],
+                false,
+                true,
+            ],
+            [
+                'this',
+                (object) [
+                    'public' => false,
+                    'protected' => true,
+                    'private' => false,
+                ],
+                true,
+                true,
+            ],
+            [
+                'foo',
+                (object) [
+                    'public' => true,
+                    'protected' => false,
+                    'private' => false,
+                ],
+                true,
+            ],
+            [
+                'foo',
+                (object) [
+                    'public' => false,
+                    'protected' => false,
+                    'private' => true,
+                ],
+                false,
+            ],
+        ];
     }
 }

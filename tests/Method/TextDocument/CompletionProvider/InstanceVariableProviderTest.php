@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace LanguageServer\Test\Method\TextDocument\CompletionProvider;
 
 use LanguageServer\Method\TextDocument\CompletionProvider\InstanceVariableProvider;
-use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\Variable;
@@ -27,7 +26,7 @@ class InstanceVariableProviderTest extends TestCase
     {
         $subject = new InstanceVariableProvider();
 
-        $expression = $this->createMock(Expr::class);
+        $expression = new PropertyFetch(new Variable('this'), 'bar');
         $reflection = $this->createMock(ReflectionClass::class);
         $variable   = $this->createMock(ReflectionProperty::class);
 
@@ -54,5 +53,56 @@ class InstanceVariableProviderTest extends TestCase
         $this->assertEquals('testProperty', $completionItems[0]->label);
         $this->assertEquals('string|null', $completionItems[0]->detail);
         $this->assertEquals('testDocumentation', $completionItems[0]->documentation);
+    }
+
+    /**
+     * @dataProvider variableProvider
+     */
+    public function testCompleteReturnsInstanceVariablesInScope(string $variable, bool $isPublic, bool $expected) : void
+    {
+        $subject = new InstanceVariableProvider();
+
+        $expression = new PropertyFetch(new Variable($variable), 'bar');
+        $reflection = $this->createMock(ReflectionClass::class);
+        $variable   = $this->createMock(ReflectionProperty::class);
+
+        $variable
+            ->method('isPublic')
+            ->willReturn($isPublic);
+
+        $reflection
+            ->method('getProperties')
+            ->willReturn([$variable]);
+
+        $this->assertEquals($expected, empty($subject->complete($expression, $reflection)) === false);
+    }
+
+    /**
+     * @return array<int, array<int, mixed>>
+     */
+    public function variableProvider() : array
+    {
+        return [
+            [
+                'this',
+                true,
+                true,
+            ],
+            [
+                'this',
+                false,
+                true,
+            ],
+            [
+                'foo',
+                true,
+                true,
+            ],
+            [
+                'foo',
+                false,
+                false,
+            ],
+        ];
     }
 }

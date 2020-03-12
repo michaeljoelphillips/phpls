@@ -4,93 +4,77 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test\Method\TextDocument\CompletionProvider;
 
-use LanguageServer\Method\TextDocument\CompletionProvider\StaticPropertyProvider;
+use LanguageServer\Method\TextDocument\CompletionProvider\StaticMethodProvider;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Name;
 use PhpParser\Node\Stmt\Class_;
 use PHPUnit\Framework\TestCase;
-use ReflectionMethod;
 use Roave\BetterReflection\Reflection\ReflectionClass;
-use Roave\BetterReflection\Reflection\ReflectionProperty;
+use Roave\BetterReflection\Reflection\ReflectionMethod;
 use stdClass;
 
-class StaticPropertyProviderTest extends TestCase
+class StaticMethodProviderTest extends TestCase
 {
     public function testSupports() : void
     {
-        $subject = new StaticPropertyProvider();
+        $subject = new StaticMethodProvider();
 
-        $this->assertTrue($subject->supports(new ClassConstFetch('Foo', 'bar')));
+        $this->assertTrue($subject->supports(new ClassConstFetch(new Class_('Foo'), new Name('foo'))));
     }
 
-    public function testComplete() : void
+    public function testCompleteOnlyReturnsStaticMethods() : void
     {
-        $subject = new StaticPropertyProvider();
+        $subject = new StaticMethodProvider();
 
         $expression = new ClassConstFetch(new Class_('Foo'), new Name('foo'));
         $reflection = $this->createMock(ReflectionClass::class);
-        $property   = $this->createMock(ReflectionProperty::class);
+        $method     = $this->createMock(ReflectionMethod::class);
 
-        $property
-            ->method('getName')
-            ->willReturn('testProperty');
-
-        $property
-            ->method('getDocblockTypeStrings')
-            ->willReturn(['string', 'null']);
-
-        $property
-            ->method('getDocComment')
-            ->willReturn('testDocumentation');
-
-        $property
-            ->method('isPublic')
-            ->willReturn(true);
+        $method
+            ->method('isStatic')
+            ->willReturn(false);
 
         $reflection
-            ->method('getProperties')
-            ->with(ReflectionMethod::IS_STATIC)
-            ->willReturn([$property]);
+            ->method('getMethods')
+            ->willReturn([$method]);
 
-        $completionItems = $subject->complete($expression, $reflection);
-
-        $this->assertCount(1, $completionItems);
-        $this->assertEquals(10, $completionItems[0]->kind);
-        $this->assertEquals('testProperty', $completionItems[0]->label);
-        $this->assertEquals('string|null', $completionItems[0]->detail);
-        $this->assertEquals('testDocumentation', $completionItems[0]->documentation);
+        $this->assertEmpty($subject->complete($expression, $reflection));
     }
 
     /**
      * @dataProvider methodProvider
      */
-    public function testCompleteReturnsPropertiesInScope(string $class, stdClass $visibility, bool $expectation) : void
+    public function testCompleteReturnsMethodsInScope(string $class, stdClass $visibility, bool $expectation) : void
     {
-        $subject = new StaticPropertyProvider();
+        $subject = new StaticMethodProvider();
 
         $expression = new ClassConstFetch(new Class_($class), new Name('foo'));
         $reflection = $this->createMock(ReflectionClass::class);
-        $property   = $this->createMock(ReflectionProperty::class);
+        $method     = $this->createMock(ReflectionMethod::class);
 
-        $property
+        $method
+            ->method('isStatic')
+            ->willReturn(true);
+
+        $method
             ->method('isPublic')
             ->willReturn($visibility->public);
 
-        $property
+        $method
             ->method('isProtected')
             ->willReturn($visibility->protected);
 
-        $property
+        $method
             ->method('isPrivate')
             ->willReturn($visibility->private);
 
-        $property
+        $method
             ->method('getDeclaringClass')
             ->willReturn($reflection);
 
         $reflection
-            ->method('getProperties')
-            ->willReturn([$property]);
+            ->method('getMethods')
+            ->willReturn([$method]);
 
         $completionItems = $subject->complete($expression, $reflection);
 
@@ -118,6 +102,15 @@ class StaticPropertyProviderTest extends TestCase
                     'public' => false,
                     'protected' => false,
                     'private' => true,
+                ],
+                true,
+            ],
+            [
+                'self',
+                (object) [
+                    'public' => false,
+                    'protected' => true,
+                    'private' => false,
                 ],
                 true,
             ],

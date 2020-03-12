@@ -6,6 +6,7 @@ namespace LanguageServer\Method\TextDocument\CompletionProvider;
 
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\NodeAbstract;
+use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionMethod;
 
 class InstanceMethodProvider extends MethodProvider
@@ -15,8 +16,24 @@ class InstanceMethodProvider extends MethodProvider
         return $expression instanceof PropertyFetch;
     }
 
-    protected function filterMethod(ReflectionMethod $method) : bool
+    protected function filterMethod(NodeAbstract $expression, ReflectionClass $class, ReflectionMethod $method) : bool
     {
-        return $method->isStatic() === false;
+        if ($method->isStatic() === true) {
+            return false;
+        }
+
+        if ($method->isPublic() === true) {
+            return true;
+        }
+
+        if ($expression->var->name === 'this') {
+            if ($method->isPrivate() === true) {
+                return $method->getDeclaringClass() === $class;
+            }
+
+            return true;
+        }
+
+        return false;
     }
 }
