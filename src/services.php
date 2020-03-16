@@ -21,10 +21,11 @@ use LanguageServer\Method\TextDocument\SignatureHelp;
 use LanguageServer\Parser\IncompleteDocumentParser;
 use LanguageServer\Parser\LenientParser;
 use LanguageServer\RegistrySourceLocator;
+use LanguageServer\Server\Log\LogHandler;
 use LanguageServer\Server\Serializer\JsonRpcEncoder;
 use LanguageServer\Server\Serializer\MessageDenormalizer;
 use LanguageServer\Server\Serializer\MessageSerializer;
-use LanguageServer\Server\Server;
+use LanguageServer\Server\Server as LanguageServer;
 use LanguageServer\TextDocumentRegistry;
 use LanguageServer\TypeResolver;
 use Monolog\Handler\NullHandler;
@@ -38,6 +39,10 @@ use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use React\EventLoop\Factory;
 use React\EventLoop\LoopInterface;
+use React\Socket\Server as TcpServer;
+use React\Stream\CompositeStream;
+use React\Stream\ReadableResourceStream;
+use React\Stream\WritableResourceStream;
 use Roave\BetterReflection\Reflector\ClassReflector;
 use Roave\BetterReflection\Reflector\FunctionReflector;
 use Roave\BetterReflection\SourceLocator\Ast\Locator as AstLocator;
@@ -54,12 +59,27 @@ use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
 
 return [
-    Server::class => static function (ContainerInterface $container) {
-        return new Server(
+    LanguageServer::class => static function (ContainerInterface $container) {
+        return new LanguageServer(
             $container->get(MessageSerializer::class),
+            $container->get(LoggerInterface::class),
             $container->get('messageHandlers')
         );
     },
+    'stream' => static function (ContainerInterface $container) {
+        $port = $container->get('server.port');
+        $loop = $container->get(LoopInterface::class);
+
+        if ($port === null) {
+            return new CompositeStream(
+                new ReadableResourceStream(STDIN, $loop),
+                new WritableResourceStream(STDOUT, $loop)
+            );
+        }
+
+        return new TcpServer(sprintf('127.0.0.1:%d', $port), $loop);
+    },
+    'server.port' => null,
     MessageSerializer::class => static function (ContainerInterface $container) {
         return new MessageSerializer($container->get(SerializerInterface::class));
     },
@@ -74,17 +94,20 @@ return [
         return $app;
     },
     LoggerInterface::class => static function (ContainerInterface $container) {
-        $config = $container->get('config')['log'];
-
-        $logger = new Logger('default');
+        $logger   = new Logger('default');
+        $config   = $container->get('config')['log'];
+        $logLevel = $config['level'] === 'debug' ? Logger::DEBUG : Logger::INFO;
 
         if ($config['enabled'] === true) {
-            $logLevel = $config['level'] === 'debug' ? Logger::DEBUG : Logger::INFO;
-
             $logger->pushHandler(new StreamHandler(fopen($config['path'], 'w+'), $logLevel));
         } else {
             $logger->pushHandler(new NullHandler());
         }
+
+        $lspLogHandler = new LogHandler($container->get(MessageSerializer::class), $logLevel);
+        $lspLogHandler->setStream($container->get('stream'));
+
+        $logger->pushHandler($lspLogHandler);
 
         return $logger;
     },

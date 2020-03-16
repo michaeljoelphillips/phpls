@@ -6,7 +6,6 @@ namespace LanguageServer\Server\Serializer;
 
 use LanguageServer\Server\MessageSerializer as MessageSerializerInterface;
 use LanguageServer\Server\Protocol\Message;
-use LanguageServer\Server\Protocol\ResponseMessage;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 use Symfony\Component\Serializer\SerializerInterface;
 
@@ -28,7 +27,7 @@ class MessageSerializer implements MessageSerializerInterface
         }
     }
 
-    public function serialize(ResponseMessage $response) : string
+    public function serialize(Message $response) : string
     {
         try {
             return $this->serializer->serialize($response, 'jsonrpc');
