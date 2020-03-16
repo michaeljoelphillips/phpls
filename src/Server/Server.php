@@ -7,16 +7,19 @@ namespace LanguageServer\Server;
 use InvalidArgumentException;
 use LanguageServer\Server\Protocol\Message;
 use LanguageServer\Server\Protocol\ResponseMessage;
+use Psr\Log\LoggerInterface;
 use React\Socket\ConnectionInterface;
 use React\Socket\Server as TcpServer;
 use React\Stream\DuplexStreamInterface;
 use Throwable;
+use function sprintf;
 
 class Server
 {
     private DuplexStreamInterface $stream;
     private MessageSerializer $serializer;
     private MessageParser $parser;
+    private LoggerInterface $logger;
 
     /** @var callable */
     private $handler;
@@ -24,9 +27,10 @@ class Server
     /**
      * @param array<int, MessageHandler> $handlers
      */
-    public function __construct(MessageSerializer $serializer, array $handlers)
+    public function __construct(MessageSerializer $serializer, LoggerInterface $logger, array $handlers)
     {
         $this->serializer = $serializer;
+        $this->logger     = $logger;
         $this->parser     = new MessageParser($serializer);
 
         $this->handler = function (Message $message, int $position) use ($handlers) {
@@ -66,6 +70,8 @@ class Server
         }
 
         if ($stream instanceof DuplexStreamInterface) {
+            $this->logger->info('Initializing server');
+
             $this->stream = $stream;
 
             $stream->on('data', fn (string $data) => $this->parser->handle($data));
@@ -76,12 +82,19 @@ class Server
         throw new InvalidArgumentException();
     }
 
+    /**
+     * @param NotificationMessage|RequestMessage $message
+     */
     private function handle(Message $message) : void
     {
+        $this->logger->debug(sprintf('Received %s request', $message->method));
+
         try {
             $response = $this->handler->__invoke($message, 0);
-        } catch (Throwable $e) {
-            $response = new ResponseMessage($message, $e);
+        } catch (Throwable $t) {
+            $this->logger->error($t->getMessage());
+
+            $response = new ResponseMessage($message, $t);
         }
 
         if ($response === null) {

@@ -8,13 +8,13 @@ class NotificationMessage extends Message
 {
     public string $method;
 
-    /** @var array<string, mixed> */
-    public ?array $params;
+    /** @var array<string, mixed>|object */
+    public $params;
 
     /**
-     * @param array<string, mixed> $params
+     * @param array<string, mixed>|object $params
      */
-    public function __construct(string $method, ?array $params)
+    public function __construct(string $method, $params)
     {
         $this->method = $method;
         $this->params = $params;
