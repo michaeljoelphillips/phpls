@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use LanguageServer\Config\ConfigFactory;
 use LanguageServer\Console\RunCommand;
+use LanguageServer\MemoizingParser;
+use LanguageServer\MemoizingSourceLocator;
 use LanguageServer\Method\Exit_;
 use LanguageServer\Method\Initialize;
 use LanguageServer\Method\Initialized;
@@ -21,6 +23,7 @@ use LanguageServer\Method\TextDocument\SignatureHelp;
 use LanguageServer\Parser\IncompleteDocumentParser;
 use LanguageServer\Parser\LenientParser;
 use LanguageServer\RegistrySourceLocator;
+use LanguageServer\Server\Cache\UsageAwareCache;
 use LanguageServer\Server\Log\LogHandler;
 use LanguageServer\Server\Serializer\JsonRpcEncoder;
 use LanguageServer\Server\Serializer\MessageDenormalizer;
@@ -46,11 +49,9 @@ use React\Stream\WritableResourceStream;
 use Roave\BetterReflection\Reflector\ClassReflector;
 use Roave\BetterReflection\Reflector\FunctionReflector;
 use Roave\BetterReflection\SourceLocator\Ast\Locator as AstLocator;
-use Roave\BetterReflection\SourceLocator\Ast\Parser\MemoizingParser;
 use Roave\BetterReflection\SourceLocator\SourceStubber\PhpStormStubsSourceStubber;
 use Roave\BetterReflection\SourceLocator\Type\AggregateSourceLocator;
 use Roave\BetterReflection\SourceLocator\Type\Composer\Factory\MakeLocatorForComposerJsonAndInstalledJson;
-use Roave\BetterReflection\SourceLocator\Type\MemoizingSourceLocator;
 use Roave\BetterReflection\SourceLocator\Type\PhpInternalSourceLocator;
 use Roave\BetterReflection\SourceLocator\Type\SourceLocator;
 use Symfony\Component\Console\Application;
@@ -138,8 +139,14 @@ return [
             )
         );
     },
+    'parserCache' => static function () {
+        return new UsageAwareCache();
+    },
+    'reflectorCache' => static function () {
+        return new UsageAwareCache();
+    },
     MemoizingParser::class => static function (ContainerInterface $container) {
-        return new MemoizingParser($container->get(Parser::class));
+        return new MemoizingParser($container->get('parserCache'), $container->get(Parser::class));
     },
     IncompleteDocumentParser::class => static function (ContainerInterface $container) {
         return new IncompleteDocumentParser($container->get(MemoizingParser::class));
@@ -161,6 +168,7 @@ return [
                 $wrappedObject = new AggregateSourceLocator([
                     new RegistrySourceLocator($locator, $container->get(TextDocumentRegistry::class)),
                     new MemoizingSourceLocator(
+                        $container->get('reflectorCache'),
                         new AggregateSourceLocator([
                             new PhpInternalSourceLocator($locator, new PhpStormStubsSourceStubber($container->get(MemoizingParser::class))),
                             (new MakeLocatorForComposerJsonAndInstalledJson())($container->get('project_root'), $locator),
