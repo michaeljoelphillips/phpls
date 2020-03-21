@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace LanguageServer\Console;
 
 use DI\Container;
+use LanguageServer\Server\Cache\ThresholdCacheMonitor;
+use LanguageServer\Server\Cache\TtlCacheMonitor;
 use LanguageServer\Server\Server as LanguageServer;
+use Psr\Log\LoggerInterface;
 use React\EventLoop\LoopInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -40,6 +43,13 @@ class RunCommand extends Command
         $loop   = $this->container->get(LoopInterface::class);
         $stream = $this->container->get('stream');
         $server = $this->container->get(LanguageServer::class);
+
+        $logger         = $this->container->get(LoggerInterface::class);
+        $parserCache    = $this->container->get('parserCache');
+        $reflectorCache = $this->container->get('reflectorCache');
+
+        (new ThresholdCacheMonitor($logger, $parserCache, $reflectorCache))(15, $loop);
+        (new TtlCacheMonitor($logger, $parserCache, $reflectorCache))(60, $loop);
 
         $server->listen($stream);
 
