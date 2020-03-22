@@ -14,5 +14,6 @@ class DidClose implements MessageHandler
      */
     public function __invoke(Message $request, callable $next)
     {
+        return $next($request);
     }
 }
