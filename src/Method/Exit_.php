@@ -7,6 +7,7 @@ namespace LanguageServer\Method;
 use LanguageServer\Exception\InvalidRequest;
 use LanguageServer\Server\MessageHandler;
 use LanguageServer\Server\Protocol\Message;
+use LanguageServer\Server\Protocol\ResponseMessage;
 
 // phpcs:ignore
 class Exit_ implements MessageHandler
@@ -28,6 +29,8 @@ class Exit_ implements MessageHandler
 
         if ($message->method === 'shutdown') {
             $this->wasShutdown = true;
+
+            return new ResponseMessage($message, null);
         }
 
         return $next->__invoke($message);
