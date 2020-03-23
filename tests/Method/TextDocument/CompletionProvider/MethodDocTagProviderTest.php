@@ -25,17 +25,22 @@ class MethodDocTagProviderTest extends TestCase
             ->method('getDocComment')
             ->willReturn(<<<EOF
 /**
+ * @method foo
  * @method string testMethod(int \$foo, string \$bar)
+ * @method stdClass bar(int \$foo, string \$bar)
  */
 EOF
             );
 
         $completionItems = $subject->complete($expression, $reflection);
 
-        $this->assertCount(1, $completionItems);
+        $this->assertCount(2, $completionItems);
         $this->assertContainsOnly(CompletionItem::class, $completionItems);
         $this->assertEquals('testMethod', $completionItems[0]->label);
+        $this->assertEquals('bar', $completionItems[1]->label);
         $this->assertEquals(CompletionItemKind::METHOD, $completionItems[0]->kind);
-        $this->assertEquals('public string testMethod(int $foo, string $bar)', $completionItems[0]->detail);
+        $this->assertEquals(CompletionItemKind::METHOD, $completionItems[1]->kind);
+        $this->assertEquals('public testMethod(int $foo, string $bar): string', $completionItems[0]->detail);
+        $this->assertEquals('public bar(int $foo, string $bar): stdClass', $completionItems[1]->detail);
     }
 }

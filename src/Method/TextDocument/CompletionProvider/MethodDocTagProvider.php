@@ -10,13 +10,10 @@ use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\NodeAbstract;
 use Roave\BetterReflection\Reflection\ReflectionClass;
-use function array_filter;
+use function array_column;
 use function array_map;
-use function array_values;
-use function explode;
-use function preg_match;
+use function preg_match_all;
 use function sprintf;
-use function strpos;
 
 class MethodDocTagProvider implements CompletionProvider
 {
@@ -25,7 +22,7 @@ class MethodDocTagProvider implements CompletionProvider
      */
     public function complete(NodeAbstract $expression, ReflectionClass $reflection) : array
     {
-        $methods = $this->filterMethodsFromDocblock($reflection->getDocComment());
+        $methods = $this->parseMethodsInDocblock($reflection->getDocComment());
 
         return $this->mapMethodsToCompletionItems($methods);
     }
@@ -33,12 +30,21 @@ class MethodDocTagProvider implements CompletionProvider
     /**
      * @return string[]
      */
-    private function filterMethodsFromDocblock(string $docblock) : array
+    private function parseMethodsInDocblock(string $docblock) : array
     {
-        return array_filter(explode("\n", $docblock), static function (string $line) : bool {
-            return strpos($line, '@method') !== false
-                && strpos($line, 'static') === false;
-        });
+        $matches         = [];
+        $numberOfMatches = preg_match_all('/@method (\w+) ((\w+)\(.*\))/', $docblock, $matches);
+
+        if ((bool) $numberOfMatches === false) {
+            return [];
+        }
+
+        $parsedMehods = [];
+        for ($i = 0; $i < $numberOfMatches; $i++) {
+            $parsedMethods[] = array_column($matches, $i);
+        }
+
+        return $parsedMethods;
     }
 
     /**
@@ -48,19 +54,16 @@ class MethodDocTagProvider implements CompletionProvider
      */
     private function mapMethodsToCompletionItems(array $methods) : array
     {
-        return array_values(array_map(
-            static function (string $method) {
-                $methodParts = [];
-                preg_match('/\w+ (\w+)\(.*\)/', $method, $methodParts);
-
+        return array_map(
+            static function (array $method) : CompletionItem {
                 return new CompletionItem(
-                    $methodParts[1],
+                    $method[3],
                     CompletionItemKind::METHOD,
-                    sprintf('public %s', $methodParts[0]),
+                    sprintf('public %s: %s', $method[2], $method[1]),
                 );
             },
             $methods
-        ));
+        );
     }
 
     public function supports(NodeAbstract $expression) : bool
