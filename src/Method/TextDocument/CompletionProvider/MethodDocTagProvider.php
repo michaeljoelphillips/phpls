@@ -11,7 +11,9 @@ use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\NodeAbstract;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use function array_column;
+use function array_filter;
 use function array_map;
+use function array_values;
 use function preg_match_all;
 use function sprintf;
 
@@ -24,6 +26,14 @@ class MethodDocTagProvider implements CompletionProvider
     {
         $methods = $this->parseMethodsInDocblock($reflection->getDocComment());
 
+        $methods = array_filter($methods, static function (array $method) use ($expression) : bool {
+            if ($expression instanceof PropertyFetch) {
+                return $method[1] !== 'static';
+            }
+
+            return $method[1] === 'static';
+        });
+
         return $this->mapMethodsToCompletionItems($methods);
     }
 
@@ -33,7 +43,7 @@ class MethodDocTagProvider implements CompletionProvider
     private function parseMethodsInDocblock(string $docblock) : array
     {
         $matches         = [];
-        $numberOfMatches = preg_match_all('/@method (\w+) ((\w+)\(.*\))/', $docblock, $matches);
+        $numberOfMatches = preg_match_all('/@method (static)? ?(\w+) ((\w+)\(.*\))/', $docblock, $matches);
 
         if ((bool) $numberOfMatches === false) {
             return [];
@@ -54,16 +64,19 @@ class MethodDocTagProvider implements CompletionProvider
      */
     private function mapMethodsToCompletionItems(array $methods) : array
     {
-        return array_map(
+        return array_values(array_map(
             static function (array $method) : CompletionItem {
+                $modifiers = $method[1] === 'static' ? 'public static' : 'public';
+                $signature = sprintf('%s %s: %s', $modifiers, $method[3], $method[2]);
+
                 return new CompletionItem(
-                    $method[3],
+                    $method[4],
                     CompletionItemKind::METHOD,
-                    sprintf('public %s: %s', $method[2], $method[1]),
+                    $signature
                 );
             },
             $methods
-        );
+        ));
     }
 
     public function supports(NodeAbstract $expression) : bool
