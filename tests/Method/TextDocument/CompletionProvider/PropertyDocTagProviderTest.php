@@ -26,12 +26,14 @@ class PropertyDocTagProviderTest extends TestCase
 /**
  * @property string foo Some Property
  * @property int bar Bar
+ * @property \Namespaced\Class_ baz
+ */
 EOF
             );
 
         $completionItems = $subject->complete($expression, $reflection);
 
-        $this->assertCount(2, $completionItems);
+        $this->assertCount(3, $completionItems);
         $this->assertContainsOnly(CompletionItem::class, $completionItems);
         $this->assertEquals('foo', $completionItems[0]->label);
         $this->assertEquals('string', $completionItems[0]->detail);
@@ -39,5 +41,7 @@ EOF
         $this->assertEquals('bar', $completionItems[1]->label);
         $this->assertEquals('int', $completionItems[1]->detail);
         $this->assertEquals('Bar', $completionItems[1]->documentation);
+        $this->assertEquals('baz', $completionItems[2]->label);
+        $this->assertEquals('\Namespaced\Class_', $completionItems[2]->detail);
     }
 }

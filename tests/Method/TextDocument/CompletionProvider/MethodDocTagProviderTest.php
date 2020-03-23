@@ -32,13 +32,14 @@ class MethodDocTagProviderTest extends TestCase
  * @method string testMethod(int \$foo, string \$bar)
  * @method stdClass bar(int \$foo, string \$bar)
  * @method static stdClass bar(int \$foo, string \$bar)
+ * @method \Namespaced\Class_ transcriptions(string \$sid)
  */
 EOF
             );
 
         $completionItems = $subject->complete($expression, $reflection);
 
-        $this->assertCount(2, $completionItems);
+        $this->assertCount(3, $completionItems);
         $this->assertContainsOnly(CompletionItem::class, $completionItems);
         $this->assertEquals('testMethod', $completionItems[0]->label);
         $this->assertEquals('bar', $completionItems[1]->label);
@@ -46,6 +47,7 @@ EOF
         $this->assertEquals(CompletionItemKind::METHOD, $completionItems[1]->kind);
         $this->assertEquals('public testMethod(int $foo, string $bar): string', $completionItems[0]->detail);
         $this->assertEquals('public bar(int $foo, string $bar): stdClass', $completionItems[1]->detail);
+        $this->assertEquals('public transcriptions(string $sid): \Namespaced\Class_', $completionItems[2]->detail);
     }
 
     public function testCompletionOnStaticMethodsFromClassMethodDocblock() : void

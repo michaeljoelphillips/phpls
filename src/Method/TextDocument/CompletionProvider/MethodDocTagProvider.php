@@ -43,7 +43,7 @@ class MethodDocTagProvider implements CompletionProvider
     private function parseMethodsInDocblock(string $docblock) : array
     {
         $matches         = [];
-        $numberOfMatches = preg_match_all('/@method (static)? ?(\w+) ((\w+)\(.*\))/', $docblock, $matches);
+        $numberOfMatches = preg_match_all('/@method (static)? ?([\w\\\]+) ((\w+)\(.*\))/', $docblock, $matches);
 
         if ((bool) $numberOfMatches === false) {
             return [];
