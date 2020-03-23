@@ -13,6 +13,8 @@ use LanguageServer\Method\TextDocument\Completion;
 use LanguageServer\Method\TextDocument\CompletionProvider\ClassConstantProvider;
 use LanguageServer\Method\TextDocument\CompletionProvider\InstanceMethodProvider;
 use LanguageServer\Method\TextDocument\CompletionProvider\InstanceVariableProvider;
+use LanguageServer\Method\TextDocument\CompletionProvider\MethodDocTagProvider;
+use LanguageServer\Method\TextDocument\CompletionProvider\PropertyDocTagProvider;
 use LanguageServer\Method\TextDocument\CompletionProvider\StaticMethodProvider;
 use LanguageServer\Method\TextDocument\CompletionProvider\StaticPropertyProvider;
 use LanguageServer\Method\TextDocument\DidChange;
@@ -191,27 +193,14 @@ return [
         return new TypeResolver($container->get(ClassReflector::class));
     },
     TextDocumentRegistry::class => DI\create(TextDocumentRegistry::class),
-    StaticMethodProvider::class => static function (ContainerInterface $container) {
-        return new StaticMethodProvider();
-    },
-    InstanceMethodProvider::class => static function (ContainerInterface $container) {
-        return new InstanceMethodProvider();
-    },
-    InstanceVariableProvider::class => static function (ContainerInterface $container) {
-        return new InstanceVariableProvider();
-    },
-    ClassConstantProvider::class => static function (ContainerInterface $container) {
-        return new ClassConstantProvider();
-    },
-    StaticPropertyProvider::class => static function (ContainerInterface $container) {
-        return new StaticPropertyProvider();
-    },
     'completionProviders' => [
         DI\get(InstanceMethodProvider::class),
         DI\get(StaticMethodProvider::class),
         DI\get(InstanceVariableProvider::class),
         DI\get(StaticPropertyProvider::class),
         DI\get(ClassConstantProvider::class),
+        DI\get(MethodDocTagProvider::class),
+        DI\get(PropertyDocTagProvider::class),
     ],
     'messageHandlers' => [
         DI\get(Initialize::class),

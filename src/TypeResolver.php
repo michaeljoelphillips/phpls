@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LanguageServer;
 
 use LanguageServer\Parser\ParsedDocument;
+use phpDocumentor\Reflection\DocBlockFactory;
 use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\MethodCall;
@@ -20,6 +21,7 @@ use PhpParser\Node\Stmt\Expression;
 use PhpParser\Node\Stmt\Property;
 use PhpParser\Node\Stmt\UseUse;
 use PhpParser\NodeAbstract;
+use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflector\Reflector;
 use function array_column;
 use function array_filter;
@@ -36,7 +38,8 @@ class TypeResolver
 
     public function __construct(Reflector $reflector)
     {
-        $this->reflector = $reflector;
+        $this->reflector       = $reflector;
+        $this->docblockFactory = DocBlockFactory::createInstance();
     }
 
     public function getType(ParsedDocument $document, ?NodeAbstract $node) : ?string
@@ -236,7 +239,11 @@ class TypeResolver
                 return $this->getType($document, $propertyDeclaration->type);
             }
 
-            return $this->getPropertyTypeFromConstructorAssignment($document, $property);
+            $constructorArgumentType = $this->getPropertyTypeFromConstructorAssignment($document, $property);
+
+            if ($constructorArgumentType !== null) {
+                return $constructorArgumentType;
+            }
         }
 
         return $this->getPropertyTypeFromDocblock($document, $property);
@@ -261,12 +268,34 @@ class TypeResolver
         $reflectedProperty = $reflectedClass->getProperty($propertyName->name);
 
         if ($reflectedProperty === null) {
+            return $this->getPropertyTypeFromClassDocblock($document, $property, $reflectedClass);
+        }
+
+        return $this->getPropertyFromPropertyDocblock($document, $reflectedProperty);
+    }
+
+    private function getPropertyTypeFromClassDocblock(ParsedDocument $document, PropertyFetch $property, ReflectionClass $class) : ?string
+    {
+        $propertyTags = $this->docblockFactory->create($class->getDocComment())->getTagsByName('property');
+
+        if (empty($propertyTags) === true) {
             return null;
         }
 
+        foreach ($propertyTags as $propertyTag) {
+            if ($propertyTag->getVariableName() === $property->name->name) {
+                return (string) $propertyTag->getType();
+            }
+        }
+
+        return null;
+    }
+
+    private function getPropertyFromPropertyDocblock(ParsedDocument $document, ReflectionProperty $property) : ?string
+    {
         $docblockTypes = $reflectedProperty->getDocBlockTypeStrings();
 
-        if (empty($docblockTypes)) {
+        if (empty($docblockTypes) === true) {
             return null;
         }
 

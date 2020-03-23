@@ -146,6 +146,46 @@ class TypeResolverTest extends ParserTestCase
         $this->assertEquals('Bar\Baz', $type);
     }
 
+    public function testGetTypeForPropertyInClassDocblock() : void
+    {
+        $document = $this->parse('TypeResolverClassDocFixture.php');
+        $node     = new PropertyFetch(
+            new PropertyFetch(
+                new Variable('this', [
+                    'startFilePos' => 30,
+                    'endFilePos' => 300,
+                ]),
+                new Identifier('testProperty')
+            ),
+            new Identifier('baz')
+        );
+
+        $reflectedClass = $this->createMock(ReflectionClass::class);
+
+        $this
+            ->reflector
+            ->method('reflect')
+            ->willReturn($reflectedClass);
+
+        $reflectedClass
+            ->method('getProperty')
+            ->willReturn(null);
+
+        $reflectedClass
+            ->method('getDocComment')
+            ->willReturn(<<<EOF
+/**
+ * @method int testMethod(string \$bar, string \$baz)
+ * @property string \$testProperty A test property
+ */
+EOF
+        );
+
+        $type = $this->subject->getType($document, $node);
+
+        $this->assertEquals('string', $type);
+    }
+
     public function testGetTypeForPropertyFetchOnNonExistentVariable() : void
     {
         $document = $this->parse('TypeResolverFixture.php');
