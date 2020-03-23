@@ -24,9 +24,9 @@ class PropertyDocTagProviderTest extends TestCase
             ->method('getDocComment')
             ->willReturn(<<<EOF
 /**
- * @property string foo Some Property
- * @property int bar Bar
- * @property \Namespaced\Class_ baz
+ * @property string \$foo Some Property
+ * @property int \$bar Bar
+ * @property \Namespaced\Class_ \$baz
  */
 EOF
             );

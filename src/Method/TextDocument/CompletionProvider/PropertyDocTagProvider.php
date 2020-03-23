@@ -33,7 +33,7 @@ class PropertyDocTagProvider implements CompletionProvider
     private function parsePropertiesInDocblock(string $docblock) : array
     {
         $matches         = [];
-        $numberOfMatches = preg_match_all('/@property ([\w,\\\]+) (\w+) ?(.*)/', $docblock, $matches);
+        $numberOfMatches = preg_match_all('/@property ([\w,\\\]+) \$(\w+) ?(.*)/', $docblock, $matches);
 
         if ((bool) $numberOfMatches === false) {
             return [];
