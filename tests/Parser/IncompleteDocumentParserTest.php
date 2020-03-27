@@ -5,41 +5,40 @@ declare(strict_types=1);
 namespace LanguageServer\Test\Parser;
 
 use LanguageServer\Parser\IncompleteDocumentParser;
-use LanguageServer\Parser\LenientParser;
-use LanguageServer\Parser\ParsedDocument;
 use LanguageServer\Test\FixtureTestCase;
 use LanguageServer\TextDocument;
-use PhpParser\Error;
-use PhpParser\Node\Expr\Error as ExprError;
-use PhpParser\ParserFactory;
+use PhpParser\Parser;
 
 class IncompleteDocumentParserTest extends FixtureTestCase
 {
     private IncompleteDocumentParser $subject;
+    private Parser $parser;
 
     public function setUp() : void
     {
-        $parser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
-
-        $this->subject = new IncompleteDocumentParser(new LenientParser($parser));
+        $this->parser  = $this->createMock(Parser::class);
+        $this->subject = new IncompleteDocumentParser($this->parser);
     }
 
     /**
      * @dataProvider incompleteSyntaxProvider
      */
-    public function testParseFixesIncompleteSyntax(string $incompleteSource) : void
+    public function testParseFixesIncompleteSyntax(string $incompleteSource, string $completedSource) : void
     {
         $document = new TextDocument('file:///tmp/Foo.php', $incompleteSource, 0);
 
-        $parsedDocument = $this->subject->parse($document);
+        $this
+            ->parser
+            ->method('parse')
+            ->willReturn([]);
 
-        $this->assertDocumentHasNoErrors($parsedDocument);
-    }
+        $this
+            ->parser
+            ->expects($this->once())
+            ->method('parse')
+            ->with($completedSource);
 
-    private function assertDocumentHasNoErrors(ParsedDocument $document) : void
-    {
-        $this->assertEmpty($document->findNodes(Error::class), 'Failed asserting that the ParsedDocument contained no errors.');
-        $this->assertEmpty($document->findNodes(ExprError::class), 'Failed asserting that the ParsedDocument contained no errors.');
+        $this->subject->parse($document);
     }
 
     /**
@@ -55,7 +54,13 @@ class IncompleteDocumentParserTest extends FixtureTestCase
                 if (true) {
                     \$this->foo->
                 }
+                PHP,
+                <<<PHP
+                <?php
 
+                if (true) {
+                    \$this->foo->stub
+                }
                 PHP,
             ],
             [
@@ -68,12 +73,28 @@ class IncompleteDocumentParserTest extends FixtureTestCase
                     return true;
                 }
                 PHP,
+                <<<PHP
+                <?php
+
+                \$foo->stub
+
+                if (true) {
+                    return true;
+                }
+                PHP,
             ],
             [
                 <<<PHP
                 <?php
 
                 \$foo->
+
+                return \$foo;
+                PHP,
+                <<<PHP
+                <?php
+
+                \$foo->stub
 
                 return \$foo;
                 PHP,
@@ -89,15 +110,31 @@ class IncompleteDocumentParserTest extends FixtureTestCase
                 } catch (\Throwable \$t) {
                 }
                 PHP,
+                <<<PHP
+                <?php
+
+                \$foo->stub
+
+                try {
+                    return;
+                } catch (\Throwable \$t) {
+                }
+                PHP,
             ],
             [
                 <<<PHP
-                \$foo->
-                \$foo->bar(\$bar->
-                \$foo->bar(\$bar->foo->
-                \$foo->bar(\$bar->foo->baz()->
-                \$foo->bar(\$bar->foo->baz()->foo
-                \$foo->bar->
+                    \$this->->foo;
+                PHP,
+                <<<PHP
+                    \$this->stub->foo;
+                PHP,
+            ],
+            [
+                <<<PHP
+                    \$this->->foo;
+                PHP,
+                <<<PHP
+                    \$this->stub->foo;
                 PHP,
             ],
             [
@@ -108,23 +145,24 @@ class IncompleteDocumentParserTest extends FixtureTestCase
 
                 return;
                 PHP,
+                <<<PHP
+                <?php
+
+                Foo::stub
+
+                return;
+                PHP,
             ],
-            /* [ */
-            /*     <<<PHP */
-            /*     <?php */
+            /* /1* [ *1/ */
+            /* /1*     <<<PHP *1/ */
+            /* /1*     <?php *1/ */
 
-            /*     \$factory->create(Factory:: */
+            /* /1*     \$factory->create(Factory:: *1/ */
 
-            /*     return false; */
-            /*     PHP */
-            /* ], */
-            /* [ */
-            /*     <<<PHP */
-            /*     <?php */
-
-            /*     return \$this->foo(\$this->); */
-            /*     PHP */
-            /* ], */
+            /* /1*     return false; *1/ */
+            /* /1*     PHP *1/ */
+            /* /1* ], *1/ */
+            /* /1* [ *1/ */
         ];
     }
 }

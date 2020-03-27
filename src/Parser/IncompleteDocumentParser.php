@@ -6,13 +6,134 @@ namespace LanguageServer\Parser;
 
 use LanguageServer\TextDocument;
 use PhpParser\Parser;
+use function implode;
 use function preg_replace;
-use function preg_replace_callback;
 use function sprintf;
-use const PHP_EOL;
 
 class IncompleteDocumentParser implements DocumentParser
 {
+    private const REGEX_PARSER_TOKENS = [
+        '->',
+        ',',
+        '&=',
+        '\(',
+        '\)',
+        '\[',
+        '\]',
+        '&&',
+        '\|\|',
+        '__',
+        '\?>',
+        '\?\?',
+        '\/\/',
+        '\/\*',
+        '#',
+        '.=',
+        '\'',
+        '"',
+        '{',
+        '}',
+        '\/\=',
+        '\$',
+        '=>',
+        '::',
+        'do',
+        '\.\.\.',
+        '\+\+',
+        '==',
+        '>=',
+        '===',
+        '\!=',
+        '<>',
+        '\!==',
+        '<=',
+        '<=>',
+        '-=',
+        '%=',
+        '\*=',
+        '\\',
+        '\<\?=',
+        '\<\?',
+        '\|=',
+        '::',
+        '\+=',
+        '\*\*',
+        '\*\*=',
+        '<<',
+        '<<=',
+        '>>',
+        '>>=',
+        '<<<',
+        '\^=',
+        'new',
+        'abstract',
+        'array',
+        'break',
+        'callable',
+        'case',
+        'catch',
+        'class',
+        'clone',
+        'const',
+        'continue',
+        'declare',
+        'default',
+        'echo',
+        'else',
+        'elseif',
+        'empty',
+        'enddeclare',
+        'endfor',
+        'endforeach',
+        'endif',
+        'endswitch',
+        'endwhile',
+        'eval',
+        'exit',
+        'die',
+        'extends',
+        'final',
+        'finally',
+        'for',
+        'foreach',
+        'function',
+        'cfunction',
+        'global',
+        'goto',
+        'if',
+        'implements',
+        'include',
+        'include_once',
+        'instanceof',
+        'interface',
+        'isset',
+        'list',
+        'and',
+        'or',
+        'xor',
+        'namespace',
+        'print',
+        'private',
+        'public',
+        'protected',
+        'require',
+        'require_once',
+        'return',
+        'static',
+        'parent',
+        'self',
+        'switch',
+        'throw',
+        'trait',
+        'try',
+        'unset',
+        'use',
+        'var',
+        'while',
+        'yield',
+        'yield from',
+    ];
+
     private Parser $parser;
 
     public function __construct(Parser $parser)
@@ -23,39 +144,17 @@ class IncompleteDocumentParser implements DocumentParser
     public function parse(TextDocument $document) : ParsedDocument
     {
         $documentSource = $this->amendDocumentSource($document->getSource());
-
-        $nodes = $this->parser->parse($documentSource);
+        $nodes          = $this->parser->parse($documentSource);
 
         return new ParsedDocument($nodes, $document);
     }
 
     private function amendDocumentSource(string $source) : string
     {
-        $source = $this->stubIncompleteAccessors($source);
-        $source = $this->stubIncompleteStaticAccessors($source);
-
-        return $source;
-    }
-
-    private function stubIncompleteAccessors(string $source) : string
-    {
-        return preg_replace_callback(
-            '/((\()*\$(\w+(\([$\w]*\))?->\w*)*)\n/',
-            static function (array $matches) {
-                $result = sprintf('%slspSyntaxStub', $matches[1]);
-
-                if (isset($matches[2]) && $matches[2] === '(') {
-                    $result .= ')';
-                }
-
-                return $result .= ';' . PHP_EOL;
-            },
+        return preg_replace(
+            sprintf('/(->|::)(\s*)(%s)/', implode('|', self::REGEX_PARSER_TOKENS)),
+            '\1stub\2\3',
             $source
         );
-    }
-
-    private function stubIncompleteStaticAccessors(string $source) : string
-    {
-        return preg_replace('/(\w+::)\n/', '${1}LSP_SYNTAX_STUB;' . PHP_EOL, $source);
     }
 }
