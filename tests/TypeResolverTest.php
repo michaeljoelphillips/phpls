@@ -64,10 +64,32 @@ class TypeResolverTest extends ParserTestCase
         $this->assertNull($type);
     }
 
-    public function testGetTypeForClassName() : void
+    public function testGetTypeForUnqualifiedClassName() : void
     {
         $document = $this->parse('TypeResolverFixture.php');
         $node     = new Name('Baz');
+
+        $type = $this->subject->getType($document, $node);
+
+        $this->assertEquals('Bar\Baz', $type);
+    }
+
+    public function testGetTypeForQualifiedClassName() : void
+    {
+        $this->markTestIncomplete('Not currently implemented');
+
+        $document = $this->parse('TypeResolverFixture.php');
+        $node     = new Name('Bag\Bad');
+
+        $type = $this->subject->getType($document, $node);
+
+        $this->assertEquals('Bar\Bag\Bad', $type);
+    }
+
+    public function testGetTypeForFullyQualifiedClassName() : void
+    {
+        $document = $this->parse('TypeResolverFixture.php');
+        $node     = new Name('\Bar\Baz');
 
         $type = $this->subject->getType($document, $node);
 

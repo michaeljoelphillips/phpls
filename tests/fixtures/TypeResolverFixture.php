@@ -7,6 +7,7 @@ namespace Fixtures;
 use Foo\Bar as FooBar;
 use Bar\Bar;
 use Bar\Baz;
+use Bar\Bag;
 
 class Foo
 {
