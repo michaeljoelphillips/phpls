@@ -298,6 +298,10 @@ class TypeResolverTest extends ParserTestCase
             ->willReturn($reflectedMethod);
 
         $reflectedMethod
+            ->method('hasReturnType')
+            ->willReturn(true);
+
+        $reflectedMethod
             ->method('getReturnType')
             ->willReturn($reflectionType);
 
@@ -334,6 +338,10 @@ class TypeResolverTest extends ParserTestCase
         $reflectedMethod
             ->method('getReturnType')
             ->willReturn($reflectionType);
+
+        $reflectedMethod
+            ->method('hasReturnType')
+            ->willReturn(true);
 
         $reflectionType
             ->method('__toString')
@@ -380,5 +388,102 @@ class TypeResolverTest extends ParserTestCase
         $type = $this->subject->getType($document, $node);
 
         $this->assertNull($type);
+    }
+
+    public function testGetTypeForMethodCallReturningSelf() : void
+    {
+        $document = $this->parse('TypeResolverFixture.php');
+
+        $node = new MethodCall(
+            new MethodCall(
+                new Variable('this'),
+                new Identifier('methodReturningSelf')
+            ),
+            new Identifier('methodReturningSelf')
+        );
+
+        $reflectedClass  = $this->createMock(ReflectionClass::class);
+        $reflectedMethod = $this->createMock(ReflectionMethod::class);
+        $reflectionType  = $this->createMock(ReflectionType::class);
+
+        $this
+            ->reflector
+            ->method('reflect')
+            ->willReturn($reflectedClass);
+
+        $reflectedClass
+            ->method('getMethod')
+            ->willReturn($reflectedMethod);
+
+        $reflectedClass
+            ->method('getName')
+            ->willReturn('Fixtures\Foo');
+
+        $reflectedMethod
+            ->method('getReturnType')
+            ->willReturn($reflectionType);
+
+        $reflectedMethod
+            ->method('hasReturnType')
+            ->willReturn(true);
+
+        $reflectionType
+            ->method('__toString')
+            ->willReturn('self');
+
+        $type = $this->subject->getType($document, $node);
+
+        $this->assertEquals('Fixtures\Foo', $type);
+    }
+
+    public function testGetTypeForMethodCallReturningParent() : void
+    {
+        $document = $this->parse('TypeResolverFixture.php');
+
+        $node = new MethodCall(
+            new MethodCall(
+                new Variable('this'),
+                new Identifier('methodReturningParent')
+            ),
+            new Identifier('methodReturningParent')
+        );
+
+        $reflectedClass       = $this->createMock(ReflectionClass::class);
+        $reflectedParentClass = $this->createMock(ReflectionClass::class);
+        $reflectedMethod      = $this->createMock(ReflectionMethod::class);
+        $reflectionType       = $this->createMock(ReflectionType::class);
+
+        $this
+            ->reflector
+            ->method('reflect')
+            ->willReturn($reflectedClass);
+
+        $reflectedClass
+            ->method('getMethod')
+            ->willReturn($reflectedMethod);
+
+        $reflectedClass
+            ->method('getParentClass')
+            ->willReturn($reflectedParentClass);
+
+        $reflectedMethod
+            ->method('getReturnType')
+            ->willReturn($reflectionType);
+
+        $reflectedMethod
+            ->method('hasReturnType')
+            ->willReturn(true);
+
+        $reflectionType
+            ->method('__toString')
+            ->willReturn('parent');
+
+        $reflectedParentClass
+            ->method('getName')
+            ->willReturn('Fixtures\BaseClass');
+
+        $type = $this->subject->getType($document, $node);
+
+        $this->assertEquals('Fixtures\BaseClass', $type);
     }
 }

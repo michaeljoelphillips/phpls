@@ -27,6 +27,8 @@ use function array_merge;
 use function array_pop;
 use function array_values;
 use function end;
+use function implode;
+use function in_array;
 use function sprintf;
 use function usort;
 
@@ -106,18 +108,32 @@ class TypeResolver
             return null;
         }
 
-        $methodName = $methodCall->name;
-
         $reflectedClass  = $this->reflector->reflect($variableType);
-        $reflectedMethod = $reflectedClass->getMethod($methodName->name);
+        $reflectedMethod = $reflectedClass->getMethod($methodCall->name->name);
 
-        $type = (string) $reflectedMethod->getReturnType();
+        if ($reflectedMethod->hasReturnType()) {
+            $returnType = (string) $reflectedMethod->getReturnType();
+        } else {
+            $returnType = implode('|', $reflectedMethod->getDocBlockReturnTypes());
+        }
 
-        if ($type === '') {
+        if ($returnType === '') {
             return null;
         }
 
-        return $type;
+        if (in_array($returnType, ['self', '$this', 'this', 'static'])) {
+            return $reflectedClass->getName();
+        }
+
+        if ($returnType === 'parent') {
+            $parent = $reflectedClass->getParentClass();
+
+            if ($parent !== false) {
+                return $parent->getName();
+            }
+        }
+
+        return $returnType;
     }
 
     /**

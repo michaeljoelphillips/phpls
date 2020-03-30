@@ -9,7 +9,7 @@ use Bar\Bar;
 use Bar\Baz;
 use Bar\Bag;
 
-class Foo
+class Foo extends BaseClass
 {
     private $bar;
     private FooBar $foobar;
@@ -36,7 +36,7 @@ class Foo
         return $this->testFunction();
     }
 
-    public function methodCallTestMethod(): self
+    public function methodCallTestMethod()
     {
         $this->methodCallTestMethod()->bar;
     }
@@ -49,4 +49,16 @@ class Foo
     {
         return new FooBar();
     }
+
+    public function methodReturningSelf(): self
+    {
+    }
+
+    public function methodReturningParent(): parent
+    {
+    }
+}
+
+abstract class BaseClass
+{
 }
