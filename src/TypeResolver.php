@@ -252,7 +252,11 @@ class TypeResolver
                 return $this->getType($document, $propertyDeclaration->type);
             }
 
-            return $this->getPropertyTypeFromConstructorAssignment($document, $property);
+            $constructorArgumentType = $this->getPropertyTypeFromConstructorAssignment($document, $property);
+
+            if ($constructorArgumentType !== null) {
+                return $constructorArgumentType;
+            }
         }
 
         return $this->getPropertyTypeFromDocblock($document, $property);
@@ -302,6 +306,7 @@ class TypeResolver
             $constructor->stmts,
             static function (NodeAbstract $node) use ($property) {
                 return $node instanceof Expression
+                    && $node->expr instanceof Assign
                     && $node->expr->var->name->name === $property->name->name;
             }
         ));

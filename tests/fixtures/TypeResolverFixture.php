@@ -4,61 +4,85 @@ declare(strict_types=1);
 
 namespace Fixtures;
 
-use Foo\Bar as FooBar;
+use OtherFixtures\TypeResolverFixture as AliasedTypeResolverFixture;
 use Bar\Bar;
 use Bar\Baz;
 use Bar\Bag;
+use Fixtures\UnqualifiedClassName;
+use stdClass;
 
-class Foo extends BaseClass
+class TypeResolverFixture extends ParentFixture
 {
-    private $bar;
-    private FooBar $foobar;
+    private stdClass $nativelyTypedProperty;
 
-    public function __construct(Bar $bar)
+    /** @var stdClass */
+    private $docBlockTypedProperty;
+
+    public function __construct(stdClass $nativelyTypedProperty, stdClass $propertyAssignedInConstructor)
     {
-        $this->bar = $bar;
+        $this->nativelyTypedProperty = $nativelyTypedProperty;
+        $this->propertyAssignedInConstructor = $propertyAssignedInConstructor;
     }
 
-    public function testFunction()
+    public function getTypeForLocalVariableFixture()
     {
-        return 'Hello';
+        $localVariable = new LocalVariable();
     }
 
-    public function anotherTestFunction(Baz $parameter): Bar
+    public function getTypeForPropertyFetchOnMethodParameterFixture(stdClass $nativelyTypedParameter)
     {
-        $localVariable = new Baz();
-        $localVariable->methodCall();
-
-        $parameter->foo;
-
-        $this->bar->baz;
-
-        return $this->testFunction();
+        return $nativelyTypedParameter->publicProperty;
     }
 
-    public function methodCallTestMethod()
+    public function getTypeForPropertyFetchOnMethodCallReturnTypeFixture(): stdClass
     {
-        $this->methodCallTestMethod()->bar;
+        return new stdClass();
     }
 
-    public function methodWithoutReturnType()
+    public function getTypeForMethodCallOnMethodCallReturnTypeFixture(): TypeResolverFixture
     {
+        return new TypeResolverFixture();
     }
 
-    public function getFooBar(): FooBar
+    public function getTypeForMethodCallWithNoReturnTypeFixture()
     {
-        return new FooBar();
+        return new TypeResolverFixture();
     }
 
-    public function methodReturningSelf(): self
+    public function getTypeForMethodCallReturningSelfFixture(): self
     {
+        return new self();
     }
 
-    public function methodReturningParent(): parent
+    public function getTypeForMethodCallReturningParentFixture(): parent
     {
+        return new parent();
+    }
+
+    /**
+     * @return stdClass
+     */
+    public function getTypeForMethodCallWithDocBlockReturnTypeFixture()
+    {
+        return new stdClass();
+    }
+
+    /**
+     * @param stdClass $paramWithDocBlockType
+     */
+    public function getTypeForArgumentWithDocBlockParamTypeFixture($paramWithDocBlockType)
+    {
+        return $paramWithDocBlockType->publicProperty;
+    }
+
+    public function getTypeForPropertyOnVariableFixture()
+    {
+        $object = new TypeResolverFixture();
+
+        $object->nativelyTypedProperty;
     }
 }
 
-abstract class BaseClass
+abstract class ParentFixture
 {
 }
