@@ -208,7 +208,10 @@ class TypeResolverTest extends ParserTestCase
             ],
             [
                 new PropertyFetch(
-                    new Variable('object'),
+                    new Variable('instance', [
+                        'startFilePos' => 99990,
+                        'endFilePos' => 99999,
+                    ]),
                     new Identifier('nativelyTypedProperty'),
                 ),
                 'Fixtures\TypeResolverFixture',

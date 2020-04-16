@@ -77,9 +77,9 @@ class TypeResolverFixture extends ParentFixture
 
     public function getTypeForPropertyOnVariableFixture()
     {
-        $object = new TypeResolverFixture();
+        $instance = new TypeResolverFixture();
 
-        $object->nativelyTypedProperty;
+        $instance->nativelyTypedProperty;
     }
 }
 

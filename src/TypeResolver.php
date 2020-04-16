@@ -223,8 +223,8 @@ class TypeResolver
         $matchingUseStatement = array_filter(
             $useStatements,
             static function (UseUse $use) use ($node) {
-                if ($use->alias !== null && $use->alias->name === $node->getLast()) {
-                    return true;
+                if ($use->alias !== null) {
+                    return $use->alias->name === $node->getLast();
                 }
 
                 return $use->name->getLast() === $node->getLast();
@@ -245,21 +245,19 @@ class TypeResolver
 
     private function getPropertyType(ParsedDocument $document, PropertyFetch $property) : ?string
     {
-        if ($property->var->name === 'this') {
-            $propertyDeclaration = $document->getClassProperty((string) $property->name);
+        $propertyDeclaration = $document->getClassProperty((string) $property->name);
 
-            if ($propertyDeclaration !== null && $this->propertyHasResolvableType($propertyDeclaration)) {
-                return $this->getType($document, $propertyDeclaration->type);
-            }
-
-            $constructorArgumentType = $this->getPropertyTypeFromConstructorAssignment($document, $property);
-
-            if ($constructorArgumentType !== null) {
-                return $constructorArgumentType;
-            }
+        if ($propertyDeclaration !== null && $this->propertyHasResolvableType($propertyDeclaration)) {
+            return $this->getType($document, $propertyDeclaration->type);
         }
 
-        return $this->getPropertyTypeFromDocblock($document, $property);
+        $docblockType = $this->getPropertyTypeFromDocblock($document, $property);
+
+        if ($docblockType !== null) {
+            return $docblockType;
+        }
+
+        return $this->getPropertyTypeFromConstructorAssignment($document, $property);
     }
 
     private function propertyHasResolvableType(Property $property) : bool
