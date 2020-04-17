@@ -11,6 +11,10 @@ use Bar\Bag;
 use Fixtures\UnqualifiedClassName;
 use stdClass;
 
+/**
+ * @method int testMethod(string $bar, string $baz)
+ * @property stdClass $docblockProperty A test property
+ */
 class TypeResolverFixture extends ParentFixture
 {
     private stdClass $nativelyTypedProperty;
@@ -80,6 +84,11 @@ class TypeResolverFixture extends ParentFixture
         $instance = new TypeResolverFixture();
 
         $instance->nativelyTypedProperty;
+    }
+
+    public function getTypeForClassDocPropertyTag()
+    {
+        $this->docblockProperty->publicProperty;
     }
 }
 

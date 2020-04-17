@@ -96,8 +96,8 @@ class TypeResolverTest extends ParserTestCase
             [
                 new PropertyFetch(
                     new Variable('nativelyTypedParameter', [
-                        'startFilePos' => 1,
-                        'endFilePos' => 900,
+                        'startFilePos' => 9990,
+                        'endFilePos' => 9999,
                     ]),
                     new Identifier('publicProperty')
                 ),
@@ -222,6 +222,19 @@ class TypeResolverTest extends ParserTestCase
                     new Identifier('publicProperty'),
                 ),
                 'stdClass',
+            ],
+            [
+                new PropertyFetch(
+                    new PropertyFetch(
+                        new Variable('this', [
+                            'startFilePos' => 30,
+                            'endFilePos' => 300,
+                        ]),
+                        new Identifier('docblockProperty')
+                    ),
+                    new Identifier('publicProperty')
+                ),
+                '\stdClass',
             ],
         ];
     }
