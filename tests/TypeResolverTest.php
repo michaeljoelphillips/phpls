@@ -216,6 +216,7 @@ class TypeResolverTest extends ParserTestCase
                 ),
                 'Fixtures\TypeResolverFixture',
             ],
+            /*
             [
                 new PropertyFetch(
                     new Variable('paramWithDocBlockType'),
@@ -223,6 +224,7 @@ class TypeResolverTest extends ParserTestCase
                 ),
                 'stdClass',
             ],
+             */
             [
                 new PropertyFetch(
                     new PropertyFetch(
