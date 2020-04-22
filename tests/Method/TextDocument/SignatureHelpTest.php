@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace LanguageServer\Test\Method\TextDocument;
 
 use LanguageServer\Method\TextDocument\SignatureHelp;
-use LanguageServer\Parser\IncompleteDocumentParser;
+use LanguageServer\Parser\DocumentParser;
 use LanguageServer\RegistrySourceLocator;
 use LanguageServer\Server\Protocol\RequestMessage;
 use LanguageServer\Test\FixtureTestCase;
@@ -54,7 +54,7 @@ class SignatureHelpTest extends FixtureTestCase
 
         $this->classReflector = new ClassReflector($this->locator);
         $typeResolver         = new TypeResolver($this->classReflector);
-        $documentParser       = new IncompleteDocumentParser($phpParser);
+        $documentParser       = new DocumentParser($phpParser);
 
         $this->subject = new SignatureHelp($this->classReflector, $this->functionReflector(), $documentParser, $typeResolver, $registry);
     }

@@ -4,20 +4,19 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test\Parser;
 
-use LanguageServer\Parser\IncompleteDocumentParser;
+use LanguageServer\Parser\CorrectiveParser;
 use LanguageServer\Test\FixtureTestCase;
-use LanguageServer\TextDocument;
 use PhpParser\Parser;
 
-class IncompleteDocumentParserTest extends FixtureTestCase
+class CorrectiveParserTest extends FixtureTestCase
 {
-    private IncompleteDocumentParser $subject;
+    private CorrectiveParser $subject;
     private Parser $parser;
 
     public function setUp() : void
     {
         $this->parser  = $this->createMock(Parser::class);
-        $this->subject = new IncompleteDocumentParser($this->parser);
+        $this->subject = new CorrectiveParser($this->parser);
     }
 
     /**
@@ -25,8 +24,6 @@ class IncompleteDocumentParserTest extends FixtureTestCase
      */
     public function testParseFixesIncompleteSyntax(string $incompleteSource, string $completedSource) : void
     {
-        $document = new TextDocument('file:///tmp/Foo.php', $incompleteSource, 0);
-
         $this
             ->parser
             ->method('parse')
@@ -38,7 +35,7 @@ class IncompleteDocumentParserTest extends FixtureTestCase
             ->method('parse')
             ->with($completedSource);
 
-        $this->subject->parse($document);
+        $this->subject->parse($incompleteSource);
     }
 
     /**
@@ -59,7 +56,7 @@ class IncompleteDocumentParserTest extends FixtureTestCase
                 <?php
 
                 if (true) {
-                    \$this->foo->stub
+                    \$this->foo->stub;
                 }
                 PHP,
             ],
@@ -76,7 +73,7 @@ class IncompleteDocumentParserTest extends FixtureTestCase
                 <<<PHP
                 <?php
 
-                \$foo->stub
+                \$foo->stub;
 
                 if (true) {
                     return true;
@@ -94,7 +91,7 @@ class IncompleteDocumentParserTest extends FixtureTestCase
                 <<<PHP
                 <?php
 
-                \$foo->stub
+                \$foo->stub;
 
                 return \$foo;
                 PHP,
@@ -113,7 +110,7 @@ class IncompleteDocumentParserTest extends FixtureTestCase
                 <<<PHP
                 <?php
 
-                \$foo->stub
+                \$foo->stub;
 
                 try {
                     return;
@@ -148,21 +145,87 @@ class IncompleteDocumentParserTest extends FixtureTestCase
                 <<<PHP
                 <?php
 
-                Foo::stub
+                Foo::stub;
 
                 return;
                 PHP,
             ],
-            /* /1* [ *1/ */
-            /* /1*     <<<PHP *1/ */
-            /* /1*     <?php *1/ */
+            [
+                <<<PHP
+                \$this->getType(\$document, \$node->class);
 
-            /* /1*     \$factory->create(Factory:: *1/ */
+                \$this->
 
-            /* /1*     return false; *1/ */
-            /* /1*     PHP *1/ */
-            /* /1* ], *1/ */
-            /* /1* [ *1/ */
+                return;
+                PHP,
+                <<<PHP
+                \$this->getType(\$document, \$node->class);
+
+                \$this->stub;
+
+                return;
+                PHP,
+            ],
+            [
+                <<<PHP
+                if (\$this->empty) {
+                    \$this->
+                }
+                PHP,
+                <<<PHP
+                if (\$this->empty) {
+                    \$this->stub;
+                }
+                PHP,
+            ],
+            [
+                <<<PHP
+                \$var = \$this->empty->
+
+                return \$var;
+                PHP,
+                <<<PHP
+                \$var = \$this->empty->stub;
+
+                return \$var;
+                PHP,
+            ],
+            [
+                <<<PHP
+                return \$node instanceof Expression
+                    && \$node->expr instanceof Assign
+                    && \$node->
+                    && \$node->expr->var->name->name === \$property->name->name;
+                PHP,
+                <<<PHP
+                return \$node instanceof Expression
+                    && \$node->expr instanceof Assign
+                    && \$node->stub
+                    && \$node->expr->var->name->name === \$property->name->name;
+                PHP,
+            ],
+            [
+                <<<PHP
+                return \$a-> <=> \$b->getEndFilePos();
+                PHP,
+                <<<PHP
+                return \$a->stub <=> \$b->getEndFilePos();
+                PHP,
+            ],
+            [
+                <<<PHP
+                usort(\$expressions, static function (NodeAbstract \$a, NodeAbstract \$b) {
+                    return \$a->getEndFilePos() <=> \$b->getEndFilePos()
+                        || \$this->
+                });
+                PHP,
+                <<<PHP
+                usort(\$expressions, static function (NodeAbstract \$a, NodeAbstract \$b) {
+                    return \$a->getEndFilePos() <=> \$b->getEndFilePos()
+                        || \$this->stub;
+                });
+                PHP,
+            ],
         ];
     }
 }

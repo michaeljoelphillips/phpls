@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace LanguageServer\Test;
 
 use LanguageServer\Parser\DocumentParser;
-use LanguageServer\Parser\IncompleteDocumentParser;
 use LanguageServer\Parser\ParsedDocument;
 use LanguageServer\TextDocument;
 use PhpParser\Lexer;
@@ -74,6 +73,6 @@ abstract class ParserTestCase extends FixtureTestCase
 
     protected function getDocumentParser() : DocumentParser
     {
-        return new IncompleteDocumentParser($this->getParser());
+        return new DocumentParser($this->getParser());
     }
 }

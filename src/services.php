@@ -22,7 +22,8 @@ use LanguageServer\Method\TextDocument\DidClose;
 use LanguageServer\Method\TextDocument\DidOpen;
 use LanguageServer\Method\TextDocument\DidSave;
 use LanguageServer\Method\TextDocument\SignatureHelp;
-use LanguageServer\Parser\IncompleteDocumentParser;
+use LanguageServer\Parser\CorrectiveParser;
+use LanguageServer\Parser\DocumentParser;
 use LanguageServer\Parser\LenientParser;
 use LanguageServer\RegistrySourceLocator;
 use LanguageServer\Server\Cache\UsageAwareCache;
@@ -126,18 +127,21 @@ return [
         );
     },
     Parser::class => static function (ContainerInterface $container) {
-        return new LenientParser(
-            (new ParserFactory())->create(
-                ParserFactory::ONLY_PHP7,
-                new Lexer([
-                    'usedAttributes' => [
-                        'comments',
-                        'startLine',
-                        'endLine',
-                        'startFilePos',
-                        'endFilePos',
-                    ],
-                ])
+        return new CorrectiveParser(
+            new LenientParser(
+                (new ParserFactory())->create(
+                    ParserFactory::ONLY_PHP7,
+                    new Lexer([
+                        'usedAttributes' => [
+                            'comments',
+                            'startLine',
+                            'endLine',
+                            'startFilePos',
+                            'endFilePos',
+                        ],
+                    ])
+                ),
+                $container->get(LoggerInterface::class)
             )
         );
     },
@@ -150,8 +154,8 @@ return [
     MemoizingParser::class => static function (ContainerInterface $container) {
         return new MemoizingParser($container->get('parserCache'), $container->get(Parser::class));
     },
-    IncompleteDocumentParser::class => static function (ContainerInterface $container) {
-        return new IncompleteDocumentParser($container->get(MemoizingParser::class));
+    DocumentParser::class => static function (ContainerInterface $container) {
+        return new DocumentParser($container->get(Parser::class));
     },
     SourceLocator::class => static function (ContainerInterface $container) {
         $factory = new LazyLoadingValueHolderFactory();
@@ -227,7 +231,7 @@ return [
     },
     Completion::class => static function (ContainerInterface $container) {
         return new Completion(
-            $container->get(IncompleteDocumentParser::class),
+            $container->get(DocumentParser::class),
             $container->get(TextDocumentRegistry::class),
             $container->get(ClassReflector::class),
             $container->get(TypeResolver::class),
@@ -238,7 +242,7 @@ return [
         return new SignatureHelp(
             $container->get(ClassReflector::class),
             $container->get(FunctionReflector::class),
-            $container->get(IncompleteDocumentParser::class),
+            $container->get(DocumentParser::class),
             $container->get(TypeResolver::class),
             $container->get(TextDocumentRegistry::class)
         );
@@ -246,13 +250,13 @@ return [
     DidOpen::class => static function (ContainerInterface $container) {
         return new DidOpen(
             $container->get(TextDocumentRegistry::class),
-            $container->get(IncompleteDocumentParser::class)
+            $container->get(DocumentParser::class)
         );
     },
     DidChange::class => static function (ContainerInterface $container) {
         return new DidChange(
             $container->get(TextDocumentRegistry::class),
-            $container->get(IncompleteDocumentParser::class)
+            $container->get(DocumentParser::class)
         );
     },
     DidClose::class => static function () {
