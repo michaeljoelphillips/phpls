@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Tests\Method\TextDocument\CompletionProvider;
+namespace LanguageServer\Test\Method\TextDocument\CompletionProvider;
 
 use LanguageServer\Method\TextDocument\CompletionProvider\MethodDocTagProvider;
 use LanguageServerProtocol\CompletionItem;

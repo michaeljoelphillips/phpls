@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test;
 
+use LanguageServer\Parser\ParsedDocument;
 use LanguageServer\TypeResolver;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\PropertyFetch;
@@ -20,6 +21,7 @@ class TypeResolverTest extends ParserTestCase
     private const PARSER_FIXTURE = self::FIXTURE_DIRECTORY . '/TypeResolverFixture.php';
 
     private TypeResolver $subject;
+    private ParsedDocument $document;
 
     protected function getSourceLocator() : SourceLocator
     {

@@ -38,10 +38,7 @@ abstract class ParserTestCase extends FixtureTestCase
 
     protected function getClassReflector() : ClassReflector
     {
-        return new ClassReflector(
-            $this->getSourceLocator(),
-            $this->getAstLocator()
-        );
+        return new ClassReflector($this->getSourceLocator());
     }
 
     protected function getAstLocator() : AstLocator
