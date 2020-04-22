@@ -49,7 +49,7 @@ class MethodDocTagProvider implements CompletionProvider
             return [];
         }
 
-        $parsedMehods = [];
+        $parsedMethods = [];
         for ($i = 0; $i < $numberOfMatches; $i++) {
             $parsedMethods[] = array_column($matches, $i);
         }

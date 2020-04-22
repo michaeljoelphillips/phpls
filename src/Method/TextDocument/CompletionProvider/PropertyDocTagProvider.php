@@ -39,7 +39,7 @@ class PropertyDocTagProvider implements CompletionProvider
             return [];
         }
 
-        $parsedMehods = [];
+        $parsedProperties = [];
         for ($i = 0; $i < $numberOfMatches; $i++) {
             $parsedProperties[] = array_column($matches, $i);
         }

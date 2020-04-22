@@ -38,6 +38,7 @@ use function usort;
 class TypeResolver
 {
     private Reflector $reflector;
+    private DocBlockFactory $docblockFactory;
 
     public function __construct(Reflector $reflector)
     {
