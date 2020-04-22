@@ -7,6 +7,7 @@ namespace LanguageServer\Test\Parser;
 use LanguageServer\Parser\CorrectiveParser;
 use LanguageServer\Test\FixtureTestCase;
 use PhpParser\Parser;
+use Psr\Log\LoggerInterface;
 
 class CorrectiveParserTest extends FixtureTestCase
 {
@@ -16,7 +17,7 @@ class CorrectiveParserTest extends FixtureTestCase
     public function setUp() : void
     {
         $this->parser  = $this->createMock(Parser::class);
-        $this->subject = new CorrectiveParser($this->parser);
+        $this->subject = new CorrectiveParser($this->parser, $this->createMock(LoggerInterface::class));
     }
 
     /**

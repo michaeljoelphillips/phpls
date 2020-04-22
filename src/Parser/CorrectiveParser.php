@@ -4,11 +4,18 @@ declare(strict_types=1);
 
 namespace LanguageServer\Parser;
 
+use PhpParser\Error;
 use PhpParser\ErrorHandler;
+use PhpParser\ErrorHandler\Collecting;
 use PhpParser\Parser;
+use Psr\Log\LoggerInterface;
+use function array_slice;
+use function explode;
 use function implode;
 use function preg_replace_callback_array;
 use function sprintf;
+use function trim;
+use const PHP_EOL;
 
 class CorrectiveParser implements Parser
 {
@@ -138,10 +145,12 @@ class CorrectiveParser implements Parser
     ];
 
     private Parser $wrappedParser;
+    private LoggerInterface $logger;
 
-    public function __construct(Parser $wrappedParser)
+    public function __construct(Parser $wrappedParser, LoggerInterface $logger)
     {
         $this->wrappedParser = $wrappedParser;
+        $this->logger        = $logger;
     }
 
     /**
@@ -149,12 +158,31 @@ class CorrectiveParser implements Parser
      */
     public function parse(string $source, ?ErrorHandler $errorHandler = null)
     {
-        $completedSource = $this->amendDocumentSource($source);
+        $errorHandler    = new Collecting();
+        $completedSource = $this->amendIncompleteSource($source);
+        $result          = $this->wrappedParser->parse($completedSource, $errorHandler);
 
-        return $this->wrappedParser->parse($completedSource);
+        if ($errorHandler->hasErrors()) {
+            foreach ($errorHandler->getErrors() as $error) {
+                $this->logger->debug(
+                    sprintf('Parse Error: %s', $error->getMessage()),
+                    [
+                        'lines' => $this->formatOffendingLines($completedSource, $error),
+                    ],
+                );
+            }
+        }
+
+        if ($result === null) {
+            $this->logger->debug('Parse Error: No Results (Parsing completely failed)');
+
+            return [];
+        }
+
+        return $result;
     }
 
-    private function amendDocumentSource(string $source) : string
+    private function amendIncompleteSource(string $source) : string
     {
         return preg_replace_callback_array(
             [
@@ -163,5 +191,16 @@ class CorrectiveParser implements Parser
             ],
             $source
         );
+    }
+
+    private function formatOffendingLines(string $code, Error $error) : string
+    {
+        $lines = array_slice(
+            explode(PHP_EOL, $code),
+            $error->getStartLine() - 1,
+            2
+        );
+
+        return trim(implode(PHP_EOL, $lines));
     }
 }

@@ -24,7 +24,6 @@ use LanguageServer\Method\TextDocument\DidSave;
 use LanguageServer\Method\TextDocument\SignatureHelp;
 use LanguageServer\Parser\CorrectiveParser;
 use LanguageServer\Parser\DocumentParser;
-use LanguageServer\Parser\LenientParser;
 use LanguageServer\RegistrySourceLocator;
 use LanguageServer\Server\Cache\UsageAwareCache;
 use LanguageServer\Server\Log\LogHandler;
@@ -128,21 +127,19 @@ return [
     },
     Parser::class => static function (ContainerInterface $container) {
         return new CorrectiveParser(
-            new LenientParser(
-                (new ParserFactory())->create(
-                    ParserFactory::ONLY_PHP7,
-                    new Lexer([
-                        'usedAttributes' => [
-                            'comments',
-                            'startLine',
-                            'endLine',
-                            'startFilePos',
-                            'endFilePos',
-                        ],
-                    ])
-                ),
-                $container->get(LoggerInterface::class)
-            )
+            (new ParserFactory())->create(
+                ParserFactory::ONLY_PHP7,
+                new Lexer([
+                    'usedAttributes' => [
+                        'comments',
+                        'startLine',
+                        'endLine',
+                        'startFilePos',
+                        'endFilePos',
+                    ],
+                ])
+            ),
+            $container->get(LoggerInterface::class)
         );
     },
     'parserCache' => static function () {
