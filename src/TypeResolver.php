@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LanguageServer;
 
 use LanguageServer\Parser\ParsedDocument;
+use phpDocumentor\Reflection\DocBlockFactory;
 use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\MethodCall;
@@ -20,6 +21,8 @@ use PhpParser\Node\Stmt\Expression;
 use PhpParser\Node\Stmt\Property;
 use PhpParser\Node\Stmt\UseUse;
 use PhpParser\NodeAbstract;
+use Roave\BetterReflection\Reflection\ReflectionClass;
+use Roave\BetterReflection\Reflection\ReflectionProperty;
 use Roave\BetterReflection\Reflector\Reflector;
 use function array_column;
 use function array_filter;
@@ -27,16 +30,20 @@ use function array_merge;
 use function array_pop;
 use function array_values;
 use function end;
+use function implode;
+use function in_array;
 use function sprintf;
 use function usort;
 
 class TypeResolver
 {
     private Reflector $reflector;
+    private DocBlockFactory $docblockFactory;
 
     public function __construct(Reflector $reflector)
     {
-        $this->reflector = $reflector;
+        $this->reflector       = $reflector;
+        $this->docblockFactory = DocBlockFactory::createInstance();
     }
 
     public function getType(ParsedDocument $document, ?NodeAbstract $node) : ?string
@@ -106,18 +113,32 @@ class TypeResolver
             return null;
         }
 
-        $methodName = $methodCall->name;
-
         $reflectedClass  = $this->reflector->reflect($variableType);
-        $reflectedMethod = $reflectedClass->getMethod($methodName->name);
+        $reflectedMethod = $reflectedClass->getMethod($methodCall->name->name);
 
-        $type = (string) $reflectedMethod->getReturnType();
+        if ($reflectedMethod->hasReturnType()) {
+            $returnType = (string) $reflectedMethod->getReturnType();
+        } else {
+            $returnType = implode('|', $reflectedMethod->getDocBlockReturnTypes());
+        }
 
-        if ($type === '') {
+        if ($returnType === '') {
             return null;
         }
 
-        return $type;
+        if (in_array($returnType, ['self', '$this', 'this', 'static'])) {
+            return $reflectedClass->getName();
+        }
+
+        if ($returnType === 'parent') {
+            $parent = $reflectedClass->getParentClass();
+
+            if ($parent !== false) {
+                return $parent->getName();
+            }
+        }
+
+        return $returnType;
     }
 
     /**
@@ -207,8 +228,8 @@ class TypeResolver
         $matchingUseStatement = array_filter(
             $useStatements,
             static function (UseUse $use) use ($node) {
-                if ($use->alias !== null && $use->alias->name === $node->getLast()) {
-                    return true;
+                if ($use->alias !== null) {
+                    return $use->alias->name === $node->getLast();
                 }
 
                 return $use->name->getLast() === $node->getLast();
@@ -229,17 +250,19 @@ class TypeResolver
 
     private function getPropertyType(ParsedDocument $document, PropertyFetch $property) : ?string
     {
-        if ($property->var->name === 'this') {
-            $propertyDeclaration = $document->getClassProperty((string) $property->name);
+        $propertyDeclaration = $document->getClassProperty((string) $property->name);
 
-            if ($propertyDeclaration !== null && $this->propertyHasResolvableType($propertyDeclaration)) {
-                return $this->getType($document, $propertyDeclaration->type);
-            }
-
-            return $this->getPropertyTypeFromConstructorAssignment($document, $property);
+        if ($propertyDeclaration !== null && $this->propertyHasResolvableType($propertyDeclaration)) {
+            return $this->getType($document, $propertyDeclaration->type);
         }
 
-        return $this->getPropertyTypeFromDocblock($document, $property);
+        $docblockType = $this->getPropertyTypeFromDocblock($document, $property);
+
+        if ($docblockType !== null) {
+            return $docblockType;
+        }
+
+        return $this->getPropertyTypeFromConstructorAssignment($document, $property);
     }
 
     private function propertyHasResolvableType(Property $property) : bool
@@ -261,12 +284,34 @@ class TypeResolver
         $reflectedProperty = $reflectedClass->getProperty($propertyName->name);
 
         if ($reflectedProperty === null) {
+            return $this->getPropertyTypeFromClassDocblock($document, $property, $reflectedClass);
+        }
+
+        return $this->getPropertyFromPropertyDocblock($document, $reflectedProperty);
+    }
+
+    private function getPropertyTypeFromClassDocblock(ParsedDocument $document, PropertyFetch $property, ReflectionClass $class) : ?string
+    {
+        $propertyTags = $this->docblockFactory->create($class->getDocComment())->getTagsByName('property');
+
+        if (empty($propertyTags) === true) {
             return null;
         }
 
+        foreach ($propertyTags as $propertyTag) {
+            if ($propertyTag->getVariableName() === $property->name->name) {
+                return (string) $propertyTag->getType();
+            }
+        }
+
+        return null;
+    }
+
+    private function getPropertyFromPropertyDocblock(ParsedDocument $document, ReflectionProperty $reflectedProperty) : ?string
+    {
         $docblockTypes = $reflectedProperty->getDocBlockTypeStrings();
 
-        if (empty($docblockTypes)) {
+        if (empty($docblockTypes) === true) {
             return null;
         }
 
@@ -286,6 +331,7 @@ class TypeResolver
             $constructor->stmts,
             static function (NodeAbstract $node) use ($property) {
                 return $node instanceof Expression
+                    && $node->expr instanceof Assign
                     && $node->expr->var->name->name === $property->name->name;
             }
         ));

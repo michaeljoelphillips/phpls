@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test;
 
+use LanguageServer\Parser\ParsedDocument;
 use LanguageServer\TypeResolver;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\PropertyFetch;
@@ -11,352 +12,234 @@ use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
 use PhpParser\Node\Param;
-use Roave\BetterReflection\Reflection\ReflectionClass;
-use Roave\BetterReflection\Reflection\ReflectionMethod;
-use Roave\BetterReflection\Reflection\ReflectionProperty;
-use Roave\BetterReflection\Reflection\ReflectionType;
-use Roave\BetterReflection\Reflector\Reflector;
+use PhpParser\NodeAbstract;
+use Roave\BetterReflection\SourceLocator\Type\SingleFileSourceLocator;
+use Roave\BetterReflection\SourceLocator\Type\SourceLocator;
 
 class TypeResolverTest extends ParserTestCase
 {
+    private const PARSER_FIXTURE = self::FIXTURE_DIRECTORY . '/TypeResolverFixture.php';
+
     private TypeResolver $subject;
-    private Reflector $reflector;
+    private ParsedDocument $document;
+
+    protected function getSourceLocator() : SourceLocator
+    {
+        return new SingleFileSourceLocator(
+            self::PARSER_FIXTURE,
+            $this->getAstLocator()
+        );
+    }
 
     public function setUp() : void
     {
-        $this->reflector = $this->createMock(Reflector::class);
-        $this->subject   = new TypeResolver($this->reflector);
+        $this->document = $this->parse('TypeResolverFixture.php');
+        $this->subject  = new TypeResolver($this->getClassReflector());
     }
 
-    public function testGetTypeForThis() : void
+    /**
+     * @dataProvider nodeProvider
+     */
+    public function testGetType(NodeAbstract $node, ?string $expectedType) : void
     {
-        $document = $this->parse('TypeResolverFixture.php');
-        $node     = new Variable('this');
+        $actualType = $this->subject->getType($this->document, $node);
 
-        $type = $this->subject->getType($document, $node);
-
-        $this->assertEquals('Fixtures\Foo', $type);
+        $this->assertEquals($expectedType, $actualType);
     }
 
-    public function testGetTypeForLocalVariable() : void
+    /**
+     * @return array<int, array<int, NodeAbstract|string|null>>
+     */
+    public function nodeProvider() : array
     {
-        $document = $this->parse('TypeResolverFixture.php');
-        $node     = new Variable('localVariable', [
-            'startFilePos' => 1,
-            'endFilePos' => 900,
-        ]);
-
-        $type = $this->subject->getType($document, $node);
-
-        $this->assertEquals('Bar\Baz', $type);
-    }
-
-    public function testGetTypeForNonExistentLocalVariable() : void
-    {
-        $document = $this->parse('TypeResolverFixture.php');
-        $node     = new Variable('nonExistentVariable', [
-            'startFilePos' => 1,
-            'endFilePos' => 250,
-        ]);
-
-        $type = $this->subject->getType($document, $node);
-
-        $this->assertNull($type);
-    }
-
-    public function testGetTypeForClassName() : void
-    {
-        $document = $this->parse('TypeResolverFixture.php');
-        $node     = new Name('Baz');
-
-        $type = $this->subject->getType($document, $node);
-
-        $this->assertEquals('Bar\Baz', $type);
-    }
-
-    public function testGetTypeForClassAlias() : void
-    {
-        $document = $this->parse('TypeResolverFixture.php');
-        $node     = new Name('FooBar');
-
-        $type = $this->subject->getType($document, $node);
-
-        $this->assertEquals('Foo\Bar', $type);
-    }
-
-    public function testGetTypeForUntypedParameter() : void
-    {
-        $document = $this->parse('TypeResolverFixture.php');
-        $node     = new Param(new Variable('parameter'));
-
-        $type = $this->subject->getType($document, $node);
-
-        $this->assertNull($type);
-    }
-
-    public function testGetTypeForTypedParameter() : void
-    {
-        $document = $this->parse('TypeResolverFixture.php');
-        $node     = new Param(new Variable('parameter'), null, new Name('Baz'));
-
-        $type = $this->subject->getType($document, $node);
-
-        $this->assertEquals('Bar\Baz', $type);
-    }
-
-    public function testGetTypeDefaultsToNull() : void
-    {
-        $document = $this->parse('TypeResolverFixture.php');
-        $node     = new Identifier('Foo');
-
-        $type = $this->subject->getType($document, $node);
-
-        $this->assertNull($type);
-    }
-
-    public function testGetTypeForPropertyFetchOnVariable() : void
-    {
-        $document = $this->parse('TypeResolverFixture.php');
-        $node     = new PropertyFetch(
-            new Variable('parameter', [
-                'startFilePos' => 30,
-                'endFilePos' => 900,
-            ]),
-            new Identifier('foo')
-        );
-
-        $reflectedClass    = $this->createMock(ReflectionClass::class);
-        $reflectedProperty = $this->createMock(ReflectionProperty::class);
-
-        $this
-            ->reflector
-            ->method('reflect')
-            ->willReturn($reflectedClass);
-
-        $reflectedClass
-            ->method('getProperty')
-            ->willReturn($reflectedProperty);
-
-        $reflectedProperty
-            ->method('getDocBlockTypeStrings')
-            ->willReturn(['Baz']);
-
-        $type = $this->subject->getType($document, $node);
-
-        $this->assertEquals('Bar\Baz', $type);
-    }
-
-    public function testGetTypeForPropertyFetchOnNonExistentVariable() : void
-    {
-        $document = $this->parse('TypeResolverFixture.php');
-        $node     = new PropertyFetch(
-            new Variable('nonExistentVariable', [
-                'startFilePos' => 30,
-                'endFilePos' => 300,
-            ]),
-            new Identifier('foo')
-        );
-
-        $type = $this->subject->getType($document, $node);
-
-        $this->assertNull($type);
-    }
-
-    public function testGetTypeForPropertyFetchOnUndefinedPropertyOnTheClass() : void
-    {
-        $document = $this->parse('TypeResolverFixture.php');
-        $node     = new PropertyFetch(
-            new Variable('parameter', [
-                'startFilePos' => 30,
-                'endFilePos' => 300,
-            ]),
-            new Identifier('foo')
-        );
-
-        $reflectedClass    = $this->createMock(ReflectionClass::class);
-        $reflectedProperty = $this->createMock(ReflectionProperty::class);
-
-        $this
-            ->reflector
-            ->method('reflect')
-            ->willReturn($reflectedClass);
-
-        $reflectedClass
-            ->method('getProperty')
-            ->willReturn(null);
-
-        $type = $this->subject->getType($document, $node);
-
-        $this->assertNull($type);
-    }
-
-    public function testGetTypeForPropertyFetchOnPropertyAssignedInTheConstructor() : void
-    {
-        $document = $this->parse('TypeResolverFixture.php');
-
-        $node = new PropertyFetch(
-            new PropertyFetch(
-                new Variable('this', [
-                    'startFilePos' => 30,
-                    'endFilePos' => 300,
+        return [
+            [
+                new Variable('this'),
+                'Fixtures\TypeResolverFixture',
+            ],
+            [
+                new Variable('localVariable', [
+                    'startFilePos' => 1,
+                    'endFilePos' => 900,
                 ]),
-                new Identifier('bar')
-            ),
-            new Identifier('baz')
-        );
-
-        $reflectedClass    = $this->createMock(ReflectionClass::class);
-        $reflectedProperty = $this->createMock(ReflectionProperty::class);
-
-        $this
-            ->reflector
-            ->method('reflect')
-            ->willReturn($reflectedClass);
-
-        $reflectedClass
-            ->method('getProperty')
-            ->willReturn($reflectedProperty);
-
-        $reflectedProperty
-            ->method('getDocBlockTypeStrings')
-            ->willReturn([]);
-
-        $type = $this->subject->getType($document, $node);
-
-        $this->assertEquals('Bar\Bar', $type);
-    }
-
-    public function testGetTypeForPropertyFetchOnTypedProperty() : void
-    {
-        $document = $this->parse('TypeResolverFixture.php');
-
-        $node = new PropertyFetch(
-            new PropertyFetch(
-                new Variable('this', [
-                    'startFilePos' => 30,
-                    'endFilePos' => 300,
+                'Fixtures\LocalVariable',
+            ],
+            [
+                new Variable('nonExistentVariable', [
+                    'startFilePos' => 1,
+                    'endFilePos' => 250,
                 ]),
-                new Identifier('foobar')
-            ),
-            new Identifier('baz')
-        );
-
-        $type = $this->subject->getType($document, $node);
-
-        $this->assertEquals('Foo\Bar', $type);
-    }
-
-    public function testGetTypeForPropertyFetchOnMethodCallReturnType() : void
-    {
-        $document = $this->parse('TypeResolverFixture.php');
-
-        $node = new PropertyFetch(
-            new MethodCall(
-                new Variable('this'),
-                new Identifier('methodCallTestMethod')
-            ),
-            new Identifier('bar')
-        );
-
-        $reflectedClass  = $this->createMock(ReflectionClass::class);
-        $reflectedMethod = $this->createMock(ReflectionMethod::class);
-        $reflectionType  = $this->createMock(ReflectionType::class);
-
-        $reflectionType
-            ->method('__toString')
-            ->willReturn('Fixtures\Foo');
-
-        $this
-            ->reflector
-            ->method('reflect')
-            ->willReturn($reflectedClass);
-
-        $reflectedClass
-            ->method('getMethod')
-            ->willReturn($reflectedMethod);
-
-        $reflectedMethod
-            ->method('getReturnType')
-            ->willReturn($reflectionType);
-
-        $type = $this->subject->getType($document, $node);
-
-        $this->assertEquals('Fixtures\Foo', $type);
-    }
-
-    public function testGetTypeForMethodCallOnMethodCallReturnType() : void
-    {
-        $document = $this->parse('TypeResolverFixture.php');
-
-        $node = new MethodCall(
-            new MethodCall(
-                new Variable('this'),
-                new Identifier('anotherTestFunction')
-            ),
-            new Identifier('methodCallTestMethod')
-        );
-
-        $reflectedClass  = $this->createMock(ReflectionClass::class);
-        $reflectedMethod = $this->createMock(ReflectionMethod::class);
-        $reflectionType  = $this->createMock(ReflectionType::class);
-
-        $this
-            ->reflector
-            ->method('reflect')
-            ->willReturn($reflectedClass);
-
-        $reflectedClass
-            ->method('getMethod')
-            ->willReturn($reflectedMethod);
-
-        $reflectedMethod
-            ->method('getReturnType')
-            ->willReturn($reflectionType);
-
-        $reflectionType
-            ->method('__toString')
-            ->willReturn('Bar\Bar');
-
-        $type = $this->subject->getType($document, $node);
-
-        $this->assertEquals('Bar\Bar', $type);
-    }
-
-    public function testGetTypeForMethodCallWithNoReturnType() : void
-    {
-        $document = $this->parse('TypeResolverFixture.php');
-
-        $node = new MethodCall(
-            new MethodCall(
-                new Variable('this'),
-                new Identifier('methodWithoutReturnType')
-            ),
-            new Identifier('methodCallTestMethod')
-        );
-
-        $reflectedClass  = $this->createMock(ReflectionClass::class);
-        $reflectedMethod = $this->createMock(ReflectionMethod::class);
-        $reflectionType  = $this->createMock(ReflectionType::class);
-
-        $this
-            ->reflector
-            ->method('reflect')
-            ->willReturn($reflectedClass);
-
-        $reflectedClass
-            ->method('getMethod')
-            ->willReturn($reflectedMethod);
-
-        $reflectedMethod
-            ->method('getReturnType')
-            ->willReturn($reflectionType);
-
-        $reflectionType
-            ->method('__toString')
-            ->willReturn('');
-
-        $type = $this->subject->getType($document, $node);
-
-        $this->assertNull($type);
+                null,
+            ],
+            [
+                new Name('UnqualifiedClassName'),
+                'Fixtures\UnqualifiedClassName',
+            ],
+            [
+                new Name('\OtherFixtures\FullyQualifiedClassName'),
+                '\OtherFixtures\FullyQualifiedClassName',
+            ],
+            [
+                new Name('AliasedTypeResolverFixture'),
+                'OtherFixtures\TypeResolverFixture',
+            ],
+            [
+                new Param(new Variable('untypedParameter')),
+                null,
+            ],
+            [
+                new Param(new Variable('nativelyTypedParameter'), null, new Name('stdClass')),
+                'stdClass',
+            ],
+            [
+                new Identifier('TypeResolverFixture'),
+                null,
+            ],
+            [
+                new PropertyFetch(
+                    new Variable('nativelyTypedParameter', [
+                        'startFilePos' => 9990,
+                        'endFilePos' => 9999,
+                    ]),
+                    new Identifier('publicProperty')
+                ),
+                'stdClass',
+            ],
+            [
+                new PropertyFetch(
+                    new PropertyFetch(
+                        new Variable('this', [
+                            'startFilePos' => 30,
+                            'endFilePos' => 300,
+                        ]),
+                        new Identifier('nativelyTypedProperty')
+                    ),
+                    new Identifier('publicProperty')
+                ),
+                'stdClass',
+            ],
+            [
+                new PropertyFetch(
+                    new MethodCall(
+                        new Variable('this'),
+                        new Identifier('getTypeForPropertyFetchOnMethodCallReturnTypeFixture')
+                    ),
+                    new Identifier('publicProperty')
+                ),
+                'stdClass',
+            ],
+            [
+                new MethodCall(
+                    new MethodCall(
+                        new Variable('this'),
+                        new Identifier('getTypeForMethodCallOnMethodCallReturnTypeFixture')
+                    ),
+                    new Identifier('publicMethod')
+                ),
+                'Fixtures\TypeResolverFixture',
+            ],
+            [
+                new MethodCall(
+                    new MethodCall(
+                        new Variable('this'),
+                        new Identifier('getTypeForMethodCallWithNoReturnTypeFixture')
+                    ),
+                    new Identifier('publicMethod')
+                ),
+                null,
+            ],
+            [
+                new MethodCall(
+                    new MethodCall(
+                        new Variable('this'),
+                        new Identifier('getTypeForMethodCallReturningSelfFixture')
+                    ),
+                    new Identifier('publicMethod')
+                ),
+                'Fixtures\TypeResolverFixture',
+            ],
+            [
+                new MethodCall(
+                    new MethodCall(
+                        new Variable('this'),
+                        new Identifier('getTypeForMethodCallReturningParentFixture')
+                    ),
+                    new Identifier('publicMethod')
+                ),
+                'Fixtures\ParentFixture',
+            ],
+            [
+                new PropertyFetch(
+                    new Variable('nonExistentVariable', [
+                        'startFilePos' => 1,
+                        'endFilePos' => 900,
+                    ]),
+                    new Identifier('publicProperty')
+                ),
+                null,
+            ],
+            [
+                new PropertyFetch(
+                    new PropertyFetch(
+                        new Variable('this'),
+                        new Identifier('undefinedProperty'),
+                    ),
+                    new Identifier('publicInstanceVariable')
+                ),
+                null,
+            ],
+            [
+                new PropertyFetch(
+                    new MethodCall(
+                        new Variable('this'),
+                        new Identifier('getTypeForMethodCallWithDocBlockReturnTypeFixture'),
+                    ),
+                    new Identifier('publicInstanceVariable')
+                ),
+                '\stdClass',
+            ],
+            [
+                new PropertyFetch(
+                    new PropertyFetch(
+                        new Variable('this'),
+                        new Identifier('docBlockTypedProperty'),
+                    ),
+                    new Identifier('publicInstanceVariable')
+                ),
+                'stdClass',
+            ],
+            [
+                new PropertyFetch(
+                    new Variable('instance', [
+                        'startFilePos' => 99990,
+                        'endFilePos' => 99999,
+                    ]),
+                    new Identifier('nativelyTypedProperty'),
+                ),
+                'Fixtures\TypeResolverFixture',
+            ],
+            /*
+            [
+                new PropertyFetch(
+                    new Variable('paramWithDocBlockType'),
+                    new Identifier('publicProperty'),
+                ),
+                'stdClass',
+            ],
+             */
+            [
+                new PropertyFetch(
+                    new PropertyFetch(
+                        new Variable('this', [
+                            'startFilePos' => 30,
+                            'endFilePos' => 300,
+                        ]),
+                        new Identifier('docblockProperty')
+                    ),
+                    new Identifier('publicProperty')
+                ),
+                '\stdClass',
+            ],
+        ];
     }
 }

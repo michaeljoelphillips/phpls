@@ -13,6 +13,8 @@ use LanguageServer\Method\TextDocument\Completion;
 use LanguageServer\Method\TextDocument\CompletionProvider\ClassConstantProvider;
 use LanguageServer\Method\TextDocument\CompletionProvider\InstanceMethodProvider;
 use LanguageServer\Method\TextDocument\CompletionProvider\InstanceVariableProvider;
+use LanguageServer\Method\TextDocument\CompletionProvider\MethodDocTagProvider;
+use LanguageServer\Method\TextDocument\CompletionProvider\PropertyDocTagProvider;
 use LanguageServer\Method\TextDocument\CompletionProvider\StaticMethodProvider;
 use LanguageServer\Method\TextDocument\CompletionProvider\StaticPropertyProvider;
 use LanguageServer\Method\TextDocument\DidChange;
@@ -20,8 +22,8 @@ use LanguageServer\Method\TextDocument\DidClose;
 use LanguageServer\Method\TextDocument\DidOpen;
 use LanguageServer\Method\TextDocument\DidSave;
 use LanguageServer\Method\TextDocument\SignatureHelp;
-use LanguageServer\Parser\IncompleteDocumentParser;
-use LanguageServer\Parser\LenientParser;
+use LanguageServer\Parser\CorrectiveParser;
+use LanguageServer\Parser\DocumentParser;
 use LanguageServer\RegistrySourceLocator;
 use LanguageServer\Server\Cache\UsageAwareCache;
 use LanguageServer\Server\Log\LogHandler;
@@ -124,7 +126,7 @@ return [
         );
     },
     Parser::class => static function (ContainerInterface $container) {
-        return new LenientParser(
+        return new CorrectiveParser(
             (new ParserFactory())->create(
                 ParserFactory::ONLY_PHP7,
                 new Lexer([
@@ -136,7 +138,8 @@ return [
                         'endFilePos',
                     ],
                 ])
-            )
+            ),
+            $container->get(LoggerInterface::class)
         );
     },
     'parserCache' => static function () {
@@ -148,8 +151,8 @@ return [
     MemoizingParser::class => static function (ContainerInterface $container) {
         return new MemoizingParser($container->get('parserCache'), $container->get(Parser::class));
     },
-    IncompleteDocumentParser::class => static function (ContainerInterface $container) {
-        return new IncompleteDocumentParser($container->get(MemoizingParser::class));
+    DocumentParser::class => static function (ContainerInterface $container) {
+        return new DocumentParser($container->get(Parser::class));
     },
     SourceLocator::class => static function (ContainerInterface $container) {
         $factory = new LazyLoadingValueHolderFactory();
@@ -191,27 +194,14 @@ return [
         return new TypeResolver($container->get(ClassReflector::class));
     },
     TextDocumentRegistry::class => DI\create(TextDocumentRegistry::class),
-    StaticMethodProvider::class => static function (ContainerInterface $container) {
-        return new StaticMethodProvider();
-    },
-    InstanceMethodProvider::class => static function (ContainerInterface $container) {
-        return new InstanceMethodProvider();
-    },
-    InstanceVariableProvider::class => static function (ContainerInterface $container) {
-        return new InstanceVariableProvider();
-    },
-    ClassConstantProvider::class => static function (ContainerInterface $container) {
-        return new ClassConstantProvider();
-    },
-    StaticPropertyProvider::class => static function (ContainerInterface $container) {
-        return new StaticPropertyProvider();
-    },
     'completionProviders' => [
         DI\get(InstanceMethodProvider::class),
         DI\get(StaticMethodProvider::class),
         DI\get(InstanceVariableProvider::class),
         DI\get(StaticPropertyProvider::class),
         DI\get(ClassConstantProvider::class),
+        DI\get(MethodDocTagProvider::class),
+        DI\get(PropertyDocTagProvider::class),
     ],
     'messageHandlers' => [
         DI\get(Initialize::class),
@@ -238,7 +228,7 @@ return [
     },
     Completion::class => static function (ContainerInterface $container) {
         return new Completion(
-            $container->get(IncompleteDocumentParser::class),
+            $container->get(DocumentParser::class),
             $container->get(TextDocumentRegistry::class),
             $container->get(ClassReflector::class),
             $container->get(TypeResolver::class),
@@ -249,7 +239,7 @@ return [
         return new SignatureHelp(
             $container->get(ClassReflector::class),
             $container->get(FunctionReflector::class),
-            $container->get(IncompleteDocumentParser::class),
+            $container->get(DocumentParser::class),
             $container->get(TypeResolver::class),
             $container->get(TextDocumentRegistry::class)
         );
@@ -257,13 +247,13 @@ return [
     DidOpen::class => static function (ContainerInterface $container) {
         return new DidOpen(
             $container->get(TextDocumentRegistry::class),
-            $container->get(IncompleteDocumentParser::class)
+            $container->get(DocumentParser::class)
         );
     },
     DidChange::class => static function (ContainerInterface $container) {
         return new DidChange(
             $container->get(TextDocumentRegistry::class),
-            $container->get(IncompleteDocumentParser::class)
+            $container->get(DocumentParser::class)
         );
     },
     DidClose::class => static function () {
