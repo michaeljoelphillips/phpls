@@ -274,7 +274,7 @@ class TypeResolver
     private function getPropertyTypeFromDocblock(ParsedDocument $document, PropertyFetch $property) : ?string
     {
         $propertyName = $property->name;
-        $variableType = $this->getType($document, $property->var);
+        $variableType = $this->getType($document, $property);
 
         if ($variableType === null) {
             return null;
