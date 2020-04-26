@@ -44,6 +44,7 @@ use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use React\EventLoop\Factory;
 use React\EventLoop\LoopInterface;
+use React\Socket\Connector as TcpClient;
 use React\Socket\Server as TcpServer;
 use React\Stream\CompositeStream;
 use React\Stream\ReadableResourceStream;
@@ -70,19 +71,26 @@ return [
         );
     },
     'stream' => static function (ContainerInterface $container) {
-        $port = $container->get('server.port');
+        $mode = $container->get('mode');
+        $port = $container->get('port');
         $loop = $container->get(LoopInterface::class);
 
-        if ($port === null) {
-            return new CompositeStream(
-                new ReadableResourceStream(STDIN, $loop),
-                new WritableResourceStream(STDOUT, $loop)
-            );
-        }
+        switch ($mode) {
+            case 'stdio':
+                return new CompositeStream(
+                    new ReadableResourceStream(STDIN, $loop),
+                    new WritableResourceStream(STDOUT, $loop)
+                );
+            case 'client':
+                $client = new TcpClient($loop);
 
-        return new TcpServer(sprintf('127.0.0.1:%d', $port), $loop);
+                return $client->connect(sprintf('127.0.0.1:%d', $port));
+            case 'server':
+                return new TcpServer(sprintf('127.0.0.1:%d', $port), $loop);
+        }
     },
-    'server.port' => null,
+    'port' => null,
+    'mode' => null,
     MessageSerializer::class => static function (ContainerInterface $container) {
         return new MessageSerializer($container->get(SerializerInterface::class));
     },

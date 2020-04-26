@@ -14,9 +14,19 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
+use function implode;
+use function in_array;
+use function sprintf;
 
 class RunCommand extends Command
 {
+    private const MODES = [
+        'stdio',
+        'client',
+        'server',
+    ];
+
     // phpcs:ignore
     protected static $defaultName = 'phpls:run';
 
@@ -33,12 +43,13 @@ class RunCommand extends Command
     {
         $this
             ->setDescription('Start PHPLS')
-            ->addOption('port', null, InputOption::VALUE_OPTIONAL, 'Run over TCP with the specified port');
+            ->addOption('port', null, InputOption::VALUE_OPTIONAL, 'Run over TCP with the specified port')
+            ->addOption('mode', null, InputOption::VALUE_OPTIONAL, 'Set the TCP mode', 'stdio');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output) : int
     {
-        $this->container->set('server.port', $input->getOption('port'));
+        $this->setOptions($input, $output);
 
         $loop   = $this->container->get(LoopInterface::class);
         $stream = $this->container->get('stream');
@@ -56,5 +67,29 @@ class RunCommand extends Command
         $loop->run();
 
         return 0;
+    }
+
+    private function setOptions(InputInterface $input, OutputInterface $output) : void
+    {
+        $io   = new SymfonyStyle($input, $output);
+        $mode = $input->getOption('mode');
+        $port = $input->getOption('port');
+
+        if (in_array($mode, self::MODES) === false) {
+            $io->getErrorStyle()->error(
+                sprintf("Option 'mode' must be one of: %s", implode(', ', self::MODES)),
+            );
+
+            exit(1);
+        }
+
+        if ($mode !== 'stdio' && $port === null) {
+            $io->getErrorStyle()->error("Option 'port' is required");
+
+            exit(1);
+        }
+
+        $this->container->set('port', $input->getOption('port'));
+        $this->container->set('mode', $input->getOption('mode'));
     }
 }

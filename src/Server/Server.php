@@ -8,6 +8,7 @@ use InvalidArgumentException;
 use LanguageServer\Server\Protocol\Message;
 use LanguageServer\Server\Protocol\ResponseMessage;
 use Psr\Log\LoggerInterface;
+use React\Promise\Promise;
 use React\Socket\ConnectionInterface;
 use React\Socket\Server as TcpServer;
 use React\Stream\DuplexStreamInterface;
@@ -57,12 +58,20 @@ class Server
     }
 
     /**
-     * @param TcpServer|DuplexStreamInterface $stream
+     * @param TcpServer|DuplexStreamInterface|Promise<DuplexStreamInterface> $stream
      */
     public function listen($stream) : void
     {
         if ($stream instanceof TcpServer) {
             $stream->on('connection', function (ConnectionInterface $connection) : void {
+                $this->listen($connection);
+            });
+
+            return;
+        }
+
+        if ($stream instanceof Promise) {
+            $stream->then(function (ConnectionInterface $connection) : void {
                 $this->listen($connection);
             });
 

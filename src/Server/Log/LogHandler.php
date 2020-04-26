@@ -10,6 +10,7 @@ use LanguageServer\Server\Protocol\LogMessageParams;
 use LanguageServer\Server\Protocol\NotificationMessage;
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Logger;
+use React\Promise\Promise;
 use React\Socket\ConnectionInterface;
 use React\Socket\Server;
 use React\Stream\WritableStreamInterface;
@@ -48,6 +49,14 @@ class LogHandler extends AbstractProcessingHandler
     {
         if ($stream instanceof Server) {
             $stream->on('connection', function (ConnectionInterface $connection) : void {
+                $this->setStream($connection);
+            });
+
+            return;
+        }
+
+        if ($stream instanceof Promise) {
+            $stream->then(function (ConnectionInterface $connection) : void {
                 $this->setStream($connection);
             });
 
