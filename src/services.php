@@ -232,6 +232,7 @@ return [
             $container->get(TextDocumentRegistry::class),
             $container->get(ClassReflector::class),
             $container->get(TypeResolver::class),
+            $container->get(LoggerInterface::class),
             ...$container->get('completionProviders')
         );
     },

@@ -16,6 +16,7 @@ use LanguageServer\TypeResolver;
 use LanguageServerProtocol\CompletionList;
 use PhpParser\Node\Expr;
 use PhpParser\NodeAbstract;
+use Psr\Log\LoggerInterface;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflector\Reflector;
 use function array_filter;
@@ -30,17 +31,19 @@ class Completion implements MessageHandler
     private TextDocumentRegistry $registry;
     private Reflector $reflector;
     private TypeResolver $resolver;
+    private LoggerInterface $logger;
 
     /** @var CompletionProvider[] */
     private array $providers;
 
-    public function __construct(DocumentParser $parser, TextDocumentRegistry $registry, Reflector $reflector, TypeResolver $resolver, CompletionProvider ...$providers)
+    public function __construct(DocumentParser $parser, TextDocumentRegistry $registry, Reflector $reflector, TypeResolver $resolver, LoggerInterface $logger, CompletionProvider ...$providers)
     {
         $this->parser    = $parser;
         $this->registry  = $registry;
         $this->reflector = $reflector;
         $this->resolver  = $resolver;
         $this->providers = $providers;
+        $this->logger    = $logger;
     }
 
     /**
@@ -77,6 +80,8 @@ class Completion implements MessageHandler
         $type = $this->resolver->getType($parsedDocument, $expression);
 
         if ($type === null) {
+            $this->logger->debug('Type could not be resolved for expression', ['expression' => $expression]);
+
             return $this->emptyCompletionList();
         }
 
