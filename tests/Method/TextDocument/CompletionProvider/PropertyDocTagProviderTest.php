@@ -27,13 +27,14 @@ class PropertyDocTagProviderTest extends TestCase
  * @property string \$foo Some Property
  * @property int \$bar Bar
  * @property \Namespaced\Class_ \$baz
+ * @property \stdClass invalidVar
  */
 EOF
             );
 
         $completionItems = $subject->complete($expression, $reflection);
 
-        $this->assertCount(3, $completionItems);
+        $this->assertCount(4, $completionItems);
         $this->assertContainsOnly(CompletionItem::class, $completionItems);
         $this->assertEquals('foo', $completionItems[0]->label);
         $this->assertEquals('string', $completionItems[0]->detail);
