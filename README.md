@@ -6,14 +6,22 @@ PHPLS is available for download as a phar via the [releases
 page](https://github.com/michaeljoelphillips/phpls/releases).
 
 PHPLS is compatible with any Language Client that can communicate over `STDIO`
-or TCP.  PHPLS will run over `STDIO` by default, but can be ran as a TCP server
-via the `--port` switch.
+or TCP.  PHPLS will run over `STDIO` by default, but can be ran over TCP via
+the `--mode` and `--port` switches.
 
 ```
-phpls --port=9900
+# Over stdio
+phpls
+
+# As a TCP client
+phpls --mode=client --port=9900
+
+# As a TCP server
+phpls --mode=server --port=9900
 ```
 
-Note: `STDIO` is not an option for users on Windows.
+Note: `STDIO` is not a working option for users on Windows due to a lack of
+support for non-blocking stdio.
 
 ## Supported Clients
 
