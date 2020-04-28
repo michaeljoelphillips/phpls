@@ -112,7 +112,6 @@ class CorrectiveParser implements Parser
         '"',
         '{',
         '\/\=',
-        '\$',
         '=>',
         '::',
         '\.\.\.',
@@ -186,6 +185,7 @@ class CorrectiveParser implements Parser
     {
         return preg_replace_callback_array(
             [
+                '/(->|::)(\s+)(\$)/' => static fn ($match) => sprintf('%sstub%s%s', $match[1], $match[2], $match[3]),
                 sprintf('/(->|::)(\s*)(%s)/', implode('|', self::SYMBOLS)) => static fn ($match) => sprintf('%sstub%s%s', $match[1], $match[2], $match[3]),
                 sprintf('/(->|::)(\s+)(%s)/', implode('|', self::KEYWORDS)) => static fn ($match) => sprintf('%sstub;%s%s', $match[1], $match[2], $match[3]),
             ],
