@@ -134,20 +134,23 @@ return [
         );
     },
     Parser::class => static function (ContainerInterface $container) {
-        return new CorrectiveParser(
-            (new ParserFactory())->create(
-                ParserFactory::ONLY_PHP7,
-                new Lexer([
-                    'usedAttributes' => [
-                        'comments',
-                        'startLine',
-                        'endLine',
-                        'startFilePos',
-                        'endFilePos',
-                    ],
-                ])
-            ),
-            $container->get(LoggerInterface::class)
+        return new MemoizingParser(
+            $container->get('parserCache'),
+            new CorrectiveParser(
+                (new ParserFactory())->create(
+                    ParserFactory::ONLY_PHP7,
+                    new Lexer([
+                        'usedAttributes' => [
+                            'comments',
+                            'startLine',
+                            'endLine',
+                            'startFilePos',
+                            'endFilePos',
+                        ],
+                    ])
+                ),
+                $container->get(LoggerInterface::class)
+            )
         );
     },
     'parserCache' => static function () {
@@ -155,9 +158,6 @@ return [
     },
     'reflectorCache' => static function () {
         return new UsageAwareCache();
-    },
-    MemoizingParser::class => static function (ContainerInterface $container) {
-        return new MemoizingParser($container->get('parserCache'), $container->get(Parser::class));
     },
     DocumentParser::class => static function (ContainerInterface $container) {
         return new DocumentParser($container->get(Parser::class));
@@ -169,7 +169,7 @@ return [
             AggregateSourceLocator::class,
             static function (&$wrappedObject, $proxy, $method, $parameters, &$initializer) use ($container) : void {
                 $locator = new AstLocator(
-                    $container->get(MemoizingParser::class),
+                    $container->get(Parser::class),
                     static function () use ($container) {
                         return $container->get(FunctionReflector::class);
                     }
@@ -181,7 +181,7 @@ return [
                     new MemoizingSourceLocator(
                         $container->get('reflectorCache'),
                         new AggregateSourceLocator([
-                            new PhpInternalSourceLocator($locator, new PhpStormStubsSourceStubber($container->get(MemoizingParser::class))),
+                            new PhpInternalSourceLocator($locator, new PhpStormStubsSourceStubber($container->get(Parser::class))),
                             (new MakeLocatorForComposerJsonAndInstalledJson())($container->get('project_root'), $locator),
                         ]),
                     ),
