@@ -25,7 +25,7 @@ support for non-blocking stdio.
 
 ## Supported Clients
 
-* [michaeljoelphillips/vscode-phpls](michaeljoelphillips/vscode-phpls)
+* [michaeljoelphillips/vscode-phpls](https://github.com/michaeljoelphillips/vscode-phpls)
 * [michaeljoelphillips/nvim-lsp](https://github.com/michaeljoelphillips/nvim-lsp)
 
 ## Configuration
