@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Test\Method;
+namespace LanguageServer\Test\MessageHandler;
 
 use DI\Container;
 use LanguageServer\MessageHandler\Initialize;

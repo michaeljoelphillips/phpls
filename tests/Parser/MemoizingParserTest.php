@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Test;
+namespace LanguageServer\Test\Parser;
 
 use LanguageServer\Parser\MemoizingParser;
 use PhpParser\Parser;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Test;
+namespace LanguageServer\Test\Reflection;
 
 use LanguageServer\ParsedDocument;
 use LanguageServer\Reflection\RegistrySourceLocator;

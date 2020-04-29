@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Test\Method\TextDocument;
+namespace LanguageServer\Test\MessageHandler\TextDocument;
 
 use LanguageServer\MessageHandler\TextDocument\SignatureHelp;
 use LanguageServer\ParsedDocument;

@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Test\Method\TextDocument;
+namespace LanguageServer\Test\MessageHandler\TextDocument;
 
-use LanguageServer\MessageHandler\TextDocument\DidOpen;
+use LanguageServer\MessageHandler\TextDocument\DidChange;
 use LanguageServer\Server\Protocol\RequestMessage;
 use LanguageServer\TextDocumentRegistry;
 use PhpParser\Parser;
 use PHPUnit\Framework\TestCase;
 
-class DidOpenTest extends TestCase
+class DidChangeTest extends TestCase
 {
-    public function testDidOpen() : void
+    public function testDidChange() : void
     {
         $registry = $this->createMock(TextDocumentRegistry::class);
         $parser   = $this->createMock(Parser::class);
@@ -26,13 +26,13 @@ class DidOpenTest extends TestCase
             ->expects($this->once())
             ->method('add');
 
-        $subject = new DidOpen($registry, $parser);
-
-        $request = new RequestMessage(1, 'textDocument/didOpen', [
+        $request = new RequestMessage(1, 'textDocument/didChange', [
             'textDocument' => [
                 'uri' => 'file:///tmp/foo.php',
-                'text' => '<?php echo "Hi";?>',
                 'version' => 1,
+            ],
+            'contentChanges' => [
+                ['text' => '<?php echo "Hi";?>'],
             ],
         ]);
 
@@ -40,7 +40,7 @@ class DidOpenTest extends TestCase
             $this->fail('The next method should never be called');
         };
 
-        $subject = new DidOpen($registry, $parser);
+        $subject = new DidChange($registry, $parser);
 
         $subject->__invoke($request, $next);
     }

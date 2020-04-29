@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Test\Method\TextDocument;
+namespace LanguageServer\Test\MessageHandler\TextDocument;
 
 use LanguageServer\MessageHandler\TextDocument\DidSave;
 use LanguageServer\Server\Protocol\RequestMessage;
