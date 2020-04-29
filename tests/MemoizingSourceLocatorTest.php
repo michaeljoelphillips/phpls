@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test;
 
-use LanguageServer\MemoizingSourceLocator;
+use LanguageServer\Reflection\MemoizingSourceLocator;
 use PHPUnit\Framework\TestCase;
 use Psr\SimpleCache\CacheInterface;
 use Roave\BetterReflection\Identifier\Identifier;

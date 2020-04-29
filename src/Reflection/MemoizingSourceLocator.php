@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer;
+namespace LanguageServer\Reflection;
 
 use Psr\SimpleCache\CacheInterface;
 use Roave\BetterReflection\Identifier\Identifier;
