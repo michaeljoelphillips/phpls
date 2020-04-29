@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test\Method\TextDocument\CompletionProvider;
 
-use LanguageServer\Method\TextDocument\CompletionProvider\InstanceVariableProvider;
+use LanguageServer\Completion\InstanceVariableProvider;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\Variable;

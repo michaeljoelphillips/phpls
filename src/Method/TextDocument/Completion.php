@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace LanguageServer\Method\TextDocument;
 
+use LanguageServer\Completion\CompletionProvider;
 use LanguageServer\CursorPosition;
-use LanguageServer\Method\TextDocument\CompletionProvider\CompletionProvider;
 use LanguageServer\ParsedDocument;
 use LanguageServer\Server\MessageHandler;
 use LanguageServer\Server\Protocol\Message;

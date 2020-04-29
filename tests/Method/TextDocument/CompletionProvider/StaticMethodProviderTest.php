@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test\Method\TextDocument\CompletionProvider;
 
-use LanguageServer\Method\TextDocument\CompletionProvider\StaticMethodProvider;
+use LanguageServer\Completion\StaticMethodProvider;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Name;
 use PhpParser\Node\Stmt\Class_;

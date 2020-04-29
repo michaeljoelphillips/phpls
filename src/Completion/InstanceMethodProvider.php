@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Method\TextDocument\CompletionProvider;
+namespace LanguageServer\Completion;
 
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\NodeAbstract;
