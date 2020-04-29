@@ -23,7 +23,6 @@ use LanguageServer\Method\TextDocument\DidOpen;
 use LanguageServer\Method\TextDocument\DidSave;
 use LanguageServer\Method\TextDocument\SignatureHelp;
 use LanguageServer\Parser\CorrectiveParser;
-use LanguageServer\Parser\DocumentParser;
 use LanguageServer\RegistrySourceLocator;
 use LanguageServer\Server\Cache\UsageAwareCache;
 use LanguageServer\Server\Log\LogHandler;
@@ -159,9 +158,6 @@ return [
     'reflectorCache' => static function () {
         return new UsageAwareCache();
     },
-    DocumentParser::class => static function (ContainerInterface $container) {
-        return new DocumentParser($container->get(Parser::class));
-    },
     SourceLocator::class => static function (ContainerInterface $container) {
         $factory = new LazyLoadingValueHolderFactory();
 
@@ -188,9 +184,6 @@ return [
                 ]);
             }
         );
-    },
-    ClassReflector::class => static function (ContainerInterface $container) {
-        return new ClassReflector($container->get(SourceLocator::class));
     },
     FunctionReflector::class => static function (ContainerInterface $container) {
         return new FunctionReflector(
@@ -222,51 +215,14 @@ return [
         DI\get(DidClose::class),
         DI\get(Exit_::class),
     ],
-    Initialize::class => static function (ContainerInterface $container) {
-        return new Initialize($container);
-    },
-    Initialized::class => DI\create(Initialized::class),
-    Exit_::class => static function (ContainerInterface $container) {
-        return new Exit_();
-    },
-    DidSave::class => static function (ContainerInterface $container) {
-        return new DidSave(
-            $container->get(TextDocumentRegistry::class)
-        );
-    },
     Completion::class => static function (ContainerInterface $container) {
         return new Completion(
-            $container->get(DocumentParser::class),
             $container->get(TextDocumentRegistry::class),
             $container->get(ClassReflector::class),
             $container->get(TypeResolver::class),
             $container->get(LoggerInterface::class),
             ...$container->get('completionProviders')
         );
-    },
-    SignatureHelp::class => static function (ContainerInterface $container) {
-        return new SignatureHelp(
-            $container->get(ClassReflector::class),
-            $container->get(FunctionReflector::class),
-            $container->get(DocumentParser::class),
-            $container->get(TypeResolver::class),
-            $container->get(TextDocumentRegistry::class)
-        );
-    },
-    DidOpen::class => static function (ContainerInterface $container) {
-        return new DidOpen(
-            $container->get(TextDocumentRegistry::class),
-            $container->get(DocumentParser::class)
-        );
-    },
-    DidChange::class => static function (ContainerInterface $container) {
-        return new DidChange(
-            $container->get(TextDocumentRegistry::class),
-            $container->get(DocumentParser::class)
-        );
-    },
-    DidClose::class => static function () {
-        return new DidClose();
     },
     'config' => static function () {
         return (new ConfigFactory())->__invoke();
