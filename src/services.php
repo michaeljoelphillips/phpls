@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 use LanguageServer\Config\ConfigFactory;
 use LanguageServer\Console\RunCommand;
-use LanguageServer\Parser\MemoizingParser;
-use LanguageServer\Reflection\MemoizingSourceLocator;
 use LanguageServer\Method\Exit_;
 use LanguageServer\Method\Initialize;
 use LanguageServer\Method\Initialized;
@@ -23,6 +21,8 @@ use LanguageServer\Method\TextDocument\DidOpen;
 use LanguageServer\Method\TextDocument\DidSave;
 use LanguageServer\Method\TextDocument\SignatureHelp;
 use LanguageServer\Parser\CorrectiveParser;
+use LanguageServer\Parser\MemoizingParser;
+use LanguageServer\Reflection\MemoizingSourceLocator;
 use LanguageServer\Reflection\RegistrySourceLocator;
 use LanguageServer\Server\Cache\UsageAwareCache;
 use LanguageServer\Server\Log\LogHandler;
