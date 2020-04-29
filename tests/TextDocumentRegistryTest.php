@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test;
 
-use LanguageServer\TextDocument;
+use LanguageServer\ParsedDocument;
 use LanguageServer\TextDocumentRegistry;
 use PHPUnit\Framework\TestCase;
 
@@ -13,8 +13,8 @@ class TextDocumentRegistryTest extends TestCase
     public function testAddOnlyStoresLatestVersion() : void
     {
         $subject    = new TextDocumentRegistry();
-        $versionOne = new TextDocument('file:///tmp/foo.php', '<?php ', 0);
-        $versionTwo = new TextDocument('file:///tmp/foo.php', '<?php ', 1);
+        $versionOne = new ParsedDocument('file:///tmp/foo.php', '<?php ', []);
+        $versionTwo = new ParsedDocument('file:///tmp/foo.php', '<?php ', []);
 
         $subject->add($versionOne);
         $subject->add($versionTwo);
@@ -25,8 +25,8 @@ class TextDocumentRegistryTest extends TestCase
     public function testGetAll() : void
     {
         $subject    = new TextDocumentRegistry();
-        $versionOne = new TextDocument('file:///tmp/foo.php', '<?php ', 0);
-        $versionTwo = new TextDocument('file:///tmp/bar.php', '<?php ', 1);
+        $versionOne = new ParsedDocument('file:///tmp/foo.php', '<?php ', []);
+        $versionTwo = new ParsedDocument('file:///tmp/bar.php', '<?php ', []);
 
         $subject->add($versionOne);
         $subject->add($versionTwo);
@@ -37,7 +37,7 @@ class TextDocumentRegistryTest extends TestCase
     public function testClear() : void
     {
         $subject    = new TextDocumentRegistry();
-        $versionOne = new TextDocument('file:///tmp/foo.php', '<?php ', 0);
+        $versionOne = new ParsedDocument('file:///tmp/foo.php', '<?php ', []);
 
         $subject->add($versionOne);
         $subject->clear();

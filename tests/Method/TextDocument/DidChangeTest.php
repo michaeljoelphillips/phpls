@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace LanguageServer\Test\Method\TextDocument;
 
 use LanguageServer\Method\TextDocument\DidChange;
-use LanguageServer\Parser\DocumentParser;
 use LanguageServer\Server\Protocol\RequestMessage;
 use LanguageServer\TextDocumentRegistry;
+use PhpParser\Parser;
 use PHPUnit\Framework\TestCase;
 
 class DidChangeTest extends TestCase
@@ -15,11 +15,12 @@ class DidChangeTest extends TestCase
     public function testDidChange() : void
     {
         $registry = $this->createMock(TextDocumentRegistry::class);
-        $parser   = $this->createMock(DocumentParser::class);
+        $parser   = $this->createMock(Parser::class);
 
         $parser
             ->expects($this->once())
-            ->method('parse');
+            ->method('parse')
+            ->willReturn([]);
 
         $registry
             ->expects($this->once())

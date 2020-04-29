@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace LanguageServer;
 
+use LanguageServer\Parser\ParsedDocument;
 use function array_key_exists;
 
 class TextDocumentRegistry
 {
-    /** @var array<string, TextDocument> */
+    /** @var array<string, ParsedDocument> */
     private array $documents = [];
 
     public function has(string $fileName) : bool
@@ -16,18 +17,18 @@ class TextDocumentRegistry
         return array_key_exists($this->documents, $fileName);
     }
 
-    public function get(string $fileName) : TextDocument
+    public function get(string $fileName) : ParsedDocument
     {
         return $this->documents[$fileName];
     }
 
-    public function add(TextDocument $document) : void
+    public function add(ParsedDocument $document) : void
     {
         $this->documents[$document->getUri()] = $document;
     }
 
     /**
-     * @return array<string, TextDocument>
+     * @return array<string, ParsedDocument>
      */
     public function getAll() : array
     {

@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test;
 
-use LanguageServer\Parser\DocumentParser;
 use LanguageServer\Parser\ParsedDocument;
-use LanguageServer\TextDocument;
 use PhpParser\Lexer;
 use PhpParser\Parser;
 use PhpParser\ParserFactory;
@@ -61,15 +59,10 @@ abstract class ParserTestCase extends FixtureTestCase
 
     protected function parse(string $file) : ParsedDocument
     {
-        $parser = $this->getDocumentParser();
+        $parser = $this->getParser();
+        $source = $this->loadFixture($file);
+        $nodes  = $parser->parse($source);
 
-        $document = new TextDocument($file, $this->loadFixture($file), 0);
-
-        return $parser->parse($document);
-    }
-
-    protected function getDocumentParser() : DocumentParser
-    {
-        return new DocumentParser($this->getParser());
+        return new ParsedDocument($file, $source, $nodes);
     }
 }

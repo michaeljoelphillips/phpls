@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace LanguageServer\Parser;
 
 use LanguageServer\CursorPosition;
-use LanguageServer\TextDocument;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Namespace_;
@@ -14,24 +13,49 @@ use PhpParser\Node\Stmt\Use_;
 use PhpParser\NodeAbstract;
 use PhpParser\NodeFinder;
 use function array_filter;
+use function array_splice;
+use function explode;
+use function implode;
 use function sprintf;
+use function strlen;
+use function substr;
 
 class ParsedDocument
 {
     /** @var NodeAbstract[] */
     private array $nodes;
-    private TextDocument $document;
+    private string $uri;
+    private string $source;
     private NodeFinder $finder;
 
     /**
      * @param NodeAbstract[] $nodes
      */
-    public function __construct(array $nodes, TextDocument $document)
+    public function __construct(string $uri, string $source, array $nodes)
     {
-        $this->nodes    = $nodes;
-        $this->document = $document;
+        $this->uri    = $uri;
+        $this->source = $source;
+        $this->nodes  = $nodes;
 
         $this->finder = new NodeFinder();
+    }
+
+    public function getUri() : string
+    {
+        return $this->uri;
+    }
+
+    public function getSource() : string
+    {
+        return $this->source;
+    }
+
+    /**
+     * @return NodeAbstract[]
+     */
+    public function getNodes() : array
+    {
+        return $this->nodes;
     }
 
     /**
@@ -125,20 +149,20 @@ class ParsedDocument
     }
 
     /**
-     * @return NodeAbstract[]
+     * Calculate the cursor position relative to the beginning of the file.
+     *
+     * This method removes all characters proceeding the $character at $line
+     * and counts the total length of the final string.
      */
-    public function getNodes() : array
-    {
-        return $this->nodes;
-    }
-
-    public function getSource() : string
-    {
-        return $this->document->getSource();
-    }
-
     public function getCursorPosition(int $line, int $character) : CursorPosition
     {
-        return $this->document->getCursorPosition($line, $character);
+        $lines            = explode("\n", $this->source);
+        $lines            = array_splice($lines, 0, $line);
+        $lines[$line - 1] = substr($lines[$line - 1], 0, $character);
+        $lines            = implode("\n", $lines);
+
+        $relativePosition = strlen($lines);
+
+        return new CursorPosition($line, $character, $relativePosition);
     }
 }

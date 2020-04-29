@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace LanguageServer\Method\TextDocument;
 
-use LanguageServer\Parser\DocumentParser;
+use LanguageServer\Parser\ParsedDocument;
 use LanguageServer\Server\MessageHandler;
 use LanguageServer\Server\Protocol\Message;
-use LanguageServer\TextDocument;
 use LanguageServer\TextDocumentRegistry;
+use PhpParser\Parser;
 
 class DidChange implements MessageHandler
 {
     private TextDocumentRegistry $registry;
-    private DocumentParser $parser;
+    private Parser $parser;
 
-    public function __construct(TextDocumentRegistry $registry, DocumentParser $parser)
+    public function __construct(TextDocumentRegistry $registry, Parser $parser)
     {
         $this->registry = $registry;
         $this->parser   = $parser;
@@ -30,13 +30,10 @@ class DidChange implements MessageHandler
             return $next->__invoke($message);
         }
 
-        $document = new TextDocument(
-            $message->params['textDocument']['uri'],
-            $message->params['contentChanges'][0]['text'],
-            $message->params['textDocument']['version']
-        );
+        $uri    = $message->params['textDocument']['uri'];
+        $source = $message->params['contentChanges'][0]['text'];
+        $nodes  = $this->parser->parse($source);
 
-        $this->registry->add($document);
-        $this->parser->parse($document);
+        $this->registry->add(new ParsedDocument($uri, $source, $nodes));
     }
 }
