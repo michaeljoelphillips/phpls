@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace LanguageServer;
 
-use LanguageServer\ParsedDocument;
 use function array_key_exists;
 
 class TextDocumentRegistry

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace LanguageServer\Test\Server\Protocol;
 
 use Exception;
-use LanguageServer\Exception\InvalidRequest;
+use LanguageServer\Server\Exception\InvalidRequest;
 use LanguageServer\Server\Protocol\RequestMessage;
 use LanguageServer\Server\Protocol\ResponseMessage;
 use PHPUnit\Framework\TestCase;

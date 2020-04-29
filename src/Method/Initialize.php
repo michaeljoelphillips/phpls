@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace LanguageServer\Method;
 
 use DI\Container;
-use LanguageServer\Exception\ServerNotInitialized;
+use LanguageServer\Server\Exception\ServerNotInitialized;
 use LanguageServer\Server\MessageHandler;
 use LanguageServer\Server\Protocol\Message;
 use LanguageServer\Server\Protocol\ResponseMessage;

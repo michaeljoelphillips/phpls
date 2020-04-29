@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace LanguageServer;
 
-use LanguageServer\ParsedDocument;
 use phpDocumentor\Reflection\DocBlockFactory;
 use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\ClassConstFetch;

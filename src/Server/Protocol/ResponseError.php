@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Server\Protocol;
 
-use LanguageServer\Exception\LanguageServerException;
+use LanguageServer\Server\Exception\LanguageServerException;
 use LanguageServerProtocol\ErrorCode;
 use Throwable;
 

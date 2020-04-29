@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Exception;
+namespace LanguageServer\Server\Exception;
 
 class ServerNotInitialized extends LanguageServerException
 {

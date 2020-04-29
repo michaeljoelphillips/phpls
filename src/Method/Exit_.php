@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Method;
 
-use LanguageServer\Exception\InvalidRequest;
+use LanguageServer\Server\Exception\InvalidRequest;
 use LanguageServer\Server\MessageHandler;
 use LanguageServer\Server\Protocol\Message;
 use LanguageServer\Server\Protocol\ResponseMessage;

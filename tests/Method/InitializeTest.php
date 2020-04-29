@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace LanguageServer\Test\Method;
 
 use DI\Container;
-use LanguageServer\Exception\ServerNotInitialized;
+use LanguageServer\Server\Exception\ServerNotInitialized;
 use LanguageServer\Method\Initialize;
 use LanguageServer\Server\Protocol\RequestMessage;
 use PHPUnit\Framework\TestCase;
