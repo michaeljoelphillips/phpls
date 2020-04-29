@@ -62,7 +62,7 @@ class Completion implements MessageHandler
     {
         $parsedDocument = $this->registry->get($params['textDocument']['uri']);
 
-        $cursorPosition = $document->getCursorPosition(
+        $cursorPosition = $parsedDocument->getCursorPosition(
             $params['position']['line'] + 1,
             $params['position']['character']
         );
