@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer;
+namespace LanguageServer\Reflection;
 
 use LanguageServer\Parser\ParsedDocument;
+use LanguageServer\TextDocumentRegistry;
 use Roave\BetterReflection\Identifier\Identifier;
 use Roave\BetterReflection\Identifier\IdentifierType;
 use Roave\BetterReflection\Reflection\Reflection;

@@ -44,7 +44,7 @@ abstract class ParserTestCase extends FixtureTestCase
         return new AstLocator($this->getParser(), fn () => $this->getFunctionReflector());
     }
 
-    private function getFunctionReflector() : FunctionReflector
+    protected function getFunctionReflector() : FunctionReflector
     {
         return new FunctionReflector($this->getSourceLocator(), $this->getClassReflector());
     }

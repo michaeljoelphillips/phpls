@@ -6,66 +6,42 @@ namespace LanguageServer\Test\Method\TextDocument;
 
 use LanguageServer\Method\TextDocument\SignatureHelp;
 use LanguageServer\Parser\ParsedDocument;
-use LanguageServer\RegistrySourceLocator;
+use LanguageServer\Reflection\RegistrySourceLocator;
 use LanguageServer\Server\Protocol\RequestMessage;
-use LanguageServer\Test\FixtureTestCase;
+use LanguageServer\Test\ParserTestCase;
 use LanguageServer\TextDocumentRegistry;
 use LanguageServer\TypeResolver;
-use PhpParser\Lexer;
 use PhpParser\Parser;
-use PhpParser\ParserFactory;
-use Roave\BetterReflection\Reflector\ClassReflector;
-use Roave\BetterReflection\Reflector\FunctionReflector;
 use Roave\BetterReflection\SourceLocator\Ast\Locator as AstLocator;
+use Roave\BetterReflection\SourceLocator\Type\SourceLocator;
 
-class SignatureHelpTest extends FixtureTestCase
+class SignatureHelpTest extends ParserTestCase
 {
     private Parser $parser;
+    private TextDocumentRegistry $registry;
     private SignatureHelp $subject;
-    private RegistrySourceLocator $locator;
-    private ClassReflector $classReflector;
-    private ?FunctionReflector $functionReflector = null;
 
     public function setUp() : void
     {
-        $this->parser = (new ParserFactory())->create(
-            ParserFactory::PREFER_PHP7,
-            new Lexer([
-                'usedAttributes' => [
-                    'comments',
-                    'startLine',
-                    'endLine',
-                    'startFilePos',
-                    'endFilePos',
-                ],
-            ])
-        );
+        $this->parser   = $this->getParser();
+        $this->registry = $this->setUpRegistry();
 
-        $registry = $this->setUpRegistry();
+        $classReflector = $this->getClassReflector();
+        $typeResolver   = new TypeResolver($classReflector);
+        $this->subject  = new SignatureHelp($classReflector, $this->getFunctionReflector(), $typeResolver, $this->registry);
+    }
 
-        $this->locator = new RegistrySourceLocator(
+    protected function getSourceLocator() : SourceLocator
+    {
+        return new RegistrySourceLocator(
             new AstLocator(
                 $this->parser,
                 function () {
-                    return $this->functionReflector();
+                    return $this->getFunctionReflector();
                 }
             ),
-            $registry
+            $this->registry
         );
-
-        $this->classReflector = new ClassReflector($this->locator);
-        $typeResolver         = new TypeResolver($this->classReflector);
-
-        $this->subject = new SignatureHelp($this->classReflector, $this->functionReflector(), $typeResolver, $registry);
-    }
-
-    private function functionReflector() : FunctionReflector
-    {
-        if ($this->functionReflector) {
-            return $this->functionReflector;
-        }
-
-        return $this->functionReflector = new FunctionReflector($this->locator, $this->classReflector);
     }
 
     private function setUpRegistry() : TextDocumentRegistry

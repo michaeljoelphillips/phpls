@@ -23,7 +23,7 @@ use LanguageServer\Method\TextDocument\DidOpen;
 use LanguageServer\Method\TextDocument\DidSave;
 use LanguageServer\Method\TextDocument\SignatureHelp;
 use LanguageServer\Parser\CorrectiveParser;
-use LanguageServer\RegistrySourceLocator;
+use LanguageServer\Reflection\RegistrySourceLocator;
 use LanguageServer\Server\Cache\UsageAwareCache;
 use LanguageServer\Server\Log\LogHandler;
 use LanguageServer\Server\Serializer\JsonRpcEncoder;

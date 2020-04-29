@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace LanguageServer\Test;
 
 use LanguageServer\Parser\ParsedDocument;
-use LanguageServer\RegistrySourceLocator;
+use LanguageServer\Reflection\RegistrySourceLocator;
 use LanguageServer\TextDocumentRegistry;
 use PHPUnit\Framework\TestCase;
 use Roave\BetterReflection\Identifier\Identifier;
