@@ -6,7 +6,7 @@ namespace LanguageServer\Method\TextDocument;
 
 use LanguageServer\CursorPosition;
 use LanguageServer\Method\TextDocument\CompletionProvider\CompletionProvider;
-use LanguageServer\Parser\ParsedDocument;
+use LanguageServer\ParsedDocument;
 use LanguageServer\Server\MessageHandler;
 use LanguageServer\Server\Protocol\Message;
 use LanguageServer\Server\Protocol\ResponseMessage;

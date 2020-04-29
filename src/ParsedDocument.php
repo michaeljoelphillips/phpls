@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Parser;
+namespace LanguageServer;
 
-use LanguageServer\CursorPosition;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Namespace_;
