@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test;
 
+use LanguageServer\Parser\ParsedDocument;
 use LanguageServer\RegistrySourceLocator;
 use LanguageServer\TextDocumentRegistry;
 use PHPUnit\Framework\TestCase;
@@ -11,7 +12,6 @@ use Roave\BetterReflection\Identifier\Identifier;
 use Roave\BetterReflection\Identifier\IdentifierType;
 use Roave\BetterReflection\Reflector\Reflector;
 use Roave\BetterReflection\SourceLocator\Ast\Locator;
-use LanguageServer\Parser\ParsedDocument;
 
 class RegistrySourceLocatorTest extends TestCase
 {
