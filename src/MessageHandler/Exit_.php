@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Method;
+namespace LanguageServer\MessageHandler;
 
 use LanguageServer\Server\Exception\InvalidRequest;
 use LanguageServer\Server\MessageHandler;

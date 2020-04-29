@@ -2,16 +2,15 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Method\TextDocument;
+namespace LanguageServer\MessageHandler\TextDocument;
 
 use LanguageServer\ParsedDocument;
 use LanguageServer\Server\MessageHandler;
 use LanguageServer\Server\Protocol\Message;
 use LanguageServer\TextDocumentRegistry;
 use PhpParser\Parser;
-use function file_get_contents;
 
-class DidSave implements MessageHandler
+class DidOpen implements MessageHandler
 {
     private TextDocumentRegistry $registry;
     private Parser $parser;
@@ -27,19 +26,14 @@ class DidSave implements MessageHandler
      */
     public function __invoke(Message $message, callable $next)
     {
-        if ($message->method !== 'textDocument/didSave') {
+        if ($message->method !== 'textDocument/didOpen') {
             return $next->__invoke($message);
         }
 
         $uri    = $message->params['textDocument']['uri'];
-        $source = $this->read($uri);
+        $source = $message->params['textDocument']['text'];
         $nodes  = $this->parser->parse($source);
 
         $this->registry->add(new ParsedDocument($uri, $source, $nodes));
-    }
-
-    private function read(string $uri) : string
-    {
-        return file_get_contents($uri) ?: '';
     }
 }

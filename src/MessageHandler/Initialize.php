@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Method;
+namespace LanguageServer\MessageHandler;
 
 use DI\Container;
 use LanguageServer\Server\Exception\ServerNotInitialized;

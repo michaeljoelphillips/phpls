@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test\Method\TextDocument;
 
-use LanguageServer\Method\TextDocument\DidSave;
+use LanguageServer\MessageHandler\TextDocument\DidSave;
 use LanguageServer\Server\Protocol\RequestMessage;
 use LanguageServer\TextDocumentRegistry;
 use PhpParser\Parser;

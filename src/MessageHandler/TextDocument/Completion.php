@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Method\TextDocument;
+namespace LanguageServer\MessageHandler\TextDocument;
 
 use LanguageServer\Completion\CompletionProvider;
 use LanguageServer\CursorPosition;

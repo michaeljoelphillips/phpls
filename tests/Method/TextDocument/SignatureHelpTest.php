@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test\Method\TextDocument;
 
-use LanguageServer\Method\TextDocument\SignatureHelp;
+use LanguageServer\MessageHandler\TextDocument\SignatureHelp;
 use LanguageServer\ParsedDocument;
 use LanguageServer\Reflection\RegistrySourceLocator;
 use LanguageServer\Server\Protocol\RequestMessage;
