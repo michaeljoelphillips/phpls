@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use LanguageServer\Config\ConfigFactory;
 use LanguageServer\Console\RunCommand;
-use LanguageServer\MemoizingParser;
+use LanguageServer\Parser\MemoizingParser;
 use LanguageServer\Reflection\MemoizingSourceLocator;
 use LanguageServer\Method\Exit_;
 use LanguageServer\Method\Initialize;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test;
 
-use LanguageServer\MemoizingParser;
+use LanguageServer\Parser\MemoizingParser;
 use PhpParser\Parser;
 use PHPUnit\Framework\TestCase;
 use Psr\SimpleCache\CacheInterface;

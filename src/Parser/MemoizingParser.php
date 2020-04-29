@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer;
+namespace LanguageServer\Parser;
 
 use PhpParser\ErrorHandler;
 use PhpParser\Parser;
