@@ -7,6 +7,7 @@ namespace LanguageServer\Test\Method\TextDocument;
 use LanguageServer\Method\TextDocument\DidSave;
 use LanguageServer\Server\Protocol\RequestMessage;
 use LanguageServer\TextDocumentRegistry;
+use PhpParser\Parser;
 use PHPUnit\Framework\TestCase;
 
 class DidSaveTest extends TestCase
@@ -14,11 +15,16 @@ class DidSaveTest extends TestCase
     public function testDidSave() : void
     {
         $registry = $this->createMock(TextDocumentRegistry::class);
-        $subject  = new DidSave($registry);
+        $parser   = $this->createMock(Parser::class);
+        $subject  = new DidSave($registry, $parser);
 
         $registry
             ->expects($this->once())
             ->method('add');
+
+        $parser
+            ->method('parse')
+            ->willReturn([]);
 
         $request = new RequestMessage(1, 'textDocument/didSave', [
             'textDocument' => [
@@ -29,8 +35,6 @@ class DidSaveTest extends TestCase
         $next = function () : void {
             $this->fail('The next method should never be called');
         };
-
-        $subject = new DidSave($registry);
 
         $subject->__invoke($request, $next);
     }

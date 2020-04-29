@@ -6,7 +6,6 @@ namespace LanguageServer\Method\TextDocument;
 
 use LanguageServer\CursorPosition;
 use LanguageServer\Method\TextDocument\CompletionProvider\CompletionProvider;
-use LanguageServer\Parser\DocumentParser;
 use LanguageServer\Parser\ParsedDocument;
 use LanguageServer\Server\MessageHandler;
 use LanguageServer\Server\Protocol\Message;
@@ -27,7 +26,6 @@ class Completion implements MessageHandler
 {
     private const METHOD_NAME = 'textDocument/completion';
 
-    private DocumentParser $parser;
     private TextDocumentRegistry $registry;
     private Reflector $reflector;
     private TypeResolver $resolver;
@@ -36,9 +34,8 @@ class Completion implements MessageHandler
     /** @var CompletionProvider[] */
     private array $providers;
 
-    public function __construct(DocumentParser $parser, TextDocumentRegistry $registry, Reflector $reflector, TypeResolver $resolver, LoggerInterface $logger, CompletionProvider ...$providers)
+    public function __construct(TextDocumentRegistry $registry, Reflector $reflector, TypeResolver $resolver, LoggerInterface $logger, CompletionProvider ...$providers)
     {
-        $this->parser    = $parser;
         $this->registry  = $registry;
         $this->reflector = $reflector;
         $this->resolver  = $resolver;
@@ -63,8 +60,7 @@ class Completion implements MessageHandler
      */
     private function getCompletionList(array $params) : CompletionList
     {
-        $document       = $this->registry->get($params['textDocument']['uri']);
-        $parsedDocument = $this->parser->parse($document);
+        $parsedDocument = $this->registry->get($params['textDocument']['uri']);
 
         $cursorPosition = $document->getCursorPosition(
             $params['position']['line'] + 1,

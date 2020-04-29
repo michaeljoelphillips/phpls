@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace LanguageServer\Test\Method\TextDocument;
 
 use LanguageServer\Method\TextDocument\SignatureHelp;
-use LanguageServer\Parser\DocumentParser;
+use LanguageServer\Parser\ParsedDocument;
 use LanguageServer\RegistrySourceLocator;
 use LanguageServer\Server\Protocol\RequestMessage;
 use LanguageServer\Test\FixtureTestCase;
-use LanguageServer\TextDocument;
 use LanguageServer\TextDocumentRegistry;
 use LanguageServer\TypeResolver;
 use PhpParser\Lexer;
+use PhpParser\Parser;
 use PhpParser\ParserFactory;
 use Roave\BetterReflection\Reflector\ClassReflector;
 use Roave\BetterReflection\Reflector\FunctionReflector;
@@ -20,6 +20,7 @@ use Roave\BetterReflection\SourceLocator\Ast\Locator as AstLocator;
 
 class SignatureHelpTest extends FixtureTestCase
 {
+    private Parser $parser;
     private SignatureHelp $subject;
     private RegistrySourceLocator $locator;
     private ClassReflector $classReflector;
@@ -27,7 +28,7 @@ class SignatureHelpTest extends FixtureTestCase
 
     public function setUp() : void
     {
-        $phpParser = (new ParserFactory())->create(
+        $this->parser = (new ParserFactory())->create(
             ParserFactory::PREFER_PHP7,
             new Lexer([
                 'usedAttributes' => [
@@ -44,7 +45,7 @@ class SignatureHelpTest extends FixtureTestCase
 
         $this->locator = new RegistrySourceLocator(
             new AstLocator(
-                $phpParser,
+                $this->parser,
                 function () {
                     return $this->functionReflector();
                 }
@@ -54,9 +55,8 @@ class SignatureHelpTest extends FixtureTestCase
 
         $this->classReflector = new ClassReflector($this->locator);
         $typeResolver         = new TypeResolver($this->classReflector);
-        $documentParser       = new DocumentParser($phpParser);
 
-        $this->subject = new SignatureHelp($this->classReflector, $this->functionReflector(), $documentParser, $typeResolver, $registry);
+        $this->subject = new SignatureHelp($this->classReflector, $this->functionReflector(), $typeResolver, $registry);
     }
 
     private function functionReflector() : FunctionReflector
@@ -73,18 +73,18 @@ class SignatureHelpTest extends FixtureTestCase
         $registry = new TextDocumentRegistry();
 
         $registry->add(
-            new TextDocument(
+            new ParsedDocument(
                 'file:///tmp/foo.php',
-                $this->loadFixture('SignatureHelpFixture.php'),
-                0
+                $source = $this->loadFixture('SignatureHelpFixture.php'),
+                $this->parser->parse($source)
             )
         );
 
         $registry->add(
-            new TextDocument(
+            new ParsedDocument(
                 'file:///tmp/bar.php',
-                $this->loadFixture('NamespacedFunctionsFixture.php'),
-                0
+                $source = $this->loadFixture('NamespacedFunctionsFixture.php'),
+                $this->parser->parse($source)
             )
         );
 

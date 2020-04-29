@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace LanguageServer\Test;
 
 use LanguageServer\RegistrySourceLocator;
-use LanguageServer\TextDocument;
 use LanguageServer\TextDocumentRegistry;
 use PHPUnit\Framework\TestCase;
 use Roave\BetterReflection\Identifier\Identifier;
 use Roave\BetterReflection\Identifier\IdentifierType;
 use Roave\BetterReflection\Reflector\Reflector;
 use Roave\BetterReflection\SourceLocator\Ast\Locator;
+use LanguageServer\Parser\ParsedDocument;
 
 class RegistrySourceLocatorTest extends TestCase
 {
@@ -45,7 +45,7 @@ class RegistrySourceLocatorTest extends TestCase
             ->registry
             ->expects($this->once())
             ->method('getAll')
-            ->willReturn([new TextDocument('file:///tmp/foo', '', 0)]);
+            ->willReturn([new ParsedDocument('file:///tmp/foo', '', [])]);
 
         $reflector = $this->createMock(Reflector::class);
 

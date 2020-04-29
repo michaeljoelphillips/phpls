@@ -4,19 +4,22 @@ declare(strict_types=1);
 
 namespace LanguageServer\Method\TextDocument;
 
+use LanguageServer\Parser\ParsedDocument;
 use LanguageServer\Server\MessageHandler;
 use LanguageServer\Server\Protocol\Message;
-use LanguageServer\TextDocument;
 use LanguageServer\TextDocumentRegistry;
+use PhpParser\Parser;
 use function file_get_contents;
 
 class DidSave implements MessageHandler
 {
     private TextDocumentRegistry $registry;
+    private Parser $parser;
 
-    public function __construct(TextDocumentRegistry $registry)
+    public function __construct(TextDocumentRegistry $registry, Parser $parser)
     {
         $this->registry = $registry;
+        $this->parser   = $parser;
     }
 
     /**
@@ -28,10 +31,11 @@ class DidSave implements MessageHandler
             return $next->__invoke($message);
         }
 
-        $uri      = $message->params['textDocument']['uri'];
-        $document = new TextDocument($uri, $this->read($uri), 0);
+        $uri    = $message->params['textDocument']['uri'];
+        $source = $this->read($uri);
+        $nodes  = $this->parser->parse($source);
 
-        $this->registry->add($document);
+        $this->registry->add(new ParsedDocument($uri, $source, $nodes));
     }
 
     private function read(string $uri) : string

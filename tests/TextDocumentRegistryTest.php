@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test;
 
-use LanguageServer\ParsedDocument;
+use LanguageServer\Parser\ParsedDocument;
 use LanguageServer\TextDocumentRegistry;
 use PHPUnit\Framework\TestCase;
 

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace LanguageServer\Method\TextDocument;
 
 use LanguageServer\CursorPosition;
-use LanguageServer\Parser\DocumentParser;
 use LanguageServer\Parser\ParsedDocument;
 use LanguageServer\Server\MessageHandler;
 use LanguageServer\Server\Protocol\Message;
@@ -42,15 +41,13 @@ class SignatureHelp implements MessageHandler
 
     private ClassReflector $classReflector;
     private FunctionReflector $functionReflector;
-    private DocumentParser $parser;
     private TypeResolver $resolver;
     private TextDocumentRegistry $registry;
 
-    public function __construct(ClassReflector $classReflector, FunctionReflector $functionReflector, DocumentParser $parser, TypeResolver $resolver, TextDocumentRegistry $registry)
+    public function __construct(ClassReflector $classReflector, FunctionReflector $functionReflector, TypeResolver $resolver, TextDocumentRegistry $registry)
     {
         $this->classReflector    = $classReflector;
         $this->functionReflector = $functionReflector;
-        $this->parser            = $parser;
         $this->resolver          = $resolver;
         $this->registry          = $registry;
     }
@@ -72,10 +69,9 @@ class SignatureHelp implements MessageHandler
      */
     private function getSignatureHelpResponse(array $params) : SignatureHelpResponse
     {
-        $document       = $this->registry->get($params['textDocument']['uri']);
-        $parsedDocument = $this->parser->parse($document);
+        $parsedDocument = $this->registry->get($params['textDocument']['uri']);
 
-        $cursorPosition = $document->getCursorPosition(
+        $cursorPosition = $parsedDocument->getCursorPosition(
             $params['position']['line'] + 1,
             $params['position']['character']
         );

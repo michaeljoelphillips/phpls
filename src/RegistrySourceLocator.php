@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer;
 
+use LanguageServer\Parser\ParsedDocument;
 use Roave\BetterReflection\Identifier\Identifier;
 use Roave\BetterReflection\Identifier\IdentifierType;
 use Roave\BetterReflection\Reflection\Reflection;
@@ -50,7 +51,7 @@ class RegistrySourceLocator implements SourceLocator
         $documents = $this->registry->getAll();
 
         $locators = array_map(
-            function (TextDocument $document) {
+            function (ParsedDocument $document) {
                 try {
                     return new StringSourceLocator($document->getSource(), $this->astLocator);
                 } catch (Throwable $t) {
