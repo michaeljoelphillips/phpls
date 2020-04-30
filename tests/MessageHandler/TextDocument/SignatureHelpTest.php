@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test\MessageHandler\TextDocument;
 
+use LanguageServer\Inference\TypeResolver;
 use LanguageServer\MessageHandler\TextDocument\SignatureHelp;
 use LanguageServer\ParsedDocument;
 use LanguageServer\Reflection\RegistrySourceLocator;
 use LanguageServer\Server\Protocol\RequestMessage;
 use LanguageServer\Test\ParserTestCase;
 use LanguageServer\TextDocumentRegistry;
-use LanguageServer\TypeResolver;
 use PhpParser\Parser;
 use Roave\BetterReflection\SourceLocator\Ast\Locator as AstLocator;
 use Roave\BetterReflection\SourceLocator\Type\SourceLocator;

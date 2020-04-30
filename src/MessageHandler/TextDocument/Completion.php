@@ -6,12 +6,12 @@ namespace LanguageServer\MessageHandler\TextDocument;
 
 use LanguageServer\Completion\CompletionProvider;
 use LanguageServer\CursorPosition;
+use LanguageServer\Inference\TypeResolver;
 use LanguageServer\ParsedDocument;
 use LanguageServer\Server\MessageHandler;
 use LanguageServer\Server\Protocol\Message;
 use LanguageServer\Server\Protocol\ResponseMessage;
 use LanguageServer\TextDocumentRegistry;
-use LanguageServer\TypeResolver;
 use LanguageServerProtocol\CompletionList;
 use PhpParser\Node\Expr;
 use PhpParser\NodeAbstract;
