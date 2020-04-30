@@ -2,12 +2,6 @@
 
 declare(strict_types=1);
 
-use LanguageServer\Config\ConfigFactory;
-use LanguageServer\Console\RunCommand;
-use LanguageServer\MessageHandler\Exit_;
-use LanguageServer\MessageHandler\Initialize;
-use LanguageServer\MessageHandler\Initialized;
-use LanguageServer\MessageHandler\TextDocument\Completion;
 use LanguageServer\Completion\ClassConstantProvider;
 use LanguageServer\Completion\InstanceMethodProvider;
 use LanguageServer\Completion\InstanceVariableProvider;
@@ -15,6 +9,12 @@ use LanguageServer\Completion\MethodDocTagProvider;
 use LanguageServer\Completion\PropertyDocTagProvider;
 use LanguageServer\Completion\StaticMethodProvider;
 use LanguageServer\Completion\StaticPropertyProvider;
+use LanguageServer\Config\ConfigFactory;
+use LanguageServer\Console\RunCommand;
+use LanguageServer\MessageHandler\Exit_;
+use LanguageServer\MessageHandler\Initialize;
+use LanguageServer\MessageHandler\Initialized;
+use LanguageServer\MessageHandler\TextDocument\Completion;
 use LanguageServer\MessageHandler\TextDocument\DidChange;
 use LanguageServer\MessageHandler\TextDocument\DidClose;
 use LanguageServer\MessageHandler\TextDocument\DidOpen;
