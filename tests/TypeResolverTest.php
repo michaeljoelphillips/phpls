@@ -240,6 +240,16 @@ class TypeResolverTest extends ParserTestCase
                 ),
                 '\stdClass',
             ],
+            [
+                new PropertyFetch(
+                    new Variable('variable', [
+                        'startFilePos' => 1000,
+                        'endFilePos' => 9999,
+                    ]),
+                    new Identifier('publicProperty')
+                ),
+                'stdClass',
+            ],
         ];
     }
 }

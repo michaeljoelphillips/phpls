@@ -90,6 +90,13 @@ class TypeResolverFixture extends ParentFixture
     {
         $this->docblockProperty->publicProperty;
     }
+
+    public function getTypeForVariableAssignedToReturnValue()
+    {
+        $variable = $this->getTypeForPropertyFetchOnMethodCallReturnTypeFixture();
+
+        return $variable->publicProperty;
+    }
 }
 
 abstract class ParentFixture

@@ -69,8 +69,16 @@ class TypeResolver
             return $this->getTypeFromClassReference($document, $node);
         }
 
-        if ($node instanceof Assign && $node->expr instanceof New_) {
-            return $this->getNewAssignmentType($document, $node->expr);
+        if ($node instanceof Assign) {
+            if ($node->expr instanceof New_) {
+                return $this->getNewAssignmentType($document, $node->expr);
+            }
+
+            if ($node->expr instanceof MethodCall) {
+                return $this->getReturnType($document, $node->expr);
+            }
+
+            return $this->getType($document, $node->expr);
         }
 
         if ($node instanceof Param) {
