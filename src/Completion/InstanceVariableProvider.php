@@ -30,12 +30,12 @@ class InstanceVariableProvider implements CompletionProvider
         );
 
         return array_values(array_map(
-            static function (ReflectionProperty $parameter) {
+            static function (ReflectionProperty $property) {
                 return new CompletionItem(
-                    $parameter->getName(),
+                    $property->getName(),
                     CompletionItemKind::PROPERTY,
-                    implode('|', $parameter->getDocblockTypeStrings()),
-                    $parameter->getDocComment()
+                    $property->hasType() ? (string) $property->getType() : implode('|', $property->getDocblockTypeStrings()),
+                    $property->getDocComment()
                 );
             },
             $properties
