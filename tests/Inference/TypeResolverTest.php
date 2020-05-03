@@ -6,6 +6,7 @@ namespace LanguageServer\Test\Inference;
 
 use LanguageServer\Inference\TypeResolver;
 use LanguageServer\ParsedDocument;
+use LanguageServer\Test\ParserTestCase;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\Variable;
