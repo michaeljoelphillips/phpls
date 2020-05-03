@@ -19,4 +19,9 @@ class ParsedDocumentFixture
 
         return $result;
     }
+
+    public function getFoo() : Foo
+    {
+        return new Foo();
+    }
 }
