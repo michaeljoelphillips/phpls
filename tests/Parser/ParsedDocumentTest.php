@@ -58,7 +58,7 @@ class ParsedDocumentTest extends ParserTestCase
 
         $nodes = $subject->findNodes(ClassMethod::class);
 
-        $this->assertEquals(2, count($nodes));
+        $this->assertEquals(3, count($nodes));
     }
 
     public function testSearchNodes() : void
@@ -71,7 +71,7 @@ class ParsedDocumentTest extends ParserTestCase
             }
         );
 
-        $this->assertEquals(2, count($nodes));
+        $this->assertEquals(3, count($nodes));
     }
 
     public function testGetUseStatements() : void

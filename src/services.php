@@ -231,7 +231,6 @@ return [
             $container->get(TextDocumentRegistry::class),
             $container->get(TypeResolver::class),
             $container->get(ClassReflector::class),
-            $container->get(LoggerInterface::class),
         );
     },
     'config' => static function () {

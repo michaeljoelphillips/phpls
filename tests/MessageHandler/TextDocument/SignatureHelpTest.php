@@ -6,23 +6,20 @@ namespace LanguageServer\Test\MessageHandler\TextDocument;
 
 use LanguageServer\Inference\TypeResolver;
 use LanguageServer\MessageHandler\TextDocument\SignatureHelp;
-use LanguageServer\Reflection\RegistrySourceLocator;
 use LanguageServer\Server\Protocol\RequestMessage;
 use LanguageServer\Test\ParserTestCase;
 use LanguageServer\TextDocumentRegistry;
-use PhpParser\Parser;
-use Roave\BetterReflection\SourceLocator\Ast\Locator as AstLocator;
+use Roave\BetterReflection\SourceLocator\Type\SingleFileSourceLocator;
 use Roave\BetterReflection\SourceLocator\Type\SourceLocator;
+use function sprintf;
 
 class SignatureHelpTest extends ParserTestCase
 {
-    private Parser $parser;
     private TextDocumentRegistry $registry;
     private SignatureHelp $subject;
 
     public function setUp() : void
     {
-        $this->parser   = $this->getParser();
         $this->registry = new TextDocumentRegistry();
         $classReflector = $this->getClassReflector();
         $typeResolver   = new TypeResolver($classReflector);
@@ -31,14 +28,9 @@ class SignatureHelpTest extends ParserTestCase
 
     protected function getSourceLocator() : SourceLocator
     {
-        return new RegistrySourceLocator(
-            new AstLocator(
-                $this->parser,
-                function () {
-                    return $this->getFunctionReflector();
-                }
-            ),
-            $this->registry
+        return new SingleFileSourceLocator(
+            sprintf('%s/SignatureHelpFixture.php', self::FIXTURE_DIRECTORY),
+            $this->getAstLocator()
         );
     }
 

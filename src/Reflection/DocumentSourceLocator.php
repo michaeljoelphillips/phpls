@@ -17,7 +17,7 @@ class DocumentSourceLocator extends StringSourceLocator
     {
         parent::__construct($document->getSource(), $astLocator);
 
-        $this->filename = $filename;
+        $this->filename = $document->getUri();
     }
 
     protected function createLocatedSource(Identifier $identifier) : ?LocatedSource

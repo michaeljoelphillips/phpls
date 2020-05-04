@@ -10,6 +10,10 @@ use LanguageServer\Server\Protocol\RequestMessage;
 use LanguageServer\Test\ParserTestCase;
 use LanguageServer\TextDocumentRegistry;
 use Psr\Log\LoggerInterface;
+use Roave\BetterReflection\SourceLocator\Type\AggregateSourceLocator;
+use Roave\BetterReflection\SourceLocator\Type\SingleFileSourceLocator;
+use Roave\BetterReflection\SourceLocator\Type\SourceLocator;
+use function sprintf;
 
 class DefinitionTest extends ParserTestCase
 {
@@ -28,6 +32,20 @@ class DefinitionTest extends ParserTestCase
             $reflector,
             $this->createMock(LoggerInterface::class)
         );
+    }
+
+    protected function getSourceLocator() : SourceLocator
+    {
+        return new AggregateSourceLocator([
+            new SingleFileSourceLocator(
+                sprintf('%s/DefinitionFixture.php', self::FIXTURE_DIRECTORY),
+                $this->getAstLocator()
+            ),
+            new SingleFileSourceLocator(
+                sprintf('%s/TextDocumentFixture.php', self::FIXTURE_DIRECTORY),
+                $this->getAstLocator()
+            ),
+        ]);
     }
 
     public function testDefinition() : void
