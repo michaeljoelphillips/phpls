@@ -12,8 +12,9 @@ use LanguageServer\TextDocumentRegistry;
 use LanguageServerProtocol\Location;
 use LanguageServerProtocol\Position;
 use LanguageServerProtocol\Range;
-use Psr\Log\LoggerInterface;
+use PhpParser\Node\Name;
 use Roave\BetterReflection\Reflection\ReflectionClass;
+use Roave\BetterReflection\Reflector\Exception\IdentifierNotFound;
 use Roave\BetterReflection\Reflector\Reflector;
 
 class Definition implements MessageHandler
@@ -23,14 +24,12 @@ class Definition implements MessageHandler
     private TextDocumentRegistry $registry;
     private TypeResolver $typeResolver;
     private Reflector $reflector;
-    private LoggerInterface $logger;
 
-    public function __construct(TextDocumentRegistry $registry, TypeResolver $typeResolver, Reflector $reflector, LoggerInterface $logger)
+    public function __construct(TextDocumentRegistry $registry, TypeResolver $typeResolver, Reflector $reflector)
     {
         $this->registry     = $registry;
         $this->typeResolver = $typeResolver;
         $this->reflector    = $reflector;
-        $this->logger       = $logger;
     }
 
     /**
@@ -42,15 +41,24 @@ class Definition implements MessageHandler
             return $next($message);
         }
 
-        $params     = $message->params;
-        $document   = $this->registry->get($params['textDocument']['uri']);
-        $cursor     = $document->getCursorPosition($params['position']['line'] + 1, $params['position']['character']);
-        $type       = $this->typeResolver->getType($document, $document->getInnermostNodeAtCursor($cursor));
-        $reflection = $this->reflector->reflect($type);
+        $params   = $message->params;
+        $document = $this->registry->get($params['textDocument']['uri']);
+        $cursor   = $document->getCursorPosition($params['position']['line'] + 1, $params['position']['character']);
 
-        $this->logger->debug('Finished type resolution');
+        $node = $document->getInnermostNodeAtCursor($cursor);
 
-        return new ResponseMessage($message, $this->locationFromReflectedClass($reflection));
+        if ($node instanceof Name === false) {
+            return new ResponseMessage($message, null);
+        }
+
+        try {
+            $type       = $this->typeResolver->getType($document, $node);
+            $reflection = $this->reflector->reflect($type);
+
+            return new ResponseMessage($message, $this->locationFromReflectedClass($reflection));
+        } catch (IdentifierNotFound $e) {
+            return new ResponseMessage($message, null);
+        }
     }
 
     private function locationFromReflectedClass(ReflectionClass $reflection) : Location

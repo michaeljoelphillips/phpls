@@ -58,9 +58,13 @@ class ParsedDocument
         return $this->nodes;
     }
 
-    public function getInnermostNodeAtCursor(CursorPosition $cursorPosition) : NodeAbstract
+    public function getInnermostNodeAtCursor(CursorPosition $cursorPosition) : ?NodeAbstract
     {
         $nodes = $this->getNodesAtCursor($cursorPosition);
+
+        if (empty($nodes)) {
+            return null;
+        }
 
         return $nodes[array_key_last($nodes)];
     }
