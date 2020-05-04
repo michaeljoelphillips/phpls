@@ -70,7 +70,7 @@ class Initialize implements MessageHandler
         $capabilities->hoverProvider                    = false;
         $capabilities->renameProvider                   = false;
         $capabilities->codeLensProvider                 = false;
-        $capabilities->definitionProvider               = false;
+        $capabilities->definitionProvider               = true;
         $capabilities->referencesProvider               = false;
         $capabilities->referencesProvider               = false;
         $capabilities->codeActionProvider               = false;
