@@ -13,7 +13,6 @@ use Roave\BetterReflection\Reflector\Reflector;
 use Roave\BetterReflection\SourceLocator\Ast\Locator as AstLocator;
 use Roave\BetterReflection\SourceLocator\Type\AggregateSourceLocator;
 use Roave\BetterReflection\SourceLocator\Type\SourceLocator;
-use Roave\BetterReflection\SourceLocator\Type\StringSourceLocator;
 use Throwable;
 use function array_filter;
 use function array_map;
@@ -54,7 +53,7 @@ class RegistrySourceLocator implements SourceLocator
         $locators = array_map(
             function (ParsedDocument $document) {
                 try {
-                    return new StringSourceLocator($document->getSource(), $this->astLocator);
+                    return new DocumentSourceLocator($document, $this->astLocator);
                 } catch (Throwable $t) {
                     return null;
                 }
