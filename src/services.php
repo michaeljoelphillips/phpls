@@ -11,10 +11,12 @@ use LanguageServer\Completion\StaticMethodProvider;
 use LanguageServer\Completion\StaticPropertyProvider;
 use LanguageServer\Config\ConfigFactory;
 use LanguageServer\Console\RunCommand;
+use LanguageServer\Inference\TypeResolver;
 use LanguageServer\MessageHandler\Exit_;
 use LanguageServer\MessageHandler\Initialize;
 use LanguageServer\MessageHandler\Initialized;
 use LanguageServer\MessageHandler\TextDocument\Completion;
+use LanguageServer\MessageHandler\TextDocument\Definition;
 use LanguageServer\MessageHandler\TextDocument\DidChange;
 use LanguageServer\MessageHandler\TextDocument\DidClose;
 use LanguageServer\MessageHandler\TextDocument\DidOpen;
@@ -31,7 +33,6 @@ use LanguageServer\Server\Serializer\MessageDenormalizer;
 use LanguageServer\Server\Serializer\MessageSerializer;
 use LanguageServer\Server\Server as LanguageServer;
 use LanguageServer\TextDocumentRegistry;
-use LanguageServer\TypeResolver;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
@@ -209,6 +210,7 @@ return [
         DI\get(Initialized::class),
         DI\get(DidSave::class),
         DI\get(Completion::class),
+        DI\get(Definition::class),
         DI\get(SignatureHelp::class),
         DI\get(DidOpen::class),
         DI\get(DidChange::class),
@@ -222,6 +224,13 @@ return [
             $container->get(TypeResolver::class),
             $container->get(LoggerInterface::class),
             ...$container->get('completionProviders')
+        );
+    },
+    Definition::class => static function (ContainerInterface $container) {
+        return new Definition(
+            $container->get(TextDocumentRegistry::class),
+            $container->get(TypeResolver::class),
+            $container->get(ClassReflector::class),
         );
     },
     'config' => static function () {

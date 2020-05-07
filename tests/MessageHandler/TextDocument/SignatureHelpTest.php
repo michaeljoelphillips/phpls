@@ -4,28 +4,23 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test\MessageHandler\TextDocument;
 
+use LanguageServer\Inference\TypeResolver;
 use LanguageServer\MessageHandler\TextDocument\SignatureHelp;
-use LanguageServer\ParsedDocument;
-use LanguageServer\Reflection\RegistrySourceLocator;
 use LanguageServer\Server\Protocol\RequestMessage;
 use LanguageServer\Test\ParserTestCase;
 use LanguageServer\TextDocumentRegistry;
-use LanguageServer\TypeResolver;
-use PhpParser\Parser;
-use Roave\BetterReflection\SourceLocator\Ast\Locator as AstLocator;
+use Roave\BetterReflection\SourceLocator\Type\SingleFileSourceLocator;
 use Roave\BetterReflection\SourceLocator\Type\SourceLocator;
+use function sprintf;
 
 class SignatureHelpTest extends ParserTestCase
 {
-    private Parser $parser;
     private TextDocumentRegistry $registry;
     private SignatureHelp $subject;
 
     public function setUp() : void
     {
-        $this->parser   = $this->getParser();
-        $this->registry = $this->setUpRegistry();
-
+        $this->registry = new TextDocumentRegistry();
         $classReflector = $this->getClassReflector();
         $typeResolver   = new TypeResolver($classReflector);
         $this->subject  = new SignatureHelp($classReflector, $this->getFunctionReflector(), $typeResolver, $this->registry);
@@ -33,38 +28,10 @@ class SignatureHelpTest extends ParserTestCase
 
     protected function getSourceLocator() : SourceLocator
     {
-        return new RegistrySourceLocator(
-            new AstLocator(
-                $this->parser,
-                function () {
-                    return $this->getFunctionReflector();
-                }
-            ),
-            $this->registry
+        return new SingleFileSourceLocator(
+            sprintf('%s/SignatureHelpFixture.php', self::FIXTURE_DIRECTORY),
+            $this->getAstLocator()
         );
-    }
-
-    private function setUpRegistry() : TextDocumentRegistry
-    {
-        $registry = new TextDocumentRegistry();
-
-        $registry->add(
-            new ParsedDocument(
-                'file:///tmp/foo.php',
-                $source = $this->loadFixture('SignatureHelpFixture.php'),
-                $this->parser->parse($source)
-            )
-        );
-
-        $registry->add(
-            new ParsedDocument(
-                'file:///tmp/bar.php',
-                $source = $this->loadFixture('NamespacedFunctionsFixture.php'),
-                $this->parser->parse($source)
-            )
-        );
-
-        return $registry;
     }
 
     /**
@@ -72,8 +39,12 @@ class SignatureHelpTest extends ParserTestCase
      */
     public function testSignatureHelp(int $line, int $character, int $activeParameter, string $label) : void
     {
+        $document = $this->parse('SignatureHelpFixture.php');
+
+        $this->registry->add($document);
+
         $request = new RequestMessage(1, 'textDocument/signatureHelp', [
-            'textDocument' => ['uri' => 'file:///tmp/foo.php'],
+            'textDocument' => ['uri' => $document->getUri()],
             'position' => [
                 'line' => $line,
                 'character' => $character,
@@ -93,8 +64,12 @@ class SignatureHelpTest extends ParserTestCase
 
     public function testSignatureHelpReturnsEmptyResponseWhenNoExpressionFound() : void
     {
+        $document = $this->parse('SignatureHelpFixture.php');
+
+        $this->registry->add($document);
+
         $request = new RequestMessage(1, 'textDocument/signatureHelp', [
-            'textDocument' => ['uri' => 'file:///tmp/foo.php'],
+            'textDocument' => ['uri' => $document->getUri()],
             'position' => [
                 'line' => 31,
                 'character' => 9,
@@ -112,8 +87,12 @@ class SignatureHelpTest extends ParserTestCase
 
     public function testSignatureHelpReturnsEmptyResponseWhenNoConstructorFound() : void
     {
+        $document = $this->parse('SignatureHelpFixture.php');
+
+        $this->registry->add($document);
+
         $request = new RequestMessage(1, 'textDocument/signatureHelp', [
-            'textDocument' => ['uri' => 'file:///tmp/foo.php'],
+            'textDocument' => ['uri' => $document->getUri()],
             'position' => [
                 'line' => 30,
                 'character' => 33,

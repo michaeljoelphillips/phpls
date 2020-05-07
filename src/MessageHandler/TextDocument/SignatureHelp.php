@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace LanguageServer\MessageHandler\TextDocument;
 
 use LanguageServer\CursorPosition;
+use LanguageServer\Inference\TypeResolver;
 use LanguageServer\ParsedDocument;
 use LanguageServer\Server\MessageHandler;
 use LanguageServer\Server\Protocol\Message;
 use LanguageServer\Server\Protocol\ResponseMessage;
 use LanguageServer\TextDocumentRegistry;
-use LanguageServer\TypeResolver;
 use LanguageServerProtocol\ParameterInformation;
 use LanguageServerProtocol\SignatureHelp as SignatureHelpResponse;
 use LanguageServerProtocol\SignatureInformation;

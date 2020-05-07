@@ -7,6 +7,7 @@ namespace LanguageServer\Test\Parser;
 use LanguageServer\CursorPosition;
 use LanguageServer\Test\ParserTestCase;
 use PhpParser\Node\Expr\MethodCall;
+use PhpParser\Node\Name;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Property;
 use PhpParser\NodeAbstract;
@@ -57,7 +58,7 @@ class ParsedDocumentTest extends ParserTestCase
 
         $nodes = $subject->findNodes(ClassMethod::class);
 
-        $this->assertEquals(2, count($nodes));
+        $this->assertEquals(3, count($nodes));
     }
 
     public function testSearchNodes() : void
@@ -70,7 +71,7 @@ class ParsedDocumentTest extends ParserTestCase
             }
         );
 
-        $this->assertEquals(2, count($nodes));
+        $this->assertEquals(3, count($nodes));
     }
 
     public function testGetUseStatements() : void
@@ -104,6 +105,15 @@ class ParsedDocumentTest extends ParserTestCase
         $result = $subject->getNodesAtCursor(new CursorPosition(18, 36, 284));
 
         $this->assertContainsInstanceOf(MethodCall::class, $result);
+    }
+
+    public function testGetInnermostNodeAtCursor() : void
+    {
+        $subject = $this->parse('ParsedDocumentFixture.php');
+        $result  = $subject->getInnermostNodeAtCursor(new CursorPosition(25, 19, 379));
+
+        $this->assertInstanceOf(Name::class, $result);
+        $this->assertEquals('Foo', (string) $result);
     }
 
     public function testGetConstructorNodeWhenNoConstructorPresent() : void

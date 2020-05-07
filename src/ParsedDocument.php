@@ -12,6 +12,7 @@ use PhpParser\Node\Stmt\Use_;
 use PhpParser\NodeAbstract;
 use PhpParser\NodeFinder;
 use function array_filter;
+use function array_key_last;
 use function array_splice;
 use function explode;
 use function implode;
@@ -55,6 +56,17 @@ class ParsedDocument
     public function getNodes() : array
     {
         return $this->nodes;
+    }
+
+    public function getInnermostNodeAtCursor(CursorPosition $cursorPosition) : ?NodeAbstract
+    {
+        $nodes = $this->getNodesAtCursor($cursorPosition);
+
+        if (empty($nodes)) {
+            return null;
+        }
+
+        return $nodes[array_key_last($nodes)];
     }
 
     /**
