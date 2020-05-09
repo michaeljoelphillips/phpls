@@ -102,7 +102,7 @@ class Server
      */
     private function handle(Message $message) : void
     {
-        $this->logger->debug(sprintf('Received %s request', $message->method));
+        $this->logger->notice(sprintf('Received %s request', $message->method));
 
         try {
             $response = $this->handler->__invoke($message, 0);

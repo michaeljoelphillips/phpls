@@ -55,12 +55,12 @@ class RunCommand extends Command
         $stream = $this->container->get('stream');
         $server = $this->container->get(LanguageServer::class);
 
-        $logger         = $this->container->get(LoggerInterface::class);
+        $logger         = $this->container->get(LoggerInterface::class)->withName('cache');
         $parserCache    = $this->container->get('parserCache');
         $reflectorCache = $this->container->get('reflectorCache');
 
         (new ThresholdCacheMonitor($logger, $parserCache, $reflectorCache))(15, $loop);
-        (new TtlCacheMonitor($logger, $parserCache, $reflectorCache))(60, $loop);
+        (new TtlCacheMonitor($parserCache, $reflectorCache))(60, $loop);
 
         $server->listen($stream);
 

@@ -66,7 +66,7 @@ return [
     LanguageServer::class => static function (ContainerInterface $container) {
         return new LanguageServer(
             $container->get(MessageSerializer::class),
-            $container->get(LoggerInterface::class),
+            $container->get(LoggerInterface::class)->withName('server'),
             $container->get('messageHandlers')
         );
     },
@@ -110,7 +110,7 @@ return [
         $logLevel = $config['level'] === 'debug' ? Logger::DEBUG : Logger::INFO;
 
         if ($config['enabled'] === true) {
-            $logger->pushHandler(new StreamHandler(fopen($config['path'], 'w+'), $logLevel));
+            $logger->pushHandler(new StreamHandler(fopen($config['path'], 'a'), $logLevel));
         } else {
             $logger->pushHandler(new NullHandler());
         }
@@ -149,7 +149,7 @@ return [
                         ],
                     ])
                 ),
-                $container->get(LoggerInterface::class)
+                $container->get(LoggerInterface::class)->withName('parser')
             )
         );
     },
@@ -222,7 +222,7 @@ return [
             $container->get(TextDocumentRegistry::class),
             $container->get(ClassReflector::class),
             $container->get(TypeResolver::class),
-            $container->get(LoggerInterface::class),
+            $container->get(LoggerInterface::class)->withName('completion'),
             ...$container->get('completionProviders')
         );
     },

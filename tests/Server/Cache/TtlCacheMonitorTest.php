@@ -7,18 +7,16 @@ namespace LanguageServer\Test\Server\Cache;
 use LanguageServer\Server\Cache\CleanableCache;
 use LanguageServer\Server\Cache\TtlCacheMonitor;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\LoggerInterface;
 use React\EventLoop\LoopInterface;
 
 class TtlCacheMonitorTest extends TestCase
 {
     public function testMonitorInvokesCacheCleanOnTimer() : void
     {
-        $logger = $this->createMock(LoggerInterface::class);
-        $cache  = $this->createMock(CleanableCache::class);
-        $loop   = $this->createMock(LoopInterface::class);
+        $cache = $this->createMock(CleanableCache::class);
+        $loop  = $this->createMock(LoopInterface::class);
 
-        $subject = new TtlCacheMonitor($logger, $cache);
+        $subject = new TtlCacheMonitor($cache);
 
         $cache
             ->expects($this->once())

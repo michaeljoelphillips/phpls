@@ -70,13 +70,15 @@ class Completion implements MessageHandler
         $expression = $this->findExpressionAtCursor($parsedDocument, $cursorPosition);
 
         if ($expression === null) {
+            $this->logger->notice('A completable expression was not found');
+
             return $this->emptyCompletionList();
         }
 
         $type = $this->resolver->getType($parsedDocument, $expression);
 
         if ($type === null) {
-            $this->logger->debug('Type could not be resolved for expression', ['expression' => $expression]);
+            $this->logger->error('The type could not be inferred from the expression', ['expression' => $expression]);
 
             return $this->emptyCompletionList();
         }
