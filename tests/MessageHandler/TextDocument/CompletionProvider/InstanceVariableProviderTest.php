@@ -12,6 +12,7 @@ use PHPUnit\Framework\TestCase;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionProperty;
 use Roave\BetterReflection\Reflection\ReflectionType;
+use InvalidArgumentException;
 
 class InstanceVariableProviderTest extends TestCase
 {
@@ -54,6 +55,27 @@ class InstanceVariableProviderTest extends TestCase
         $this->assertEquals('testProperty', $completionItems[0]->label);
         $this->assertEquals('string|null', $completionItems[0]->detail);
         $this->assertEquals('testDocumentation', $completionItems[0]->documentation);
+    }
+
+    public function testCompleteOnInvalidDocBlockTypes() : void
+    {
+        $subject = new InstanceVariableProvider();
+
+        $expression = new PropertyFetch(new Variable('this'), 'bar');
+        $reflection = $this->createMock(ReflectionClass::class);
+        $property   = $this->createMock(ReflectionProperty::class);
+
+        $property
+            ->method('getName')
+            ->willReturn('testProperty');
+
+        $property
+            ->method('getDocblockTypeStrings')
+            ->will($this->throwException(new InvalidArgumentException()));
+
+        $completionItems = $subject->complete($expression, $reflection);
+
+        $this->assertEmpty($completionItems);
     }
 
     public function testCompleteOnPropertiesWithNativeTypes() : void

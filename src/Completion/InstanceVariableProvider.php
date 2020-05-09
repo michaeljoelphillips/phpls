@@ -11,6 +11,7 @@ use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\NodeAbstract;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionProperty;
+use Throwable;
 use function array_filter;
 use function array_map;
 use function array_values;
@@ -30,16 +31,31 @@ class InstanceVariableProvider implements CompletionProvider
         );
 
         return array_values(array_map(
-            static function (ReflectionProperty $property) {
+            function (ReflectionProperty $property) {
                 return new CompletionItem(
                     $property->getName(),
                     CompletionItemKind::PROPERTY,
-                    $property->hasType() ? (string) $property->getType() : implode('|', $property->getDocblockTypeStrings()),
+                    $this->getReturnTypeString($property),
                     $property->getDocComment()
                 );
             },
             $properties
         ));
+    }
+
+    private function getReturnTypeString(ReflectionProperty $property) : string
+    {
+        if ($property->hasType()) {
+            return (string) $property->getType();
+        }
+
+        try {
+            $docblockType = $property->getDocBlockTypeStrings();
+        } catch (Throwable $e) {
+            $docblockType = [];
+        }
+
+        return implode('|', $docblockType);
     }
 
     private function filterMethod(NodeAbstract $expression, ReflectionClass $class, ReflectionProperty $property) : bool

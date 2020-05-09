@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test\MessageHandler\TextDocument\CompletionProvider;
 
+use InvalidArgumentException;
 use LanguageServer\Completion\InstanceMethodProvider;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\Variable;
@@ -112,6 +113,31 @@ class InstanceMethodProviderTest extends TestCase
         $this->assertEquals('testMethod', $completionItems[0]->label);
         $this->assertEquals('testDocumentation', $completionItems[0]->documentation);
         $this->assertEquals('public testMethod(): int|float', $completionItems[0]->detail);
+    }
+
+    public function testCompleteWithInvalidDocblockType() : void
+    {
+        $subject = new InstanceMethodProvider();
+
+        $expression = new PropertyFetch(new Variable('foo'), 'bar');
+        $reflection = $this->createMock(ReflectionClass::class);
+        $method     = $this->createMock(ReflectionMethod::class);
+
+        $method
+            ->method('getName')
+            ->willReturn('testMethod');
+
+        $method
+            ->method('getReturnType')
+            ->willReturn(null);
+
+        $method
+            ->method('getDocBlockReturnTypes')
+            ->will($this->throwException(new InvalidArgumentException()));
+
+        $completionItems = $subject->complete($expression, $reflection);
+
+        $this->assertEmpty($completionItems);
     }
 
     public function testCompleteOnNullableType() : void
