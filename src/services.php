@@ -27,7 +27,6 @@ use LanguageServer\Parser\MemoizingParser;
 use LanguageServer\Reflection\MemoizingSourceLocator;
 use LanguageServer\Reflection\RegistrySourceLocator;
 use LanguageServer\Server\Cache\UsageAwareCache;
-use LanguageServer\Server\Log\LogHandler;
 use LanguageServer\Server\Serializer\JsonRpcEncoder;
 use LanguageServer\Server\Serializer\MessageDenormalizer;
 use LanguageServer\Server\Serializer\MessageSerializer;
@@ -114,11 +113,6 @@ return [
         } else {
             $logger->pushHandler(new NullHandler());
         }
-
-        $lspLogHandler = new LogHandler($container->get(MessageSerializer::class), $logLevel);
-        $lspLogHandler->setStream($container->get('stream'));
-
-        $logger->pushHandler($lspLogHandler);
 
         return $logger;
     },
