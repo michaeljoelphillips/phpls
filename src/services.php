@@ -24,6 +24,7 @@ use LanguageServer\MessageHandler\TextDocument\DidSave;
 use LanguageServer\MessageHandler\TextDocument\SignatureHelp;
 use LanguageServer\Parser\CorrectiveParser;
 use LanguageServer\Parser\MemoizingParser;
+use LanguageServer\Reflection\ComposerLocatorFactory;
 use LanguageServer\Reflection\MemoizingSourceLocator;
 use LanguageServer\Reflection\RegistrySourceLocator;
 use LanguageServer\Server\Cache\UsageAwareCache;
@@ -53,7 +54,6 @@ use Roave\BetterReflection\Reflector\FunctionReflector;
 use Roave\BetterReflection\SourceLocator\Ast\Locator as AstLocator;
 use Roave\BetterReflection\SourceLocator\SourceStubber\PhpStormStubsSourceStubber;
 use Roave\BetterReflection\SourceLocator\Type\AggregateSourceLocator;
-use Roave\BetterReflection\SourceLocator\Type\Composer\Factory\MakeLocatorForComposerJsonAndInstalledJson;
 use Roave\BetterReflection\SourceLocator\Type\PhpInternalSourceLocator;
 use Roave\BetterReflection\SourceLocator\Type\SourceLocator;
 use Symfony\Component\Console\Application;
@@ -173,7 +173,7 @@ return [
                         $container->get('reflectorCache'),
                         new AggregateSourceLocator([
                             new PhpInternalSourceLocator($locator, new PhpStormStubsSourceStubber($container->get(Parser::class))),
-                            (new MakeLocatorForComposerJsonAndInstalledJson())($container->get('project_root'), $locator),
+                            (new ComposerLocatorFactory())($container->get('project_root'), $locator),
                         ]),
                     ),
                 ]);
