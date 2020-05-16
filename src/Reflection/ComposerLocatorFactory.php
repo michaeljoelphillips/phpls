@@ -35,9 +35,9 @@ class ComposerLocatorFactory
     /**
      * @return array<string, array<int, string>>
      */
-    private function requireDevMappings(string $path) : array
+    private function requireDevMappings(string $root) : array
     {
-        $composerJson = json_decode(file_get_contents($path . 'composer.json'), true);
+        $composerJson = json_decode(file_get_contents($root . 'composer.json'), true);
 
         return array_map(
             static fn (array $namespaces) => array_map(static fn ($path) => $root . $path, $namespaces),
