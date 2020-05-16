@@ -9,6 +9,7 @@ use LanguageServer\MessageHandler\Initialize;
 use LanguageServer\Server\Exception\ServerNotInitialized;
 use LanguageServer\Server\Protocol\RequestMessage;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use RuntimeException;
 
 class InitializeTest extends TestCase
@@ -16,7 +17,7 @@ class InitializeTest extends TestCase
     public function testInitialize() : void
     {
         $container = $this->createMock(Container::class);
-        $subject   = new Initialize($container);
+        $subject   = new Initialize($container, $this->createMock(LoggerInterface::class));
 
         $container
             ->expects($this->once())
@@ -36,7 +37,7 @@ class InitializeTest extends TestCase
     public function testInitializeWithEmptyProjectRoot() : void
     {
         $container = $this->createMock(Container::class);
-        $subject   = new Initialize($container);
+        $subject   = new Initialize($container, $this->createMock(LoggerInterface::class));
 
         $this->expectException(RuntimeException::class);
 
@@ -50,7 +51,7 @@ class InitializeTest extends TestCase
     public function testWhenInitializationRequestWasNotSentFirst() : void
     {
         $container = $this->createMock(Container::class);
-        $subject   = new Initialize($container);
+        $subject   = new Initialize($container, $this->createMock(LoggerInterface::class));
 
         $next = function () : void {
             $this->fail('The next middleware should never be called');
@@ -64,7 +65,7 @@ class InitializeTest extends TestCase
     public function testWhenInitializationRequestWasSentFirst() : void
     {
         $container = $this->createMock(Container::class);
-        $subject   = new Initialize($container);
+        $subject   = new Initialize($container, $this->createMock(LoggerInterface::class));
 
         $next = function () : void {
             $this->addToAssertionCount(1);
@@ -77,7 +78,7 @@ class InitializeTest extends TestCase
     public function testWhenInitializationRequestWasSentButExitWasInvoked() : void
     {
         $container = $this->createMock(Container::class);
-        $subject   = new Initialize($container);
+        $subject   = new Initialize($container, $this->createMock(LoggerInterface::class));
 
         $next = function () : void {
             $this->addToAssertionCount(1);

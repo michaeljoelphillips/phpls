@@ -51,13 +51,7 @@ class RegistrySourceLocator implements SourceLocator
         $documents = $this->registry->getAll();
 
         $locators = array_map(
-            function (ParsedDocument $document) {
-                try {
-                    return new DocumentSourceLocator($document, $this->astLocator);
-                } catch (Throwable $t) {
-                    return null;
-                }
-            },
+            fn (ParsedDocument $document) => new DocumentSourceLocator($document, $this->astLocator),
             $documents
         );
 

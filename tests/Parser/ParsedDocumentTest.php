@@ -116,6 +116,14 @@ class ParsedDocumentTest extends ParserTestCase
         $this->assertEquals('Foo', (string) $result);
     }
 
+    public function testGetInntermostNodesAtCursorWhenCursorIsNotWithinAnyNodes() : void
+    {
+        $subject = $this->parse('ParsedDocumentFixture.php');
+        $result  = $subject->getInnermostNodeAtCursor(new CursorPosition(25, 900, 999));
+
+        $this->assertNull($result);
+    }
+
     public function testGetConstructorNodeWhenNoConstructorPresent() : void
     {
         $subject = $this->parse('ParsedDocumentFixture.php');
