@@ -108,4 +108,28 @@ class CompletionTest extends ParserTestCase
         self::assertInstanceOf(CompletionList::class, $response->result);
         self::assertEmpty($response->result->items);
     }
+
+    public function testCompleteWithPartialIdentifier() : void
+    {
+        $document = $this->parse('CompletionProviderFixture.php');
+
+        $this->registry->add($document);
+
+        $request = new RequestMessage(1, 'textDocument/completion', [
+            'textDocument' => ['uri' => $document->getUri()],
+            'position' => [
+                'line' => 25,
+                'character' => 27,
+            ],
+        ]);
+
+        $response = $this->subject->__invoke(
+            $request,
+            fn() => $this->fail('Next should never be called')
+        );
+
+        self::assertInstanceOf(ResponseMessage::class, $response);
+        self::assertInstanceOf(CompletionList::class, $response->result);
+        self::assertNotEmpty($response->result->items);
+    }
 }

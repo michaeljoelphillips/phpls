@@ -15,4 +15,14 @@ class CompletionProviderFixture
     {
         $this->foo()->stub;
     }
+
+    public function foobar()
+    {
+        return;
+    }
+
+    public function baz()
+    {
+        return $this->fooba;
+    }
 }

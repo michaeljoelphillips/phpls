@@ -160,7 +160,7 @@ class ParsedDocument
         $lines[$line - 1] = substr($lines[$line - 1], 0, $character);
         $lines            = implode("\n", $lines);
 
-        $relativePosition = strlen($lines);
+        $relativePosition = strlen($lines) - 1;
 
         return new CursorPosition($line, $character, $relativePosition);
     }
