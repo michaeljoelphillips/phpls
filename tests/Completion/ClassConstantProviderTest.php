@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Test\MessageHandler\TextDocument\CompletionProvider;
+namespace LanguageServer\Test\Completion;
 
 use LanguageServer\Completion\ClassConstantProvider;
 use PhpParser\Node\Expr;

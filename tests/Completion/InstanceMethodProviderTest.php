@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Test\MessageHandler\TextDocument\CompletionProvider;
+namespace LanguageServer\Test\Completion;
 
 use InvalidArgumentException;
 use LanguageServer\Completion\InstanceMethodProvider;
