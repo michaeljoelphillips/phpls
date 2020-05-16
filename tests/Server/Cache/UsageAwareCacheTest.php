@@ -9,6 +9,7 @@ use LanguageServer\Server\Cache\UsageAwareCache;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use stdClass;
+use function time;
 
 class UsageAwareCacheTest extends TestCase
 {
@@ -90,6 +91,8 @@ class UsageAwareCacheTest extends TestCase
 
     public function testGetExtendsTheTtl() : void
     {
+        $originalTime = time();
+
         $subject = new UsageAwareCache();
 
         $reflection = new ReflectionClass(UsageAwareCache::class);
@@ -97,12 +100,11 @@ class UsageAwareCacheTest extends TestCase
         $property->setAccessible(true);
 
         $subject->set('test', new stdClass());
-        $originalTtl = $property->getValue($subject)['test']['expiry'];
-
         $subject->get('test');
-        $newTtl = $property->getValue($subject)['test']['expiry'];
 
-        $this->assertGreaterThan($originalTtl, $newTtl);
+        $expiry = $property->getValue($subject)['test']['expiry'];
+
+        $this->assertEquals($originalTime + 180, $expiry);
     }
 
     public function testCleanClearsExpiredCacheEntries() : void

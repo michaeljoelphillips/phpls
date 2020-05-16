@@ -36,7 +36,7 @@ class UsageAwareCache implements CacheInterface, CleanableCache
      */
     private function touch($key) : void
     {
-        $this->values[$key]['expiry'] += time() + self::DEFAULT_TTL;
+        $this->values[$key]['expiry'] = time() + self::DEFAULT_TTL;
     }
 
     /**
