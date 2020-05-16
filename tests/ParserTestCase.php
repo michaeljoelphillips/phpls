@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test;
 
+use FilesystemIterator;
 use LanguageServer\ParsedDocument;
 use PhpParser\Lexer;
 use PhpParser\Parser;
@@ -11,7 +12,7 @@ use PhpParser\ParserFactory;
 use Roave\BetterReflection\Reflector\ClassReflector;
 use Roave\BetterReflection\Reflector\FunctionReflector;
 use Roave\BetterReflection\SourceLocator\Ast\Locator as AstLocator;
-use Roave\BetterReflection\SourceLocator\Type\DirectoriesSourceLocator;
+use Roave\BetterReflection\SourceLocator\Type\FileIteratorSourceLocator;
 use Roave\BetterReflection\SourceLocator\Type\SourceLocator;
 
 abstract class ParserTestCase extends FixtureTestCase
@@ -51,8 +52,8 @@ abstract class ParserTestCase extends FixtureTestCase
 
     protected function getSourceLocator() : SourceLocator
     {
-        return new DirectoriesSourceLocator(
-            [self::FIXTURE_DIRECTORY],
+        return new FileIteratorSourceLocator(
+            new FilesystemIterator(self::FIXTURE_DIRECTORY, FilesystemIterator::SKIP_DOTS),
             $this->getAstLocator()
         );
     }
