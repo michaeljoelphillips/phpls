@@ -21,6 +21,8 @@ use Roave\BetterReflection\Reflector\Reflector;
 use function array_filter;
 use function array_merge;
 use function array_values;
+use function count;
+use function sprintf;
 
 class Completion implements MessageHandler
 {
@@ -125,6 +127,8 @@ class Completion implements MessageHandler
                 $provider->complete($expression, $reflection)
             );
         }
+
+        $this->logger->debug(sprintf('Completed %d items', count($completionItems)));
 
         return new CompletionList($completionItems);
     }
