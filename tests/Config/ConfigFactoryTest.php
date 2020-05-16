@@ -20,7 +20,10 @@ class ConfigFactoryTest extends TestCase
 
         $this->assertEquals(
             [
-                'log' => ['enabled' => false],
+                'log' => [
+                    'enabled' => false,
+                    'level' => 'info',
+                ],
             ],
             $subject->__invoke()
         );
@@ -34,7 +37,10 @@ class ConfigFactoryTest extends TestCase
 
         $this->assertEquals(
             [
-                'log' => ['enabled' => false],
+                'log' => [
+                    'enabled' => false,
+                    'level' => 'info',
+                ],
             ],
             $subject->__invoke()
         );
@@ -50,7 +56,10 @@ class ConfigFactoryTest extends TestCase
 
         $this->assertEquals(
             [
-                'log' => ['enabled' => false],
+                'log' => [
+                    'enabled' => false,
+                    'level' => 'info',
+                ],
             ],
             $subject->__invoke()
         );
@@ -88,7 +97,10 @@ class ConfigFactoryTest extends TestCase
 
         $this->assertEquals(
             [
-                'log' => ['enabled' => false],
+                'log' => [
+                    'enabled' => false,
+                    'level' => 'info',
+                ],
             ],
             $subject->__invoke()
         );
