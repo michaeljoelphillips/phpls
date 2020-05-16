@@ -104,11 +104,12 @@ return [
         return $app;
     },
     LoggerInterface::class => static function (ContainerInterface $container) {
-        $logger   = new Logger('default');
-        $config   = $container->get('config')['log'];
-        $logLevel = $config['level'] === 'debug' ? Logger::DEBUG : Logger::INFO;
+        $logger = new Logger('default');
+        $config = $container->get('config')['log'];
 
         if ($config['enabled'] === true) {
+            $logLevel = $config['level'] === 'debug' ? Logger::DEBUG : Logger::INFO;
+
             $logger->pushHandler(new StreamHandler(fopen($config['path'], 'a'), $logLevel));
         } else {
             $logger->pushHandler(new NullHandler());
