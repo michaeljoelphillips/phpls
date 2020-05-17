@@ -197,7 +197,7 @@ class TypeResolverTest extends ParserTestCase
                     ),
                     new Identifier('publicInstanceVariable')
                 ),
-                '\stdClass',
+                'stdClass',
             ],
             [
                 new PropertyFetch(
@@ -239,7 +239,7 @@ class TypeResolverTest extends ParserTestCase
                     ),
                     new Identifier('publicProperty')
                 ),
-                '\stdClass',
+                'stdClass',
             ],
             [
                 new PropertyFetch(
