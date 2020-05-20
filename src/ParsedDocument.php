@@ -13,12 +13,9 @@ use PhpParser\NodeAbstract;
 use PhpParser\NodeFinder;
 use function array_filter;
 use function array_key_last;
-use function array_splice;
-use function explode;
-use function implode;
 use function sprintf;
-use function strlen;
-use function substr;
+use function str_split;
+use const PHP_EOL;
 
 class ParsedDocument
 {
@@ -148,20 +145,29 @@ class ParsedDocument
     }
 
     /**
-     * Calculate the cursor position relative to the beginning of the file.
-     *
-     * This method removes all characters proceeding the $character at $line
-     * and counts the total length of the final string.
+     * Calculate the cursor position relative to the beginning of the file,
+     * beginning at 1.
      */
-    public function getCursorPosition(int $line, int $character) : CursorPosition
+    public function getCursorPosition(int $lineNumber, int $characterOffset) : CursorPosition
     {
-        $lines            = explode("\n", $this->source);
-        $lines            = array_splice($lines, 0, $line);
-        $lines[$line - 1] = substr($lines[$line - 1], 0, $character);
-        $lines            = implode("\n", $lines);
+        $linePosition      = 0;
+        $characterPosition = 0;
 
-        $relativePosition = strlen($lines) - 1;
+        foreach (str_split($this->source) as $relativePosition => $character) {
+            if ($character === PHP_EOL) {
+                $linePosition++;
+                $characterPosition = 0;
 
-        return new CursorPosition($line, $character, $relativePosition);
+                continue;
+            }
+
+            if ($linePosition === $lineNumber && $characterPosition === $characterOffset) {
+                return new CursorPosition($lineNumber, $characterPosition, $relativePosition);
+            }
+
+            $characterPosition++;
+        }
+
+        return new CursorPosition($lineNumber, $characterPosition, -1);
     }
 }

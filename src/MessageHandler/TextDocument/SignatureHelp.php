@@ -21,6 +21,7 @@ use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\StaticCall;
+use PhpParser\Node\Stmt\Expression;
 use PhpParser\NodeAbstract;
 use Roave\BetterReflection\Reflection\ReflectionFunctionAbstract;
 use Roave\BetterReflection\Reflection\ReflectionParameter;
@@ -29,9 +30,7 @@ use Roave\BetterReflection\Reflector\FunctionReflector;
 use function array_filter;
 use function array_key_last;
 use function array_map;
-use function array_search;
 use function implode;
-use function var_dump;
 
 class SignatureHelp implements MessageHandler
 {
@@ -70,7 +69,7 @@ class SignatureHelp implements MessageHandler
         $parsedDocument = $this->registry->get($params['textDocument']['uri']);
 
         $cursorPosition = $parsedDocument->getCursorPosition(
-            $params['position']['line'] + 1,
+            $params['position']['line'],
             $params['position']['character']
         );
 
@@ -106,12 +105,17 @@ class SignatureHelp implements MessageHandler
     private function findMethodCallsNearCursor(ParsedDocument $document, CursorPosition $cursorPosition) : array
     {
         $surroundingNodes = array_filter($document->getNodesAtCursor($cursorPosition), [$this, 'hasSignature']);
+        $surroundingNodes = array_map(static fn(NodeAbstract $node) => $node instanceof Expression ? $node->expr : $node, $surroundingNodes);
 
         return array_filter($surroundingNodes, fn (NodeAbstract $node) => $this->isCursorWithinArgumentList($node, $cursorPosition));
     }
 
     private function hasSignature(NodeAbstract $node) : bool
     {
+        if ($node instanceof Expression) {
+            return $this->hasSignature($node->expr);
+        }
+
         return $node instanceof MethodCall
             || $node instanceof StaticCall
             || $node instanceof New_
@@ -123,12 +127,12 @@ class SignatureHelp implements MessageHandler
         $position = $cursor->getRelativePosition();
 
         if (empty($node->args) === false) {
-            return $node->args[0]->getStartFilePos() - 2 <= $position
-                && $node->getEndFilePos() - 1 >= $position;
+            return $node->args[0]->getStartFilePos() - 1 <= $position
+                && $node->getEndFilePos() + 1 >= $position;
         }
 
-        return $node->getEndFilePos() - 2 <= $position
-            && $node->getEndFilePos() - 1 >= $position;
+        return $node->getEndFilePos() - 1 <= $position
+            && $node->getEndFilePos() + 1 >= $position;
     }
 
     private function emptySignatureHelpResponse() : SignatureHelpResponse
@@ -225,7 +229,7 @@ class SignatureHelp implements MessageHandler
         $position = 0;
 
         foreach ($expression->args as $argument) {
-            if ($cursorPosition->isWithin($argument)) {
+            if ($cursorPosition->contains($argument)) {
                 return [$position, $argument];
             }
 

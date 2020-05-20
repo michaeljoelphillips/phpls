@@ -95,7 +95,7 @@ class CompletionTest extends ParserTestCase
             'textDocument' => ['uri' => $document->getUri()],
             'position' => [
                 'line' => 15,
-                'character' => 20,
+                'character' => 22,
             ],
         ]);
 

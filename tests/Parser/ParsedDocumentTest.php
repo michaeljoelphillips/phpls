@@ -143,6 +143,31 @@ class ParsedDocumentTest extends ParserTestCase
     }
 
     /**
+     * @dataProvider cursorPositionProvider
+     */
+    public function testGetCursorPosition(int $line, int $character, int $expected) : void
+    {
+        $subject = $this->parse('ParsedDocumentFixture.php');
+
+        self::assertEquals($expected, $subject->getCursorPosition($line, $character)->getRelativePosition());
+    }
+
+    /**
+     * @return array<int, array<int, int>>
+     */
+    public function cursorPositionProvider() : array
+    {
+        return [
+            [0, 0, 0],
+            [0, 1, 1],
+            [0, 2, 2],
+            [0, 3, 3],
+            [0, 4, 4],
+            [2, 0, 7],
+        ];
+    }
+
+    /**
      * @param object[] $result
      */
     private function assertContainsInstanceOf(string $class, array $result) : void
