@@ -101,7 +101,6 @@ class CorrectiveParser implements Parser
         '\]',
         '&&',
         '\|\|',
-        '__',
         '\?>',
         '\?\?',
         '\/\/',

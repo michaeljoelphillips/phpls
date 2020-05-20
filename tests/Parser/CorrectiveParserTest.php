@@ -235,6 +235,26 @@ class CorrectiveParserTest extends FixtureTestCase
                 \$this->\$list[\$parent][] = \$name;
                 PHP,
             ],
+            [
+                <<<PHP
+                \$this->
+
+                \$this->foo = 'bar';
+                PHP,
+                <<<PHP
+                \$this->stub
+
+                \$this->foo = 'bar';
+                PHP,
+            ],
+            [
+                <<<PHP
+                \$this->__invoke();
+                PHP,
+                <<<PHP
+                \$this->__invoke();
+                PHP,
+            ],
         ];
     }
 }
