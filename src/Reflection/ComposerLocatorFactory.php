@@ -19,29 +19,39 @@ class ComposerLocatorFactory
 {
     public function __invoke(string $path, Locator $astLocator) : SourceLocator
     {
-        $composerLocator = (new MakeLocatorForComposerJsonAndInstalledJson())($path, $astLocator);
-
         $realPath = realpath($path) . '/';
 
         return new AggregateSourceLocator([
-            $composerLocator,
-            new PsrAutoloaderLocator(
-                Psr4Mapping::fromArrayMappings($this->requireDevMappings($realPath)),
-                $astLocator
-            ),
+            $this->classMapLocator($realPath, $astLocator),
+            $this->psr4AutoloadDevLocator($realPath, $astLocator),
+            $this->psr4AutoloadLocator($realPath, $astLocator),
         ]);
+    }
+
+    private function psr4AutoloadLocator(string $path, Locator $astLocator) : SourceLocator
+    {
+        return (new MakeLocatorForComposerJsonAndInstalledJson())($path, $astLocator);
     }
 
     /**
      * @return array<string, array<int, string>>
      */
-    private function requireDevMappings(string $root) : array
+    private function psr4AutoloadDevLocator(string $root, Locator $astLocator) : SourceLocator
     {
         $composerJson = json_decode(file_get_contents($root . 'composer.json'), true);
 
-        return array_map(
+        $mappings = array_map(
             static fn (array $namespaces) => array_map(static fn ($path) => $root . $path, $namespaces),
             array_map(static fn ($path) => (array) $path, $composerJson['autoload-dev']['psr-4'])
         );
+
+        return new PsrAutoloaderLocator(Psr4Mapping::fromArrayMappings($mappings), $astLocator);
+    }
+
+    private function classMapLocator(string $root, Locator $astLocator) : SourceLocator
+    {
+        $classMap = require_once $root . 'vendor/composer/autoload_classmap.php';
+
+        return new ClassMapLocator($classMap, $astLocator);
     }
 }
