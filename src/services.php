@@ -174,7 +174,7 @@ return [
                         $container->get('reflectorCache'),
                         new AggregateSourceLocator([
                             new PhpInternalSourceLocator($locator, new PhpStormStubsSourceStubber($container->get(Parser::class))),
-                            (new ComposerLocatorFactory())($container->get('project_root'), $locator),
+                            (new ComposerLocatorFactory())->__invoke($container->get('project_root'), $locator),
                         ]),
                     ),
                 ]);
