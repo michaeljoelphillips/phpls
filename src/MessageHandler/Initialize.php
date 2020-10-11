@@ -17,20 +17,24 @@ use LanguageServerProtocol\SignatureHelpOptions;
 use LanguageServerProtocol\TextDocumentSyncKind;
 use LanguageServerProtocol\TextDocumentSyncOptions;
 use Psr\Container\ContainerInterface;
+use Psr\Log\LoggerInterface;
 use RuntimeException;
 use function parse_url;
 use function realpath;
+use function sprintf;
 use function urldecode;
 use const PHP_URL_PATH;
 
 class Initialize implements MessageHandler
 {
     private ContainerInterface $container;
-    private bool $wasInitialized = false;
+    private LoggerInterface $logger;
+    private bool $hasBeenInitialized = false;
 
-    public function __construct(Container $container)
+    public function __construct(Container $container, LoggerInterface $logger)
     {
         $this->container = $container;
+        $this->logger    = $logger;
     }
 
     /**
@@ -39,12 +43,12 @@ class Initialize implements MessageHandler
     public function __invoke(Message $request, callable $next)
     {
         if ($request->method === 'initialize') {
-            $this->wasInitialized = true;
+            $this->hasBeenInitialized = true;
 
             return new ResponseMessage($request, $this->getInitializeResult($request));
         }
 
-        if ($this->wasInitialized === false && $request->method !== 'exit') {
+        if ($this->hasBeenInitialized === false && $request->method !== 'exit') {
             throw new ServerNotInitialized();
         }
 
@@ -101,6 +105,8 @@ class Initialize implements MessageHandler
         }
 
         $projectRoot = $this->parseProjectRootUri($params['rootUri']);
+
+        $this->logger->debug(sprintf('Setting the project root: %s', $projectRoot));
 
         $this->container->set('project_root', $projectRoot);
     }

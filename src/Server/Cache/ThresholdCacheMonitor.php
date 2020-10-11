@@ -49,8 +49,6 @@ class ThresholdCacheMonitor implements CacheMonitor
     public function __invoke(int $interval, LoopInterface $loop) : void
     {
         $loop->addPeriodicTimer($interval, function () : void {
-            $this->logger->debug('Theshold timer invoked');
-
             if ($this->memoryExceedsThreshold() === false) {
                 return;
             }
@@ -65,21 +63,20 @@ class ThresholdCacheMonitor implements CacheMonitor
             return false;
         }
 
-        $percentUsed = memory_get_usage() / $this->memoryLimit;
+        $memoryUsed  = memory_get_usage();
+        $percentUsed = $memoryUsed / $this->memoryLimit;
 
-        $this->logger->debug(sprintf('Percentage of total memory used: %f', $percentUsed));
+        $this->logger->debug(sprintf('Memory usage: %.2f/%dMB (%.2f%%)', $memoryUsed / 1024**2, $this->memoryLimit / 1024**2, $percentUsed * 100));
 
         return $percentUsed > self::MEMORY_USAGE_THRESHOLD;
     }
 
     private function clearCache() : void
     {
-        $this->logger->debug(sprintf('Threshold Cache Monitor: Memory Usage Before: %d', memory_get_usage()));
+        $this->logger->notice('Memory usage exceeds the threshold, clearing cache');
 
         foreach ($this->caches as $cache) {
             $cache->clear();
         }
-
-        $this->logger->debug(sprintf('Threshold Cache Monitor: Memory Usage After: %d', memory_get_usage()));
     }
 }

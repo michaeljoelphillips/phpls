@@ -1,11 +1,13 @@
+#!/usr/bin/env php
 <?php
 
-declare(strict_types=1);
-
+use Composer\XdebugHandler\XdebugHandler;
 use DI\ContainerBuilder;
 use Symfony\Component\Console\Application;
 
 require_once __DIR__ . '/../vendor/autoload.php';
+
+(new XdebugHandler('PHPLS'))->check();
 
 $container = (new ContainerBuilder())
     ->addDefinitions(__DIR__ . '/../src/services.php')

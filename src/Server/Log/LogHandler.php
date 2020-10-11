@@ -75,7 +75,7 @@ class LogHandler extends AbstractProcessingHandler
     /**
      * {@inheritdoc}
      */
-    protected function write(array $record)
+    protected function write(array $record) : void
     {
         $message = $this->buildNotificationFromRecord($record);
         $message = $this->serializer->serialize($message);

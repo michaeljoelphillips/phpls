@@ -13,12 +13,9 @@ use PhpParser\NodeAbstract;
 use PhpParser\NodeFinder;
 use function array_filter;
 use function array_key_last;
-use function array_splice;
-use function explode;
-use function implode;
 use function sprintf;
-use function strlen;
-use function substr;
+use function str_split;
+use const PHP_EOL;
 
 class ParsedDocument
 {
@@ -81,29 +78,17 @@ class ParsedDocument
         );
     }
 
-    /**
-     * @return NodeAbstract[]
-     */
-    public function getNodesBesideCursor(CursorPosition $cursorPosition) : array
-    {
-        return $this->searchNodes(
-            static function (NodeAbstract $node) use ($cursorPosition) {
-                return $cursorPosition->isSurrounding($node);
-            }
-        );
-    }
-
     public function getClassName() : string
     {
         $namespace = $this->getNamespace();
-        $class     = $this->finder->findFirstInstanceOf($this->nodes, Class_::class);
+        $class     = $this->finder->findFirstInstanceOf($this->getNodes(), Class_::class);
 
         return sprintf('%s\%s', $namespace, $class->name);
     }
 
     public function getMethod(string $methodName) : ?ClassMethod
     {
-        return $this->finder->findFirst($this->nodes, static function (NodeAbstract $node) use ($methodName) {
+        return $this->finder->findFirst($this->getNodes(), static function (NodeAbstract $node) use ($methodName) {
             return $node instanceof ClassMethod
                 && $node->name->name === $methodName;
         });
@@ -111,7 +96,7 @@ class ParsedDocument
 
     public function getClassProperty(string $propertyName) : ?Property
     {
-        return $this->finder->findFirst($this->nodes, static function (NodeAbstract $node) use ($propertyName) {
+        return $this->finder->findFirst($this->getNodes(), static function (NodeAbstract $node) use ($propertyName) {
             return $node instanceof Property
                 && array_filter($node->props, static function (NodeAbstract $node) use ($propertyName) {
                     return $node->name->name === $propertyName;
@@ -124,7 +109,7 @@ class ParsedDocument
      */
     public function findNodes(string $class) : array
     {
-        return $this->finder->findInstanceOf($this->nodes, $class);
+        return $this->finder->findInstanceOf($this->getNodes(), $class);
     }
 
     /**
@@ -132,7 +117,7 @@ class ParsedDocument
      */
     public function searchNodes(callable $criteria) : array
     {
-        return $this->finder->find($this->nodes, $criteria);
+        return $this->finder->find($this->getNodes(), $criteria);
     }
 
     /**
@@ -140,13 +125,13 @@ class ParsedDocument
      */
     public function getUseStatements() : array
     {
-        return $this->finder->findInstanceOf($this->nodes, Use_::class);
+        return $this->finder->findInstanceOf($this->getNodes(), Use_::class);
     }
 
     public function getConstructorNode() : ?ClassMethod
     {
         return $this->finder->findFirst(
-            $this->nodes,
+            $this->getNodes(),
             static function (NodeAbstract $node) {
                 return $node instanceof ClassMethod
                     && $node->name->name === '__construct';
@@ -156,24 +141,33 @@ class ParsedDocument
 
     public function getNamespace() : string
     {
-        return (string) $this->finder->findFirstInstanceOf($this->nodes, Namespace_::class)->name;
+        return (string) $this->finder->findFirstInstanceOf($this->getNodes(), Namespace_::class)->name;
     }
 
     /**
-     * Calculate the cursor position relative to the beginning of the file.
-     *
-     * This method removes all characters proceeding the $character at $line
-     * and counts the total length of the final string.
+     * Calculate the cursor position relative to the beginning of the file,
+     * beginning at 1.
      */
-    public function getCursorPosition(int $line, int $character) : CursorPosition
+    public function getCursorPosition(int $lineNumber, int $characterOffset) : CursorPosition
     {
-        $lines            = explode("\n", $this->source);
-        $lines            = array_splice($lines, 0, $line);
-        $lines[$line - 1] = substr($lines[$line - 1], 0, $character);
-        $lines            = implode("\n", $lines);
+        $linePosition      = 0;
+        $characterPosition = 0;
 
-        $relativePosition = strlen($lines);
+        foreach (str_split($this->source) as $relativePosition => $character) {
+            if ($character === PHP_EOL) {
+                $linePosition++;
+                $characterPosition = 0;
 
-        return new CursorPosition($line, $character, $relativePosition);
+                continue;
+            }
+
+            if ($linePosition === $lineNumber && $characterPosition === $characterOffset) {
+                return new CursorPosition($lineNumber, $characterPosition, $relativePosition);
+            }
+
+            $characterPosition++;
+        }
+
+        return new CursorPosition($lineNumber, $characterPosition, -1);
     }
 }

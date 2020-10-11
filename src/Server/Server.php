@@ -79,11 +79,17 @@ class Server
         }
 
         if ($stream instanceof DuplexStreamInterface) {
-            $this->logger->info('Initializing server');
+            $this->logger->info('Connected to the client');
 
             $this->stream = $stream;
 
             $stream->on('data', fn (string $data) => $this->parser->handle($data));
+
+            $stream->on('close', function () : void {
+                $this->logger->critical('The connection to the client has closed unexpectedly');
+
+                exit;
+            });
 
             return;
         }
@@ -96,7 +102,7 @@ class Server
      */
     private function handle(Message $message) : void
     {
-        $this->logger->debug(sprintf('Received %s request', $message->method));
+        $this->logger->notice(sprintf('Received %s request', $message->method));
 
         try {
             $response = $this->handler->__invoke($message, 0);

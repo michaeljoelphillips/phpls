@@ -101,7 +101,6 @@ class CorrectiveParser implements Parser
         '\]',
         '&&',
         '\|\|',
-        '__',
         '\?>',
         '\?\?',
         '\/\/',
@@ -173,7 +172,7 @@ class CorrectiveParser implements Parser
         }
 
         if ($result === null) {
-            $this->logger->debug('Parse Error: No Results (Parsing completely failed)');
+            $this->logger->error('The parser failed to parse the source');
 
             return [];
         }

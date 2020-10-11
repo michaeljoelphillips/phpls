@@ -24,10 +24,10 @@ use LanguageServer\MessageHandler\TextDocument\DidSave;
 use LanguageServer\MessageHandler\TextDocument\SignatureHelp;
 use LanguageServer\Parser\CorrectiveParser;
 use LanguageServer\Parser\MemoizingParser;
+use LanguageServer\Reflection\ComposerLocatorFactory;
 use LanguageServer\Reflection\MemoizingSourceLocator;
 use LanguageServer\Reflection\RegistrySourceLocator;
 use LanguageServer\Server\Cache\UsageAwareCache;
-use LanguageServer\Server\Log\LogHandler;
 use LanguageServer\Server\Serializer\JsonRpcEncoder;
 use LanguageServer\Server\Serializer\MessageDenormalizer;
 use LanguageServer\Server\Serializer\MessageSerializer;
@@ -54,7 +54,6 @@ use Roave\BetterReflection\Reflector\FunctionReflector;
 use Roave\BetterReflection\SourceLocator\Ast\Locator as AstLocator;
 use Roave\BetterReflection\SourceLocator\SourceStubber\PhpStormStubsSourceStubber;
 use Roave\BetterReflection\SourceLocator\Type\AggregateSourceLocator;
-use Roave\BetterReflection\SourceLocator\Type\Composer\Factory\MakeLocatorForComposerJsonAndInstalledJson;
 use Roave\BetterReflection\SourceLocator\Type\PhpInternalSourceLocator;
 use Roave\BetterReflection\SourceLocator\Type\SourceLocator;
 use Symfony\Component\Console\Application;
@@ -66,7 +65,7 @@ return [
     LanguageServer::class => static function (ContainerInterface $container) {
         return new LanguageServer(
             $container->get(MessageSerializer::class),
-            $container->get(LoggerInterface::class),
+            $container->get(LoggerInterface::class)->withName('server'),
             $container->get('messageHandlers')
         );
     },
@@ -105,20 +104,16 @@ return [
         return $app;
     },
     LoggerInterface::class => static function (ContainerInterface $container) {
-        $logger   = new Logger('default');
-        $config   = $container->get('config')['log'];
-        $logLevel = $config['level'] === 'debug' ? Logger::DEBUG : Logger::INFO;
+        $logger = new Logger('default');
+        $config = $container->get('config')['log'];
 
         if ($config['enabled'] === true) {
-            $logger->pushHandler(new StreamHandler(fopen($config['path'], 'w+'), $logLevel));
+            $logLevel = $config['level'] === 'debug' ? Logger::DEBUG : Logger::INFO;
+
+            $logger->pushHandler(new StreamHandler(fopen($config['path'], 'a'), $logLevel));
         } else {
             $logger->pushHandler(new NullHandler());
         }
-
-        $lspLogHandler = new LogHandler($container->get(MessageSerializer::class), $logLevel);
-        $lspLogHandler->setStream($container->get('stream'));
-
-        $logger->pushHandler($lspLogHandler);
 
         return $logger;
     },
@@ -149,7 +144,7 @@ return [
                         ],
                     ])
                 ),
-                $container->get(LoggerInterface::class)
+                $container->get(LoggerInterface::class)->withName('parser')
             )
         );
     },
@@ -179,7 +174,7 @@ return [
                         $container->get('reflectorCache'),
                         new AggregateSourceLocator([
                             new PhpInternalSourceLocator($locator, new PhpStormStubsSourceStubber($container->get(Parser::class))),
-                            (new MakeLocatorForComposerJsonAndInstalledJson())($container->get('project_root'), $locator),
+                            (new ComposerLocatorFactory())->__invoke($container->get('project_root'), $locator),
                         ]),
                     ),
                 ]);
@@ -222,7 +217,7 @@ return [
             $container->get(TextDocumentRegistry::class),
             $container->get(ClassReflector::class),
             $container->get(TypeResolver::class),
-            $container->get(LoggerInterface::class),
+            $container->get(LoggerInterface::class)->withName('completion'),
             ...$container->get('completionProviders')
         );
     },

@@ -28,6 +28,7 @@ class ServerConfiguration implements ConfigurationInterface
             ->end()
             ->enumNode('level')
             ->values(['info', 'debug'])
+            ->defaultValue('info')
             ->end()
             ->end()
             ->end();

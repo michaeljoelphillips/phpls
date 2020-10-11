@@ -12,6 +12,7 @@ use Reflection;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionMethod;
 use Roave\BetterReflection\Reflection\ReflectionParameter;
+use Throwable;
 use function array_filter;
 use function array_map;
 use function array_values;
@@ -58,7 +59,11 @@ abstract class MethodProvider implements CompletionProvider
             return (string) $method->getReturnType();
         }
 
-        $docblockReturnTypes = $method->getDocBlockReturnTypes();
+        try {
+            $docblockReturnTypes = $method->getDocBlockReturnTypes();
+        } catch (Throwable $e) {
+            $docblockReturnTypes = [];
+        }
 
         if (empty($docblockReturnTypes) === false) {
             return implode('|', $docblockReturnTypes);

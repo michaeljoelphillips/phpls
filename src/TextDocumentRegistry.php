@@ -11,11 +11,6 @@ class TextDocumentRegistry
     /** @var array<string, ParsedDocument> */
     private array $documents = [];
 
-    public function has(string $fileName) : bool
-    {
-        return array_key_exists($this->documents, $fileName);
-    }
-
     public function get(string $fileName) : ParsedDocument
     {
         return $this->documents[$fileName];

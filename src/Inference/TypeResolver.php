@@ -146,7 +146,7 @@ class TypeResolver
             }
         }
 
-        return $returnType;
+        return $this->getType($document, new Name($returnType));
     }
 
     /**
@@ -267,7 +267,7 @@ class TypeResolver
         $docblockType = $this->getPropertyTypeFromDocblock($document, $property);
 
         if ($docblockType !== null) {
-            return $docblockType;
+            return $this->getType($document, new Name($docblockType));
         }
 
         return $this->getPropertyTypeFromConstructorAssignment($document, $property);

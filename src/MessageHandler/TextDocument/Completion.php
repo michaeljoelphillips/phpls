@@ -21,6 +21,8 @@ use Roave\BetterReflection\Reflector\Reflector;
 use function array_filter;
 use function array_merge;
 use function array_values;
+use function count;
+use function sprintf;
 
 class Completion implements MessageHandler
 {
@@ -63,20 +65,22 @@ class Completion implements MessageHandler
         $parsedDocument = $this->registry->get($params['textDocument']['uri']);
 
         $cursorPosition = $parsedDocument->getCursorPosition(
-            $params['position']['line'] + 1,
-            $params['position']['character']
+            $params['position']['line'],
+            $params['position']['character'] - 1
         );
 
         $expression = $this->findExpressionAtCursor($parsedDocument, $cursorPosition);
 
         if ($expression === null) {
+            $this->logger->notice('A completable expression was not found');
+
             return $this->emptyCompletionList();
         }
 
         $type = $this->resolver->getType($parsedDocument, $expression);
 
         if ($type === null) {
-            $this->logger->debug('Type could not be resolved for expression', ['expression' => $expression]);
+            $this->logger->error('The type could not be inferred from the expression', ['expression' => $expression]);
 
             return $this->emptyCompletionList();
         }
@@ -123,6 +127,8 @@ class Completion implements MessageHandler
                 $provider->complete($expression, $reflection)
             );
         }
+
+        $this->logger->debug(sprintf('Completed %d items', count($completionItems)));
 
         return new CompletionList($completionItems);
     }
