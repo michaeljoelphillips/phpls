@@ -28,7 +28,7 @@ class DidSaveTest extends TestCase
 
         $request = new RequestMessage(1, 'textDocument/didSave', [
             'textDocument' => [
-                'uri' => __DIR__ . '/../../fixtures/ParsedDocumentFixture.php',
+                'uri' => __DIR__ . '/../../../fixtures/ParsedDocumentFixture.php',
             ],
         ]);
 
