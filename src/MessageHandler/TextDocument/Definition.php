@@ -43,7 +43,7 @@ class Definition implements MessageHandler
 
         $params   = $message->params;
         $document = $this->registry->get($params['textDocument']['uri']);
-        $cursor   = $document->getCursorPosition($params['position']['line'] + 1, $params['position']['character']);
+        $cursor   = $document->getCursorPosition($params['position']['line'], $params['position']['character']);
 
         $node = $document->getInnermostNodeAtCursor($cursor);
 
