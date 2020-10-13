@@ -255,6 +255,30 @@ class CorrectiveParserTest extends FixtureTestCase
                 \$this->__invoke();
                 PHP,
             ],
+            [
+                <<<PHP
+                \$
+
+                \$foo = 'bar';
+                PHP,
+                <<<PHP
+                \$stub
+
+                \$foo = 'bar';
+                PHP,
+            ],
+            [
+                <<<PHP
+                \$
+
+                return;
+                PHP,
+                <<<PHP
+                \$stub;
+
+                return;
+                PHP,
+            ],
         ];
     }
 }

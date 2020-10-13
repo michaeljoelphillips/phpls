@@ -5,6 +5,7 @@ declare(strict_types=1);
 use LanguageServer\Completion\ClassConstantProvider;
 use LanguageServer\Completion\InstanceMethodProvider;
 use LanguageServer\Completion\InstanceVariableProvider;
+use LanguageServer\Completion\LocalVariableProvider;
 use LanguageServer\Completion\MethodDocTagProvider;
 use LanguageServer\Completion\PropertyDocTagProvider;
 use LanguageServer\Completion\StaticMethodProvider;
@@ -192,6 +193,7 @@ return [
     },
     TextDocumentRegistry::class => DI\create(TextDocumentRegistry::class),
     'completionProviders' => [
+        DI\get(LocalVariableProvider::class),
         DI\get(InstanceMethodProvider::class),
         DI\get(StaticMethodProvider::class),
         DI\get(InstanceVariableProvider::class),

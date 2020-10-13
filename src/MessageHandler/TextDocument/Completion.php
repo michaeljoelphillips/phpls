@@ -14,6 +14,8 @@ use LanguageServer\Server\Protocol\ResponseMessage;
 use LanguageServer\TextDocumentRegistry;
 use LanguageServerProtocol\CompletionList;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Expr\PropertyFetch;
+use PhpParser\Node\Expr\Variable;
 use PhpParser\NodeAbstract;
 use Psr\Log\LoggerInterface;
 use Roave\BetterReflection\Reflection\ReflectionClass;
@@ -77,7 +79,11 @@ class Completion implements MessageHandler
             return $this->emptyCompletionList();
         }
 
-        $type = $this->resolver->getType($parsedDocument, $expression);
+        if ($expression instanceof Variable) {
+            $type = $this->resolver->getType($parsedDocument, new PropertyFetch(new Variable('this'), 'foo'));
+        } else {
+            $type = $this->resolver->getType($parsedDocument, $expression);
+        }
 
         if ($type === null) {
             $this->logger->error('The type could not be inferred from the expression', ['expression' => $expression]);
