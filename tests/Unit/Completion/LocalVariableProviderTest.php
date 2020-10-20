@@ -18,8 +18,4 @@ class LocalVariableProviderTest extends TestCase
         $this->assertTrue($subject->supports(new Variable('foo')));
         $this->assertFalse($subject->supports(new PropertyFetch(new Variable('foo'), 'bar')));
     }
-
-    public function testProviderOnlyCompletesOnVariablesInScope() : void
-    {
-    }
 }

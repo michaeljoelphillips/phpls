@@ -30,7 +30,7 @@ class InitializeTest extends TestCase
 
         $response = $subject->__invoke(new RequestMessage(1, 'initialize', ['rootUri' => 'file:///tmp']), $next);
 
-        $this->assertEquals([':', '>'], $response->result->capabilities->completionProvider->triggerCharacters);
+        $this->assertEquals(['$', ':', '>'], $response->result->capabilities->completionProvider->triggerCharacters);
         $this->assertEquals(['(', ','], $response->result->capabilities->signatureHelpProvider->triggerCharacters);
     }
 
