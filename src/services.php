@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use LanguageServer\Completion\ClassConstantProvider;
+use LanguageServer\Completion\CTagsProvider;
 use LanguageServer\Completion\InstanceMethodProvider;
 use LanguageServer\Completion\InstanceVariableProvider;
 use LanguageServer\Completion\LocalVariableProvider;
@@ -10,7 +11,6 @@ use LanguageServer\Completion\MethodDocTagProvider;
 use LanguageServer\Completion\PropertyDocTagProvider;
 use LanguageServer\Completion\StaticMethodProvider;
 use LanguageServer\Completion\StaticPropertyProvider;
-use LanguageServer\Completion\TagCompletionProvider;
 use LanguageServer\Config\ConfigFactory;
 use LanguageServer\Console\RunCommand;
 use LanguageServer\Inference\TypeResolver;
@@ -183,14 +183,14 @@ return [
             }
         );
     },
-    TagCompletionProvider::class => static function (ContainerInterface $container) {
+    CTagsProvider::class => static function (ContainerInterface $container) {
         $factory = new LazyLoadingValueHolderFactory();
 
         return $factory->createProxy(
-            TagCompletionProvider::class,
+            CTagsProvider::class,
             static function (&$wrappedObject, $proxy, $method, $parameters, &$initializer) use ($container) : void {
                 $initializer   = null;
-                $wrappedObject = new TagCompletionProvider($container->get('project_root'));
+                $wrappedObject = new CTagsProvider($container->get('project_root'));
             }
         );
     },
@@ -213,7 +213,7 @@ return [
         DI\get(ClassConstantProvider::class),
         DI\get(MethodDocTagProvider::class),
         DI\get(PropertyDocTagProvider::class),
-        DI\get(TagCompletionProvider::class),
+        DI\get(CTagsProvider::class),
     ],
     'messageHandlers' => [
         DI\get(Initialize::class),
