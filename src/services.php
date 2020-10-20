@@ -189,8 +189,10 @@ return [
         return $factory->createProxy(
             CTagsProvider::class,
             static function (&$wrappedObject, $proxy, $method, $parameters, &$initializer) use ($container) : void {
-                $initializer   = null;
-                $wrappedObject = new CTagsProvider($container->get('project_root'));
+                $initializer = null;
+                $config      = $container->get('config')['ctags'];
+
+                $wrappedObject = new CTagsProvider($container->get('project_root'), $config['completion']['keyword_length']);
             }
         );
     },
