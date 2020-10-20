@@ -15,6 +15,8 @@ use Roave\BetterReflection\SourceLocator\Ast\Locator;
 
 class RegistrySourceLocatorTest extends TestCase
 {
+    private const EMPTY_FILE_FIXTURE = __DIR__ . '/../../fixtures/EmptyFileFixture.php';
+
     private RegistrySourceLocator $subject;
     private TextDocumentRegistry $registry;
 
@@ -45,7 +47,7 @@ class RegistrySourceLocatorTest extends TestCase
             ->registry
             ->expects($this->once())
             ->method('getAll')
-            ->willReturn([new ParsedDocument('file:///tmp/foo', '', [])]);
+            ->willReturn([new ParsedDocument(self::EMPTY_FILE_FIXTURE, '', [])]);
 
         $reflector = $this->createMock(Reflector::class);
 
