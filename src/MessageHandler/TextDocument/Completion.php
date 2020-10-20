@@ -16,6 +16,7 @@ use LanguageServerProtocol\CompletionList;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\Variable;
+use PhpParser\Node\Name;
 use PhpParser\NodeAbstract;
 use Psr\Log\LoggerInterface;
 use Roave\BetterReflection\Reflection\ReflectionClass;
@@ -71,7 +72,7 @@ class Completion implements MessageHandler
             $params['position']['character'] - 1
         );
 
-        $expression = $this->findExpressionAtCursor($parsedDocument, $cursorPosition);
+        $expression = $this->findNodeAtCursor($parsedDocument, $cursorPosition);
 
         if ($expression === null) {
             $this->logger->notice('A completable expression was not found');
@@ -79,7 +80,7 @@ class Completion implements MessageHandler
             return $this->emptyCompletionList();
         }
 
-        if ($expression instanceof Variable) {
+        if ($expression instanceof Variable || $expression instanceof Name) {
             $type = $this->resolver->getType($parsedDocument, new PropertyFetch(new Variable('this'), 'foo'));
         } else {
             $type = $this->resolver->getType($parsedDocument, $expression);
@@ -96,7 +97,7 @@ class Completion implements MessageHandler
         return $this->completeExpression($expression, $reflection);
     }
 
-    private function findExpressionAtCursor(ParsedDocument $document, CursorPosition $cursor) : ?Expr
+    private function findNodeAtCursor(ParsedDocument $document, CursorPosition $cursor) : ?NodeAbstract
     {
         $surroundingNodes = $document->getNodesAtCursor($cursor);
         $completableNodes = array_values(array_filter($surroundingNodes, fn(NodeAbstract $node) => $this->completable($node)));
@@ -120,7 +121,7 @@ class Completion implements MessageHandler
         return new CompletionList();
     }
 
-    private function completeExpression(Expr $expression, ReflectionClass $reflection) : CompletionList
+    private function completeExpression(NodeAbstract $expression, ReflectionClass $reflection) : CompletionList
     {
         $completionItems = [];
         foreach ($this->providers as $provider) {

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use LanguageServer\Completion\ClassConstantProvider;
+use LanguageServer\Completion\CTagsProvider;
 use LanguageServer\Completion\InstanceMethodProvider;
 use LanguageServer\Completion\InstanceVariableProvider;
 use LanguageServer\Completion\LocalVariableProvider;
@@ -182,6 +183,19 @@ return [
             }
         );
     },
+    CTagsProvider::class => static function (ContainerInterface $container) {
+        $factory = new LazyLoadingValueHolderFactory();
+
+        return $factory->createProxy(
+            CTagsProvider::class,
+            static function (&$wrappedObject, $proxy, $method, $parameters, &$initializer) use ($container) : void {
+                $initializer = null;
+                $config      = $container->get('config')['ctags'];
+
+                $wrappedObject = new CTagsProvider($container->get('project_root'), $config['completion']['keyword_length']);
+            }
+        );
+    },
     FunctionReflector::class => static function (ContainerInterface $container) {
         return new FunctionReflector(
             $container->get(SourceLocator::class),
@@ -201,6 +215,7 @@ return [
         DI\get(ClassConstantProvider::class),
         DI\get(MethodDocTagProvider::class),
         DI\get(PropertyDocTagProvider::class),
+        DI\get(CTagsProvider::class),
     ],
     'messageHandlers' => [
         DI\get(Initialize::class),
