@@ -17,20 +17,20 @@ use function strpos;
 
 class CTagsProvider implements CompletionProvider
 {
-    private ?string $tagsFileLocation;
+    private string $projectRoot;
 
     private int $keywordLength;
 
     public function __construct(string $projectRoot, int $keywordLength)
     {
-        $this->tagsFileLocation = $this->resolveTagsFile($projectRoot);
-        $this->keywordLength    = $keywordLength;
+        $this->projectRoot   = $projectRoot;
+        $this->keywordLength = $keywordLength;
     }
 
-    private function resolveTagsFile(string $projectRoot) : ?string
+    private function resolveTagsFile() : ?string
     {
-        if (file_exists($projectRoot . '/tags')) {
-            return $projectRoot . '/tags';
+        if (file_exists($this->projectRoot . '/tags')) {
+            return $this->projectRoot . '/tags';
         }
 
         return null;
@@ -41,7 +41,7 @@ class CTagsProvider implements CompletionProvider
      */
     public function complete(NodeAbstract $expression, ReflectionClass $reflection) : array
     {
-        $reader = Reader::fromFile($this->tagsFileLocation, true);
+        $reader = Reader::fromFile($this->resolveTagsFile(), true);
 
         $matchingTags = $reader->filter(static function (Tag $tag) use ($expression) : bool {
             return ($tag->fields['kind'] === 'c' || $tag->fields['kind'] === 'i')
@@ -73,7 +73,7 @@ class CTagsProvider implements CompletionProvider
 
     public function supports(NodeAbstract $expression) : bool
     {
-        return $this->tagsFileLocation !== null
+        return $this->resolveTagsFile() !== null
             && $expression instanceof Name
             && strlen($expression->getLast()) >= $this->keywordLength;
     }
