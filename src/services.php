@@ -10,6 +10,7 @@ use LanguageServer\Completion\MethodDocTagProvider;
 use LanguageServer\Completion\PropertyDocTagProvider;
 use LanguageServer\Completion\StaticMethodProvider;
 use LanguageServer\Completion\StaticPropertyProvider;
+use LanguageServer\Completion\TagCompletionProvider;
 use LanguageServer\Config\ConfigFactory;
 use LanguageServer\Console\RunCommand;
 use LanguageServer\Inference\TypeResolver;
@@ -182,6 +183,17 @@ return [
             }
         );
     },
+    TagCompletionProvider::class => static function (ContainerInterface $container) {
+        $factory = new LazyLoadingValueHolderFactory();
+
+        return $factory->createProxy(
+            TagCompletionProvider::class,
+            static function (&$wrappedObject, $proxy, $method, $parameters, &$initializer) use ($container) : void {
+                $initializer   = null;
+                $wrappedObject = new TagCompletionProvider($container->get('project_root'));
+            }
+        );
+    },
     FunctionReflector::class => static function (ContainerInterface $container) {
         return new FunctionReflector(
             $container->get(SourceLocator::class),
@@ -201,6 +213,7 @@ return [
         DI\get(ClassConstantProvider::class),
         DI\get(MethodDocTagProvider::class),
         DI\get(PropertyDocTagProvider::class),
+        DI\get(TagCompletionProvider::class),
     ],
     'messageHandlers' => [
         DI\get(Initialize::class),
