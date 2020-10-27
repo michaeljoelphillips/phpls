@@ -36,7 +36,7 @@
         "symfony/console": "^5.0",
         "psr/simple-cache": "^1.0",
         "composer/xdebug-handler": "^1.4",
-        "michaeljoelphillips/ctags-php": "^0.0.1"
+        "michaeljoelphillips/ctags-php": "0.0.2"
     },
     "require-dev": {
         "phpstan/phpstan": "^0.12.1",
