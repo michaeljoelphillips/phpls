@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d384a8915ccb857a495754ef6ae71127",
+    "content-hash": "f67bf5c990f18cca024373d22ad30e7d",
     "packages": [
         {
             "name": "composer/xdebug-handler",
@@ -428,16 +428,16 @@
         },
         {
             "name": "michaeljoelphillips/ctags-php",
-            "version": "0.0.1",
+            "version": "0.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/michaeljoelphillips/ctags-php.git",
-                "reference": "a646641bf86d9b4460c27171c6bdc868a0a6a142"
+                "reference": "370aaa6ff2642d8f7fe474a1870c88389a311a09"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/michaeljoelphillips/ctags-php/zipball/a646641bf86d9b4460c27171c6bdc868a0a6a142",
-                "reference": "a646641bf86d9b4460c27171c6bdc868a0a6a142",
+                "url": "https://api.github.com/repos/michaeljoelphillips/ctags-php/zipball/370aaa6ff2642d8f7fe474a1870c88389a311a09",
+                "reference": "370aaa6ff2642d8f7fe474a1870c88389a311a09",
                 "shasum": ""
             },
             "require-dev": {
@@ -466,7 +466,7 @@
                 "ctags",
                 "universal"
             ],
-            "time": "2020-10-19T05:15:22+00:00"
+            "time": "2020-10-27T00:16:56+00:00"
         },
         {
             "name": "monolog/monolog",

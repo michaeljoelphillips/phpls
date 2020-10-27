@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace LanguageServer\Completion;
 
 use CTags\Reader;
-use CTags\Tag;
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
 use PhpParser\Node\Name;
@@ -13,7 +12,6 @@ use PhpParser\NodeAbstract;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use function file_exists;
 use function strlen;
-use function strpos;
 
 class CTagsProvider implements CompletionProvider
 {
@@ -36,17 +34,29 @@ class CTagsProvider implements CompletionProvider
         return null;
     }
 
+    private function getTagReader() : ?Reader
+    {
+        $tagFile = $this->resolveTagsFile();
+
+        if ($tagFile === null) {
+            return null;
+        }
+
+        return Reader::fromFile($tagFile, true);
+    }
+
     /**
      * @return CompletionItem[]
      */
     public function complete(NodeAbstract $expression, ReflectionClass $reflection) : array
     {
-        $reader = Reader::fromFile($this->resolveTagsFile(), true);
+        $reader = $this->getTagReader();
 
-        $matchingTags = $reader->filter(static function (Tag $tag) use ($expression) : bool {
-            return ($tag->fields['kind'] === 'c' || $tag->fields['kind'] === 'i')
-                && strpos($tag->name, $expression->getLast()) !== false;
-        });
+        if ($reader === null) {
+            return [];
+        }
+
+        $matchingTags = $reader->partialMatch($expression->getLast());
 
         $completionItems = [];
         foreach ($matchingTags as $tag) {
@@ -60,7 +70,7 @@ class CTagsProvider implements CompletionProvider
         return $completionItems;
     }
 
-    private function completionItemKind(string $kind) : int
+    private function completionItemKind(?string $kind) : ?int
     {
         switch ($kind) {
             case 'i':
@@ -68,6 +78,10 @@ class CTagsProvider implements CompletionProvider
             case 'c':
             case 't':
                 return CompletionItemKind::CLASS_;
+            case 'f':
+                return CompletionItemKind::FUNCTION;
+            default:
+                return null;
         }
     }
 
