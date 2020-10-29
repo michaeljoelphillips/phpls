@@ -19,10 +19,12 @@ use LanguageServerProtocol\TextDocumentSyncOptions;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
+
 use function parse_url;
 use function realpath;
 use function sprintf;
 use function urldecode;
+
 use const PHP_URL_PATH;
 
 class Initialize implements MessageHandler
@@ -55,7 +57,7 @@ class Initialize implements MessageHandler
         return $next($request);
     }
 
-    public function getInitializeResult(Message $request) : InitializeResult
+    public function getInitializeResult(Message $request): InitializeResult
     {
         $this->setProjectRoot($request->params);
 
@@ -98,7 +100,7 @@ class Initialize implements MessageHandler
     /**
      * @param array<string, mixed> $params
      */
-    private function setProjectRoot(array $params) : void
+    private function setProjectRoot(array $params): void
     {
         if ($params['rootUri'] === null) {
             throw new RuntimeException('The project root was not specified');
@@ -111,7 +113,7 @@ class Initialize implements MessageHandler
         $this->container->set('project_root', $projectRoot);
     }
 
-    private function parseProjectRootUri(string $uri) : string
+    private function parseProjectRootUri(string $uri): string
     {
         $path = realpath(urldecode(parse_url($uri, PHP_URL_PATH)));
 

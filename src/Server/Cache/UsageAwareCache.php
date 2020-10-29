@@ -6,6 +6,7 @@ namespace LanguageServer\Server\Cache;
 
 use InvalidArgumentException;
 use Psr\SimpleCache\CacheInterface;
+
 use function array_key_exists;
 use function is_iterable;
 use function time;
@@ -34,7 +35,7 @@ class UsageAwareCache implements CacheInterface, CleanableCache
     /**
      * @param mixed $key
      */
-    private function touch($key) : void
+    private function touch($key): void
     {
         $this->values[$key]['expiry'] = time() + self::DEFAULT_TTL;
     }
@@ -42,7 +43,7 @@ class UsageAwareCache implements CacheInterface, CleanableCache
     /**
      * {@inheritdoc}
      */
-    public function set($key, $value, $ttl = self::DEFAULT_TTL) : void
+    public function set($key, $value, $ttl = self::DEFAULT_TTL): void
     {
         $this->values[$key] = [
             'value' => $value,
@@ -127,7 +128,7 @@ class UsageAwareCache implements CacheInterface, CleanableCache
         return true;
     }
 
-    public function clean() : void
+    public function clean(): void
     {
         $time = time();
 

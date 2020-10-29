@@ -6,6 +6,7 @@ namespace LanguageServer\Server;
 
 use Evenement\EventEmitterInterface;
 use Evenement\EventEmitterTrait;
+
 use function array_filter;
 use function array_pop;
 use function explode;
@@ -28,7 +29,7 @@ class MessageParser implements EventEmitterInterface
         $this->wrappedSerializer = $wrappedSerializer;
     }
 
-    public function handle(string $message) : void
+    public function handle(string $message): void
     {
         $this->buffer .= $message;
 
@@ -45,7 +46,7 @@ class MessageParser implements EventEmitterInterface
         }
     }
 
-    private function bufferContainsCompleteMessage() : bool
+    private function bufferContainsCompleteMessage(): bool
     {
         $terminatorPosition = $this->findHeaderTerminator();
 
@@ -66,7 +67,7 @@ class MessageParser implements EventEmitterInterface
         return strpos($this->buffer, self::HEADER_TERMINATOR);
     }
 
-    private function findContentLength(int $terminatorPosition) : int
+    private function findContentLength(int $terminatorPosition): int
     {
         $headers = explode("\r\n", substr($this->buffer, 0, $terminatorPosition));
 
@@ -77,7 +78,7 @@ class MessageParser implements EventEmitterInterface
         return (int) trim($contentLength);
     }
 
-    private function readMessageFromBuffer() : string
+    private function readMessageFromBuffer(): string
     {
         $terminatorPosition = $this->findHeaderTerminator();
         $messageLength      = $this->findContentLength($terminatorPosition);
@@ -85,7 +86,7 @@ class MessageParser implements EventEmitterInterface
         return substr($this->buffer, 0, $terminatorPosition + strlen(self::HEADER_TERMINATOR) + $messageLength);
     }
 
-    private function trimBuffer() : void
+    private function trimBuffer(): void
     {
         $terminatorPosition = $this->findHeaderTerminator();
         $messageLength      = $this->findContentLength($terminatorPosition);

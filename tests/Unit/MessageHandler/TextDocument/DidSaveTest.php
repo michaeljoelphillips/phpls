@@ -12,7 +12,7 @@ use PHPUnit\Framework\TestCase;
 
 class DidSaveTest extends TestCase
 {
-    public function testDidSave() : void
+    public function testDidSave(): void
     {
         $registry = $this->createMock(TextDocumentRegistry::class);
         $parser   = $this->createMock(Parser::class);
@@ -32,7 +32,7 @@ class DidSaveTest extends TestCase
             ],
         ]);
 
-        $next = function () : void {
+        $next = function (): void {
             $this->fail('The next method should never be called');
         };
 

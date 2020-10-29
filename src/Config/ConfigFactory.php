@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace LanguageServer\Config;
 
 use Symfony\Component\Config\Definition\Processor;
+
 use function file_exists;
 use function getenv;
 use function is_readable;
+
 use const DIRECTORY_SEPARATOR;
 
 class ConfigFactory
@@ -20,7 +22,7 @@ class ConfigFactory
     /**
      * @return array<string, mixed>
      */
-    public function __invoke() : array
+    public function __invoke(): array
     {
         return (new Processor())->processConfiguration(
             new ServerConfiguration(),
@@ -34,7 +36,7 @@ class ConfigFactory
     /**
      * @return array<string, mixed>
      */
-    private function globalConfig() : array
+    private function globalConfig(): array
     {
         $globalConfigPath = $this->globalConfigPath();
 
@@ -49,7 +51,7 @@ class ConfigFactory
         return require_once $globalConfigPath;
     }
 
-    private function globalConfigPath() : ?string
+    private function globalConfigPath(): ?string
     {
         $configDir = getenv('XDG_CONFIG_HOME') ?: null;
 
@@ -60,7 +62,7 @@ class ConfigFactory
         return $configDir . DIRECTORY_SEPARATOR . self::PHPLS_CONFIG_PATH;
     }
 
-    private function fileExists(string $config) : bool
+    private function fileExists(string $config): bool
     {
         if (file_exists($config) === false) {
             return false;

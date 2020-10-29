@@ -17,7 +17,7 @@ use Roave\BetterReflection\Reflection\ReflectionClass;
 
 class MethodDocTagProviderTest extends TestCase
 {
-    public function testCompletionOnInstanceMethodsFromClassMethodDocblock() : void
+    public function testCompletionOnInstanceMethodsFromClassMethodDocblock(): void
     {
         $subject = new MethodDocTagProvider();
 
@@ -50,7 +50,7 @@ EOF
         $this->assertEquals('public transcriptions(string $sid): \Namespaced\Class_', $completionItems[2]->detail);
     }
 
-    public function testCompletionOnStaticMethodsFromClassMethodDocblock() : void
+    public function testCompletionOnStaticMethodsFromClassMethodDocblock(): void
     {
         $subject = new MethodDocTagProvider();
 

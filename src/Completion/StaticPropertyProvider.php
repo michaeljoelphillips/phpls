@@ -11,6 +11,7 @@ use PhpParser\NodeAbstract;
 use ReflectionProperty as CoreReflectionProperty;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionProperty;
+
 use function array_filter;
 use function array_map;
 use function array_values;
@@ -21,7 +22,7 @@ class StaticPropertyProvider implements CompletionProvider
     /**
      * {@inheritdoc}
      */
-    public function complete(NodeAbstract $expression, ReflectionClass $reflection) : array
+    public function complete(NodeAbstract $expression, ReflectionClass $reflection): array
     {
         $properties = array_filter(
             $reflection->getProperties(CoreReflectionProperty::IS_STATIC),
@@ -42,7 +43,7 @@ class StaticPropertyProvider implements CompletionProvider
         ));
     }
 
-    protected function filterMethod(NodeAbstract $expression, ReflectionClass $class, ReflectionProperty $property) : bool
+    protected function filterMethod(NodeAbstract $expression, ReflectionClass $class, ReflectionProperty $property): bool
     {
         if ($property->isPublic()) {
             return true;
@@ -63,7 +64,7 @@ class StaticPropertyProvider implements CompletionProvider
         return false;
     }
 
-    public function supports(NodeAbstract $expression) : bool
+    public function supports(NodeAbstract $expression): bool
     {
         return $expression instanceof ClassConstFetch;
     }

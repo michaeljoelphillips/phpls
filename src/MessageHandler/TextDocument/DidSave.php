@@ -9,6 +9,7 @@ use LanguageServer\Server\MessageHandler;
 use LanguageServer\Server\Protocol\Message;
 use LanguageServer\TextDocumentRegistry;
 use PhpParser\Parser;
+
 use function file_get_contents;
 
 class DidSave implements MessageHandler
@@ -38,7 +39,7 @@ class DidSave implements MessageHandler
         $this->registry->add(new ParsedDocument($uri, $source, $nodes));
     }
 
-    private function read(string $uri) : string
+    private function read(string $uri): string
     {
         return file_get_contents($uri) ?: '';
     }

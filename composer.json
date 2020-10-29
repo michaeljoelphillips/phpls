@@ -39,9 +39,11 @@
         "michaeljoelphillips/ctags-php": "0.0.2"
     },
     "require-dev": {
-        "phpstan/phpstan": "^0.12.1",
+        "phpstan/phpstan": "^0.12.52",
         "phpunit/phpunit": "^9.1",
         "phpstan/phpstan-php-parser": "^0.12.1",
-        "phpbench/phpbench": "^0.17.1"
+        "phpbench/phpbench": "^0.17.1",
+        "squizlabs/php_codesniffer": "^3.5",
+        "doctrine/coding-standard": "^8.2"
     }
 }

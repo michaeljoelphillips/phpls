@@ -12,7 +12,7 @@ use PHPUnit\Framework\TestCase;
 
 class DidChangeTest extends TestCase
 {
-    public function testDidChange() : void
+    public function testDidChange(): void
     {
         $registry = $this->createMock(TextDocumentRegistry::class);
         $parser   = $this->createMock(Parser::class);
@@ -36,7 +36,7 @@ class DidChangeTest extends TestCase
             ],
         ]);
 
-        $next = function () : void {
+        $next = function (): void {
             $this->fail('The next method should never be called');
         };
 

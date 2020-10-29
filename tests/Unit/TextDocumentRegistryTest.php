@@ -10,7 +10,7 @@ use PHPUnit\Framework\TestCase;
 
 class TextDocumentRegistryTest extends TestCase
 {
-    public function testAddOnlyStoresLatestVersion() : void
+    public function testAddOnlyStoresLatestVersion(): void
     {
         $subject    = new TextDocumentRegistry();
         $versionOne = new ParsedDocument('file:///tmp/foo.php', '<?php ', []);
@@ -22,7 +22,7 @@ class TextDocumentRegistryTest extends TestCase
         $this->assertSame($versionTwo, $subject->get('file:///tmp/foo.php'));
     }
 
-    public function testGetAll() : void
+    public function testGetAll(): void
     {
         $subject    = new TextDocumentRegistry();
         $versionOne = new ParsedDocument('file:///tmp/foo.php', '<?php ', []);
@@ -34,7 +34,7 @@ class TextDocumentRegistryTest extends TestCase
         $this->assertCount(2, $subject->getAll());
     }
 
-    public function testClear() : void
+    public function testClear(): void
     {
         $subject    = new TextDocumentRegistry();
         $versionOne = new ParsedDocument('file:///tmp/foo.php', '<?php ', []);

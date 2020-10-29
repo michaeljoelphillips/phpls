@@ -13,7 +13,7 @@ interface MessageSerializer
     /**
      * @throws ParseError
      */
-    public function deserialize(string $request) : ?Message;
+    public function deserialize(string $request): ?Message;
 
-    public function serialize(ResponseMessage $response) : string;
+    public function serialize(ResponseMessage $response): string;
 }

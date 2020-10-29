@@ -16,14 +16,14 @@ use stdClass;
 
 class StaticPropertyProviderTest extends TestCase
 {
-    public function testSupports() : void
+    public function testSupports(): void
     {
         $subject = new StaticPropertyProvider();
 
         $this->assertTrue($subject->supports(new ClassConstFetch('Foo', 'bar')));
     }
 
-    public function testComplete() : void
+    public function testComplete(): void
     {
         $subject = new StaticPropertyProvider();
 
@@ -64,7 +64,7 @@ class StaticPropertyProviderTest extends TestCase
     /**
      * @dataProvider methodProvider
      */
-    public function testCompleteReturnsPropertiesInScope(string $class, stdClass $visibility, bool $expectation) : void
+    public function testCompleteReturnsPropertiesInScope(string $class, stdClass $visibility, bool $expectation): void
     {
         $subject = new StaticPropertyProvider();
 
@@ -100,7 +100,7 @@ class StaticPropertyProviderTest extends TestCase
     /**
      * @return array<int, array<int, mixed>>
      */
-    public function methodProvider() : array
+    public function methodProvider(): array
     {
         return [
             [

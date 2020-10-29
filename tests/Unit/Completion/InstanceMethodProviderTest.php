@@ -17,14 +17,14 @@ use stdClass;
 
 class InstanceMethodProviderTest extends TestCase
 {
-    public function testSupports() : void
+    public function testSupports(): void
     {
         $subject = new InstanceMethodProvider();
 
         $this->assertTrue($subject->supports(new PropertyFetch(new Variable('foo'), 'bar')));
     }
 
-    public function testCompleteWithReturnTypeDeclarations() : void
+    public function testCompleteWithReturnTypeDeclarations(): void
     {
         $subject = new InstanceMethodProvider();
 
@@ -70,7 +70,7 @@ class InstanceMethodProviderTest extends TestCase
         $this->assertEquals('final public testMethod(): mixed', $completionItems[0]->detail);
     }
 
-    public function testCompleteWithDocBlockReturnTypes() : void
+    public function testCompleteWithDocBlockReturnTypes(): void
     {
         $subject = new InstanceMethodProvider();
 
@@ -115,7 +115,7 @@ class InstanceMethodProviderTest extends TestCase
         $this->assertEquals('public testMethod(): int|float', $completionItems[0]->detail);
     }
 
-    public function testCompleteWithInvalidDocblockType() : void
+    public function testCompleteWithInvalidDocblockType(): void
     {
         $subject = new InstanceMethodProvider();
 
@@ -140,7 +140,7 @@ class InstanceMethodProviderTest extends TestCase
         $this->assertEmpty($completionItems);
     }
 
-    public function testCompleteOnNullableType() : void
+    public function testCompleteOnNullableType(): void
     {
         $subject = new InstanceMethodProvider();
 
@@ -185,7 +185,7 @@ class InstanceMethodProviderTest extends TestCase
         $this->assertEquals('public testMethod(): int|float', $completionItems[0]->detail);
     }
 
-    public function testCompleteReturnsOnlyNonStaticMethods() : void
+    public function testCompleteReturnsOnlyNonStaticMethods(): void
     {
         $subject = new InstanceMethodProvider();
 
@@ -213,7 +213,7 @@ class InstanceMethodProviderTest extends TestCase
     /**
      * @dataProvider methodProvider
      */
-    public function testCompleteReturnsMethodsInScope(string $variable, stdClass $visibility, bool $expectation, bool $declaredOnParent = false) : void
+    public function testCompleteReturnsMethodsInScope(string $variable, stdClass $visibility, bool $expectation, bool $declaredOnParent = false): void
     {
         $subject = new InstanceMethodProvider();
 
@@ -249,7 +249,7 @@ class InstanceMethodProviderTest extends TestCase
     /**
      * @return array<int, array<int, mixed>>
      */
-    public function methodProvider() : array
+    public function methodProvider(): array
     {
         return [
             [

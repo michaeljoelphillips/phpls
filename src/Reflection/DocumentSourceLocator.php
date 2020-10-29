@@ -21,7 +21,7 @@ class DocumentSourceLocator extends AbstractSourceLocator
         $this->document = $document;
     }
 
-    protected function createLocatedSource(Identifier $identifier) : ?LocatedSource
+    protected function createLocatedSource(Identifier $identifier): ?LocatedSource
     {
         return new LocatedSource(
             $this->document->getSource(),

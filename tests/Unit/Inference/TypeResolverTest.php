@@ -24,7 +24,7 @@ class TypeResolverTest extends ParserTestCase
     private TypeResolver $subject;
     private ParsedDocument $document;
 
-    protected function getSourceLocator() : SourceLocator
+    protected function getSourceLocator(): SourceLocator
     {
         return new SingleFileSourceLocator(
             self::PARSER_FIXTURE,
@@ -32,7 +32,7 @@ class TypeResolverTest extends ParserTestCase
         );
     }
 
-    public function setUp() : void
+    public function setUp(): void
     {
         $this->document = $this->parse('TypeResolverFixture.php');
         $this->subject  = new TypeResolver($this->getClassReflector());
@@ -41,7 +41,7 @@ class TypeResolverTest extends ParserTestCase
     /**
      * @dataProvider nodeProvider
      */
-    public function testGetType(NodeAbstract $node, ?string $expectedType) : void
+    public function testGetType(NodeAbstract $node, ?string $expectedType): void
     {
         $actualType = $this->subject->getType($this->document, $node);
 
@@ -51,7 +51,7 @@ class TypeResolverTest extends ParserTestCase
     /**
      * @return array<int, array<int, NodeAbstract|string|null>>
      */
-    public function nodeProvider() : array
+    public function nodeProvider(): array
     {
         return [
             [

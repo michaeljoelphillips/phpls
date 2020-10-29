@@ -13,6 +13,7 @@ use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionMethod;
 use Roave\BetterReflection\Reflection\ReflectionParameter;
 use Throwable;
+
 use function array_filter;
 use function array_map;
 use function array_values;
@@ -24,7 +25,7 @@ abstract class MethodProvider implements CompletionProvider
     /**
      * {@inheritdoc}
      */
-    public function complete(NodeAbstract $expression, ReflectionClass $class) : array
+    public function complete(NodeAbstract $expression, ReflectionClass $class): array
     {
         $instanceMethods = array_filter(
             $class->getMethods(),
@@ -34,26 +35,26 @@ abstract class MethodProvider implements CompletionProvider
             }
         );
 
-        return array_values(array_map(fn(ReflectionMethod $method) => $this->buildCompletionItem($method), $instanceMethods));
+        return array_values(array_map(fn (ReflectionMethod $method) => $this->buildCompletionItem($method), $instanceMethods));
     }
 
-    abstract protected function filterMethod(NodeAbstract $expression, ReflectionClass $class, ReflectionMethod $method) : bool;
+    abstract protected function filterMethod(NodeAbstract $expression, ReflectionClass $class, ReflectionMethod $method): bool;
 
-    private function buildCompletionItem(ReflectionMethod $method) : CompletionItem
+    private function buildCompletionItem(ReflectionMethod $method): CompletionItem
     {
         $signatureInfo = $this->getSignatureInfo($method);
 
         return new CompletionItem($method->getName(), CompletionItemKind::METHOD, $signatureInfo, $method->getDocComment(), null, null, $method->getName(), null, null, null, null, InsertTextFormat::PLAIN_TEXT);
     }
 
-    private function getSignatureInfo(ReflectionMethod $method) : string
+    private function getSignatureInfo(ReflectionMethod $method): string
     {
         $modifiers = implode(' ', Reflection::getModifierNames($method->getModifiers()));
 
         return sprintf('%s %s(%s): %s', $modifiers, $method->getName(), $this->getParameterInfoString($method), $this->getReturnTypeString($method));
     }
 
-    private function getReturnTypeString(ReflectionMethod $method) : string
+    private function getReturnTypeString(ReflectionMethod $method): string
     {
         if ($method->hasReturnType()) {
             return (string) $method->getReturnType();
@@ -72,7 +73,7 @@ abstract class MethodProvider implements CompletionProvider
         return 'mixed';
     }
 
-    private function getParameterInfoString(ReflectionMethod $method) : string
+    private function getParameterInfoString(ReflectionMethod $method): string
     {
         return implode(', ', array_map(
             static function (ReflectionParameter $parameter) {

@@ -13,7 +13,6 @@ use LanguageServer\Server\Protocol\Message;
 use LanguageServer\Server\Protocol\ResponseMessage;
 use LanguageServer\TextDocumentRegistry;
 use LanguageServerProtocol\CompletionList;
-use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Name;
@@ -21,6 +20,7 @@ use PhpParser\NodeAbstract;
 use Psr\Log\LoggerInterface;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflector\Reflector;
+
 use function array_filter;
 use function array_merge;
 use function array_values;
@@ -63,7 +63,7 @@ class Completion implements MessageHandler
     /**
      * @param array<string, mixed> $params
      */
-    private function getCompletionList(array $params) : CompletionList
+    private function getCompletionList(array $params): CompletionList
     {
         $parsedDocument = $this->registry->get($params['textDocument']['uri']);
 
@@ -97,15 +97,15 @@ class Completion implements MessageHandler
         return $this->completeExpression($expression, $reflection);
     }
 
-    private function findNodeAtCursor(ParsedDocument $document, CursorPosition $cursor) : ?NodeAbstract
+    private function findNodeAtCursor(ParsedDocument $document, CursorPosition $cursor): ?NodeAbstract
     {
         $surroundingNodes = $document->getNodesAtCursor($cursor);
-        $completableNodes = array_values(array_filter($surroundingNodes, fn(NodeAbstract $node) => $this->completable($node)));
+        $completableNodes = array_values(array_filter($surroundingNodes, fn (NodeAbstract $node) => $this->completable($node)));
 
         return $completableNodes[0] ?? null;
     }
 
-    private function completable(NodeAbstract $node) : bool
+    private function completable(NodeAbstract $node): bool
     {
         foreach ($this->providers as $provider) {
             if ($provider->supports($node)) {
@@ -116,12 +116,12 @@ class Completion implements MessageHandler
         return false;
     }
 
-    private function emptyCompletionList() : CompletionList
+    private function emptyCompletionList(): CompletionList
     {
         return new CompletionList();
     }
 
-    private function completeExpression(NodeAbstract $expression, ReflectionClass $reflection) : CompletionList
+    private function completeExpression(NodeAbstract $expression, ReflectionClass $reflection): CompletionList
     {
         $completionItems = [];
         foreach ($this->providers as $provider) {

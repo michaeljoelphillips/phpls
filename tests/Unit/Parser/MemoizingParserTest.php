@@ -11,7 +11,7 @@ use Psr\SimpleCache\CacheInterface;
 
 class MemoizingParserTest extends TestCase
 {
-    public function testParseWhenCacheMisses() : void
+    public function testParseWhenCacheMisses(): void
     {
         $cache   = $this->createMock(CacheInterface::class);
         $parser  = $this->createMock(Parser::class);
@@ -33,7 +33,7 @@ class MemoizingParserTest extends TestCase
         $subject->parse('<?php echo "Hello World";', null);
     }
 
-    public function testParseWhenCacheHits() : void
+    public function testParseWhenCacheHits(): void
     {
         $cache   = $this->createMock(CacheInterface::class);
         $parser  = $this->createMock(Parser::class);

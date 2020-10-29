@@ -10,6 +10,7 @@ use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\NodeAbstract;
 use Roave\BetterReflection\Reflection\ReflectionClass;
+
 use function array_column;
 use function array_map;
 use function array_values;
@@ -20,7 +21,7 @@ class PropertyDocTagProvider implements CompletionProvider
     /**
      * {@inheritdoc}
      */
-    public function complete(NodeAbstract $expression, ReflectionClass $reflection) : array
+    public function complete(NodeAbstract $expression, ReflectionClass $reflection): array
     {
         $properties = $this->parsePropertiesInDocblock($reflection->getDocComment());
 
@@ -30,7 +31,7 @@ class PropertyDocTagProvider implements CompletionProvider
     /**
      * @return string[]
      */
-    private function parsePropertiesInDocblock(string $docblock) : array
+    private function parsePropertiesInDocblock(string $docblock): array
     {
         $matches         = [];
         $numberOfMatches = preg_match_all('/@property ([\w,\\\]+) \$?(\w+) ?(.*)/', $docblock, $matches);
@@ -52,10 +53,10 @@ class PropertyDocTagProvider implements CompletionProvider
      *
      * @return CompletionItem[]
      */
-    private function mapPropertiesToCompletionItems(array $properties) : array
+    private function mapPropertiesToCompletionItems(array $properties): array
     {
         return array_values(array_map(
-            static function (array $property) : CompletionItem {
+            static function (array $property): CompletionItem {
                 return new CompletionItem(
                     $property[2],
                     CompletionItemKind::PROPERTY,
@@ -67,7 +68,7 @@ class PropertyDocTagProvider implements CompletionProvider
         ));
     }
 
-    public function supports(NodeAbstract $expression) : bool
+    public function supports(NodeAbstract $expression): bool
     {
         return $expression instanceof PropertyFetch && ! $expression->var instanceof MethodCall;
     }

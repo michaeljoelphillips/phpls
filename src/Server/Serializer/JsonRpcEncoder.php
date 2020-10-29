@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LanguageServer\Server\Serializer;
 
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
+
 use function explode;
 use function sprintf;
 use function strlen;

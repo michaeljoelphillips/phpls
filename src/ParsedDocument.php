@@ -11,10 +11,12 @@ use PhpParser\Node\Stmt\Property;
 use PhpParser\Node\Stmt\Use_;
 use PhpParser\NodeAbstract;
 use PhpParser\NodeFinder;
+
 use function array_filter;
 use function array_key_last;
 use function sprintf;
 use function str_split;
+
 use const PHP_EOL;
 
 class ParsedDocument
@@ -37,12 +39,12 @@ class ParsedDocument
         $this->finder = new NodeFinder();
     }
 
-    public function getUri() : string
+    public function getUri(): string
     {
         return $this->uri;
     }
 
-    public function getSource() : string
+    public function getSource(): string
     {
         return $this->source;
     }
@@ -50,12 +52,12 @@ class ParsedDocument
     /**
      * @return NodeAbstract[]
      */
-    public function getNodes() : array
+    public function getNodes(): array
     {
         return $this->nodes;
     }
 
-    public function getInnermostNodeAtCursor(CursorPosition $cursorPosition) : ?NodeAbstract
+    public function getInnermostNodeAtCursor(CursorPosition $cursorPosition): ?NodeAbstract
     {
         $nodes = $this->getNodesAtCursor($cursorPosition);
 
@@ -69,7 +71,7 @@ class ParsedDocument
     /**
      * @return NodeAbstract[]
      */
-    public function getNodesAtCursor(CursorPosition $cursorPosition) : array
+    public function getNodesAtCursor(CursorPosition $cursorPosition): array
     {
         return $this->searchNodes(
             static function (NodeAbstract $node) use ($cursorPosition) {
@@ -78,7 +80,7 @@ class ParsedDocument
         );
     }
 
-    public function getClassName() : string
+    public function getClassName(): string
     {
         $namespace = $this->getNamespace();
         $class     = $this->finder->findFirstInstanceOf($this->getNodes(), Class_::class);
@@ -86,7 +88,7 @@ class ParsedDocument
         return sprintf('%s\%s', $namespace, $class->name);
     }
 
-    public function getMethod(string $methodName) : ?ClassMethod
+    public function getMethod(string $methodName): ?ClassMethod
     {
         return $this->finder->findFirst($this->getNodes(), static function (NodeAbstract $node) use ($methodName) {
             return $node instanceof ClassMethod
@@ -94,7 +96,7 @@ class ParsedDocument
         });
     }
 
-    public function getClassProperty(string $propertyName) : ?Property
+    public function getClassProperty(string $propertyName): ?Property
     {
         return $this->finder->findFirst($this->getNodes(), static function (NodeAbstract $node) use ($propertyName) {
             return $node instanceof Property
@@ -107,7 +109,7 @@ class ParsedDocument
     /**
      * @return NodeAbstract[]
      */
-    public function findNodes(string $class) : array
+    public function findNodes(string $class): array
     {
         return $this->finder->findInstanceOf($this->getNodes(), $class);
     }
@@ -115,7 +117,7 @@ class ParsedDocument
     /**
      * @return NodeAbstract[]
      */
-    public function searchNodes(callable $criteria) : array
+    public function searchNodes(callable $criteria): array
     {
         return $this->finder->find($this->getNodes(), $criteria);
     }
@@ -123,12 +125,12 @@ class ParsedDocument
     /**
      * @return NodeAbstract[]
      */
-    public function getUseStatements() : array
+    public function getUseStatements(): array
     {
         return $this->finder->findInstanceOf($this->getNodes(), Use_::class);
     }
 
-    public function getConstructorNode() : ?ClassMethod
+    public function getConstructorNode(): ?ClassMethod
     {
         return $this->finder->findFirst(
             $this->getNodes(),
@@ -139,7 +141,7 @@ class ParsedDocument
         );
     }
 
-    public function getNamespace() : string
+    public function getNamespace(): string
     {
         return (string) $this->finder->findFirstInstanceOf($this->getNodes(), Namespace_::class)->name;
     }
@@ -148,7 +150,7 @@ class ParsedDocument
      * Calculate the cursor position relative to the beginning of the file,
      * beginning at 1.
      */
-    public function getCursorPosition(int $lineNumber, int $characterOffset) : CursorPosition
+    public function getCursorPosition(int $lineNumber, int $characterOffset): CursorPosition
     {
         $linePosition      = 0;
         $characterPosition = 0;

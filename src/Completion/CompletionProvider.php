@@ -13,7 +13,7 @@ interface CompletionProvider
     /**
      * @return CompletionItem[]
      */
-    public function complete(NodeAbstract $expression, ReflectionClass $reflection) : array;
+    public function complete(NodeAbstract $expression, ReflectionClass $reflection): array;
 
-    public function supports(NodeAbstract $expression) : bool;
+    public function supports(NodeAbstract $expression): bool;
 }

@@ -12,11 +12,13 @@ use PhpParser\Node\FunctionLike;
 use PhpParser\NodeAbstract;
 use PhpParser\NodeFinder;
 use Roave\BetterReflection\Reflection\ReflectionClass;
+
 use function array_map;
 use function array_merge;
 use function array_pop;
 use function array_unique;
 use function assert;
+
 use const SORT_REGULAR;
 
 class LocalVariableProvider implements CompletionProvider
@@ -31,7 +33,7 @@ class LocalVariableProvider implements CompletionProvider
     /**
      * @return CompletionItem[]
      */
-    public function complete(NodeAbstract $expression, ReflectionClass $reflection) : array
+    public function complete(NodeAbstract $expression, ReflectionClass $reflection): array
     {
         assert($expression instanceof Variable);
 
@@ -42,7 +44,7 @@ class LocalVariableProvider implements CompletionProvider
         }
 
         $completableVariables = array_unique(array_map(
-            static function (Variable $variable) : CompletionItem {
+            static function (Variable $variable): CompletionItem {
                 return new CompletionItem(
                     (string) $variable->name,
                     CompletionItemKind::VARIABLE,
@@ -62,9 +64,9 @@ class LocalVariableProvider implements CompletionProvider
     /**
      * @param array<int, NodeAbstract> $classAst
      */
-    private function findParentFunctionOfVariableNode(Variable $variableNode, array $classAst) : ?FunctionLike
+    private function findParentFunctionOfVariableNode(Variable $variableNode, array $classAst): ?FunctionLike
     {
-        $functionNodes = $this->finder->find($classAst, static function (NodeAbstract $node) use ($variableNode) : bool {
+        $functionNodes = $this->finder->find($classAst, static function (NodeAbstract $node) use ($variableNode): bool {
             return $node instanceof FunctionLike
                 && $node->getEndFilePos() >= $variableNode->getEndFilePos()
                 && $node->getStartFilePos() <= $variableNode->getStartFilePos();
@@ -76,7 +78,7 @@ class LocalVariableProvider implements CompletionProvider
     /**
      * @return array<int, Variable>
      */
-    private function findCompletableVariablesWithinFunction(FunctionLike $function, Variable $variableNode) : array
+    private function findCompletableVariablesWithinFunction(FunctionLike $function, Variable $variableNode): array
     {
         $nodes = array_merge(
             $function->getParams(),
@@ -84,13 +86,13 @@ class LocalVariableProvider implements CompletionProvider
             $function instanceof Closure ? $function->uses : []
         );
 
-        return $this->finder->find($nodes, static function (NodeAbstract $node) use ($variableNode) : bool {
+        return $this->finder->find($nodes, static function (NodeAbstract $node) use ($variableNode): bool {
             return $node instanceof Variable
                 && $node->getStartFilePos() < $variableNode->getStartFilePos();
         });
     }
 
-    public function supports(NodeAbstract $expression) : bool
+    public function supports(NodeAbstract $expression): bool
     {
         return $expression instanceof Variable;
     }

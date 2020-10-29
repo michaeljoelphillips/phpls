@@ -7,6 +7,7 @@ namespace LanguageServer\Parser;
 use PhpParser\ErrorHandler;
 use PhpParser\Parser;
 use Psr\SimpleCache\CacheInterface;
+
 use function hash;
 use function strlen;
 

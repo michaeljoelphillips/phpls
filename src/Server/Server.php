@@ -13,6 +13,7 @@ use React\Socket\ConnectionInterface;
 use React\Socket\Server as TcpServer;
 use React\Stream\DuplexStreamInterface;
 use Throwable;
+
 use function sprintf;
 
 class Server
@@ -52,7 +53,7 @@ class Server
             return $handlers[$position]->__invoke($message, $next);
         };
 
-        $this->parser->on('message', function (Message $request) : void {
+        $this->parser->on('message', function (Message $request): void {
             $this->handle($request);
         });
     }
@@ -60,10 +61,10 @@ class Server
     /**
      * @param TcpServer|DuplexStreamInterface|Promise<DuplexStreamInterface> $stream
      */
-    public function listen($stream) : void
+    public function listen($stream): void
     {
         if ($stream instanceof TcpServer) {
-            $stream->on('connection', function (ConnectionInterface $connection) : void {
+            $stream->on('connection', function (ConnectionInterface $connection): void {
                 $this->listen($connection);
             });
 
@@ -71,7 +72,7 @@ class Server
         }
 
         if ($stream instanceof Promise) {
-            $stream->then(function (ConnectionInterface $connection) : void {
+            $stream->then(function (ConnectionInterface $connection): void {
                 $this->listen($connection);
             });
 
@@ -85,7 +86,7 @@ class Server
 
             $stream->on('data', fn (string $data) => $this->parser->handle($data));
 
-            $stream->on('close', function () : void {
+            $stream->on('close', function (): void {
                 $this->logger->critical('The connection to the client has closed unexpectedly');
 
                 exit;
@@ -100,7 +101,7 @@ class Server
     /**
      * @param NotificationMessage|RequestMessage $message
      */
-    private function handle(Message $message) : void
+    private function handle(Message $message): void
     {
         $this->logger->notice(sprintf('Received %s request', $message->method));
 

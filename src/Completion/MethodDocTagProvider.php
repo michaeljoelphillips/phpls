@@ -10,6 +10,7 @@ use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\NodeAbstract;
 use Roave\BetterReflection\Reflection\ReflectionClass;
+
 use function array_column;
 use function array_filter;
 use function array_map;
@@ -22,11 +23,11 @@ class MethodDocTagProvider implements CompletionProvider
     /**
      * {@inheritdoc}
      */
-    public function complete(NodeAbstract $expression, ReflectionClass $reflection) : array
+    public function complete(NodeAbstract $expression, ReflectionClass $reflection): array
     {
         $methods = $this->parseMethodsInDocblock($reflection->getDocComment());
 
-        $methods = array_filter($methods, static function (array $method) use ($expression) : bool {
+        $methods = array_filter($methods, static function (array $method) use ($expression): bool {
             if ($expression instanceof PropertyFetch) {
                 return $method[1] !== 'static';
             }
@@ -40,7 +41,7 @@ class MethodDocTagProvider implements CompletionProvider
     /**
      * @return string[]
      */
-    private function parseMethodsInDocblock(string $docblock) : array
+    private function parseMethodsInDocblock(string $docblock): array
     {
         $matches         = [];
         $numberOfMatches = preg_match_all('/@method (static)? ?([\w\\\]+) ((\w+)\(.*\))/', $docblock, $matches);
@@ -62,10 +63,10 @@ class MethodDocTagProvider implements CompletionProvider
      *
      * @return CompletionItem[]
      */
-    private function mapMethodsToCompletionItems(array $methods) : array
+    private function mapMethodsToCompletionItems(array $methods): array
     {
         return array_values(array_map(
-            static function (array $method) : CompletionItem {
+            static function (array $method): CompletionItem {
                 $modifiers = $method[1] === 'static' ? 'public static' : 'public';
                 $signature = sprintf('%s %s: %s', $modifiers, $method[3], $method[2]);
 
@@ -79,7 +80,7 @@ class MethodDocTagProvider implements CompletionProvider
         ));
     }
 
-    public function supports(NodeAbstract $expression) : bool
+    public function supports(NodeAbstract $expression): bool
     {
         return $expression instanceof PropertyFetch
             || $expression instanceof ClassConstFetch;

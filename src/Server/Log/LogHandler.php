@@ -45,10 +45,10 @@ class LogHandler extends AbstractProcessingHandler
     /**
      * @param WritableStreamInterface|Server $stream
      */
-    public function setStream($stream) : void
+    public function setStream($stream): void
     {
         if ($stream instanceof Server) {
-            $stream->on('connection', function (ConnectionInterface $connection) : void {
+            $stream->on('connection', function (ConnectionInterface $connection): void {
                 $this->setStream($connection);
             });
 
@@ -56,7 +56,7 @@ class LogHandler extends AbstractProcessingHandler
         }
 
         if ($stream instanceof Promise) {
-            $stream->then(function (ConnectionInterface $connection) : void {
+            $stream->then(function (ConnectionInterface $connection): void {
                 $this->setStream($connection);
             });
 
@@ -75,7 +75,7 @@ class LogHandler extends AbstractProcessingHandler
     /**
      * {@inheritdoc}
      */
-    protected function write(array $record) : void
+    protected function write(array $record): void
     {
         $message = $this->buildNotificationFromRecord($record);
         $message = $this->serializer->serialize($message);
@@ -86,7 +86,7 @@ class LogHandler extends AbstractProcessingHandler
     /**
      * @param array<string, mixed> $record
      */
-    private function buildNotificationFromRecord(array $record) : NotificationMessage
+    private function buildNotificationFromRecord(array $record): NotificationMessage
     {
         $params = new LogMessageParams($record['message'], self::LSP_LOG_LEVELS[$record['level_name']]);
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test\Unit\Completion;
 
+use InvalidArgumentException;
 use LanguageServer\Completion\InstanceVariableProvider;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\PropertyFetch;
@@ -12,11 +13,10 @@ use PHPUnit\Framework\TestCase;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionProperty;
 use Roave\BetterReflection\Reflection\ReflectionType;
-use InvalidArgumentException;
 
 class InstanceVariableProviderTest extends TestCase
 {
-    public function testSupports() : void
+    public function testSupports(): void
     {
         $subject = new InstanceVariableProvider();
 
@@ -24,7 +24,7 @@ class InstanceVariableProviderTest extends TestCase
         $this->assertFalse($subject->supports(new ClassConstFetch('Foo', 'bar')));
     }
 
-    public function testCompleteOnPropertiesWithDocblockTypes() : void
+    public function testCompleteOnPropertiesWithDocblockTypes(): void
     {
         $subject = new InstanceVariableProvider();
 
@@ -57,7 +57,7 @@ class InstanceVariableProviderTest extends TestCase
         $this->assertEquals('testDocumentation', $completionItems[0]->documentation);
     }
 
-    public function testCompleteOnInvalidDocBlockTypes() : void
+    public function testCompleteOnInvalidDocBlockTypes(): void
     {
         $subject = new InstanceVariableProvider();
 
@@ -78,7 +78,7 @@ class InstanceVariableProviderTest extends TestCase
         $this->assertEmpty($completionItems);
     }
 
-    public function testCompleteOnPropertiesWithNativeTypes() : void
+    public function testCompleteOnPropertiesWithNativeTypes(): void
     {
         $subject = new InstanceVariableProvider();
 
@@ -118,7 +118,7 @@ class InstanceVariableProviderTest extends TestCase
     /**
      * @dataProvider variableProvider
      */
-    public function testCompleteReturnsInstanceVariablesInScope(string $variable, bool $isPublic, bool $expected) : void
+    public function testCompleteReturnsInstanceVariablesInScope(string $variable, bool $isPublic, bool $expected): void
     {
         $subject = new InstanceVariableProvider();
 
@@ -140,7 +140,7 @@ class InstanceVariableProviderTest extends TestCase
     /**
      * @return array<int, array<int, mixed>>
      */
-    public function variableProvider() : array
+    public function variableProvider(): array
     {
         return [
             [

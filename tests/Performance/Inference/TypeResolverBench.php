@@ -11,6 +11,7 @@ use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Identifier;
 use PhpParser\Parser;
+
 use function file_get_contents;
 
 class TypeResolverBench
@@ -18,7 +19,7 @@ class TypeResolverBench
     private TypeResolver $subject;
     private Parser $parser;
 
-    public function setUp() : void
+    public function setUp(): void
     {
         $container = (new ContainerBuilder())
             ->addDefinitions(__DIR__ . '/../../../src/services.php')
@@ -33,7 +34,7 @@ class TypeResolverBench
     /**
      * @BeforeMethods({"setUp"})
      */
-    public function benchGetTypeOnPHPUnitMockObject() : void
+    public function benchGetTypeOnPHPUnitMockObject(): void
     {
         $source   = file_get_contents('/home/nomad/Code/hermes/tests/Unit/Twitch/SerializedTokenStorageTest.php');
         $nodes    = $this->parser->parse($source);

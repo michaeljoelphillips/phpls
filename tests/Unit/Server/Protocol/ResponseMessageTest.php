@@ -13,7 +13,7 @@ use stdClass;
 
 class ResponseMessageTest extends TestCase
 {
-    public function testResponseMessageWithResult() : void
+    public function testResponseMessageWithResult(): void
     {
         $request = new RequestMessage(1, 'textDocument/completion', []);
 
@@ -25,7 +25,7 @@ class ResponseMessageTest extends TestCase
         $this->assertSame($result, $subject->result);
     }
 
-    public function testResponseMessageWithGenericException() : void
+    public function testResponseMessageWithGenericException(): void
     {
         $request = new RequestMessage(1, 'textDocument/completion', []);
 
@@ -37,7 +37,7 @@ class ResponseMessageTest extends TestCase
         $this->assertEquals(-32603, $subject->error->code);
     }
 
-    public function testResponseMessageWithException() : void
+    public function testResponseMessageWithException(): void
     {
         $request = new RequestMessage(1, 'textDocument/completion', []);
 

@@ -11,12 +11,12 @@ use Roave\BetterReflection\Reflection\ReflectionMethod;
 
 class InstanceMethodProvider extends MethodProvider
 {
-    public function supports(NodeAbstract $expression) : bool
+    public function supports(NodeAbstract $expression): bool
     {
         return $expression instanceof PropertyFetch;
     }
 
-    protected function filterMethod(NodeAbstract $expression, ReflectionClass $class, ReflectionMethod $method) : bool
+    protected function filterMethod(NodeAbstract $expression, ReflectionClass $class, ReflectionMethod $method): bool
     {
         if ($method->isStatic() === true) {
             return false;

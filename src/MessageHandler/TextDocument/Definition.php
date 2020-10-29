@@ -61,7 +61,7 @@ class Definition implements MessageHandler
         }
     }
 
-    private function locationFromReflectedClass(ReflectionClass $reflection) : Location
+    private function locationFromReflectedClass(ReflectionClass $reflection): Location
     {
         $range = new Range(
             new Position($reflection->getStartLine() - 1, $reflection->getStartColumn() - 1),

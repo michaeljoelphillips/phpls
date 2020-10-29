@@ -8,6 +8,7 @@ use Roave\BetterReflection\Identifier\Identifier;
 use Roave\BetterReflection\SourceLocator\Ast\Locator;
 use Roave\BetterReflection\SourceLocator\Located\LocatedSource;
 use Roave\BetterReflection\SourceLocator\Type\AbstractSourceLocator;
+
 use function array_key_exists;
 use function file_exists;
 use function file_get_contents;
@@ -27,7 +28,7 @@ class ClassMapLocator extends AbstractSourceLocator
         $this->classMap = $classMap;
     }
 
-    public function createLocatedSource(Identifier $identifier) : ?LocatedSource
+    public function createLocatedSource(Identifier $identifier): ?LocatedSource
     {
         if ($identifier->isClass() === false) {
             return null;

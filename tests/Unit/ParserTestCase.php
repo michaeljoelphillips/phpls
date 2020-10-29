@@ -17,7 +17,7 @@ use Roave\BetterReflection\SourceLocator\Type\SourceLocator;
 
 abstract class ParserTestCase extends FixtureTestCase
 {
-    protected function getParser() : Parser
+    protected function getParser(): Parser
     {
         return (new ParserFactory())->create(
             ParserFactory::PREFER_PHP7,
@@ -33,22 +33,22 @@ abstract class ParserTestCase extends FixtureTestCase
         );
     }
 
-    protected function getClassReflector() : ClassReflector
+    protected function getClassReflector(): ClassReflector
     {
         return new ClassReflector($this->getSourceLocator());
     }
 
-    protected function getAstLocator() : AstLocator
+    protected function getAstLocator(): AstLocator
     {
         return new AstLocator($this->getParser(), fn () => $this->getFunctionReflector());
     }
 
-    protected function getFunctionReflector() : FunctionReflector
+    protected function getFunctionReflector(): FunctionReflector
     {
         return new FunctionReflector($this->getSourceLocator(), $this->getClassReflector());
     }
 
-    protected function getSourceLocator() : SourceLocator
+    protected function getSourceLocator(): SourceLocator
     {
         return new FileIteratorSourceLocator(
             new FilesystemIterator(self::FIXTURE_DIRECTORY, FilesystemIterator::SKIP_DOTS),
@@ -56,7 +56,7 @@ abstract class ParserTestCase extends FixtureTestCase
         );
     }
 
-    protected function parse(string $file) : ParsedDocument
+    protected function parse(string $file): ParsedDocument
     {
         $parser = $this->getParser();
         $source = $this->loadFixture($file);

@@ -10,6 +10,7 @@ use Roave\BetterReflection\SourceLocator\Type\Composer\Factory\MakeLocatorForCom
 use Roave\BetterReflection\SourceLocator\Type\Composer\Psr\Psr4Mapping;
 use Roave\BetterReflection\SourceLocator\Type\Composer\PsrAutoloaderLocator;
 use Roave\BetterReflection\SourceLocator\Type\SourceLocator;
+
 use function array_map;
 use function file_get_contents;
 use function json_decode;
@@ -17,7 +18,7 @@ use function realpath;
 
 class ComposerLocatorFactory
 {
-    public function __invoke(string $path, Locator $astLocator) : SourceLocator
+    public function __invoke(string $path, Locator $astLocator): SourceLocator
     {
         $realPath = realpath($path) . '/';
 
@@ -28,7 +29,7 @@ class ComposerLocatorFactory
         ]);
     }
 
-    private function psr4AutoloadLocator(string $path, Locator $astLocator) : SourceLocator
+    private function psr4AutoloadLocator(string $path, Locator $astLocator): SourceLocator
     {
         return (new MakeLocatorForComposerJsonAndInstalledJson())($path, $astLocator);
     }
@@ -36,7 +37,7 @@ class ComposerLocatorFactory
     /**
      * @return array<string, array<int, string>>
      */
-    private function psr4AutoloadDevLocator(string $root, Locator $astLocator) : SourceLocator
+    private function psr4AutoloadDevLocator(string $root, Locator $astLocator): SourceLocator
     {
         $composerJson = json_decode(file_get_contents($root . 'composer.json'), true);
 
@@ -48,7 +49,7 @@ class ComposerLocatorFactory
         return new PsrAutoloaderLocator(Psr4Mapping::fromArrayMappings($mappings), $astLocator);
     }
 
-    private function classMapLocator(string $root, Locator $astLocator) : SourceLocator
+    private function classMapLocator(string $root, Locator $astLocator): SourceLocator
     {
         $classMap = require_once $root . 'vendor/composer/autoload_classmap.php';
 

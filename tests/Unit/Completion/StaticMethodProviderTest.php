@@ -15,14 +15,14 @@ use stdClass;
 
 class StaticMethodProviderTest extends TestCase
 {
-    public function testSupports() : void
+    public function testSupports(): void
     {
         $subject = new StaticMethodProvider();
 
         $this->assertTrue($subject->supports(new ClassConstFetch(new Class_('Foo'), new Name('foo'))));
     }
 
-    public function testCompleteOnlyReturnsStaticMethods() : void
+    public function testCompleteOnlyReturnsStaticMethods(): void
     {
         $subject = new StaticMethodProvider();
 
@@ -44,7 +44,7 @@ class StaticMethodProviderTest extends TestCase
     /**
      * @dataProvider methodProvider
      */
-    public function testCompleteReturnsMethodsInScope(string $class, stdClass $visibility, bool $expectation) : void
+    public function testCompleteReturnsMethodsInScope(string $class, stdClass $visibility, bool $expectation): void
     {
         $subject = new StaticMethodProvider();
 
@@ -84,7 +84,7 @@ class StaticMethodProviderTest extends TestCase
     /**
      * @return array<int, array<int, mixed>>
      */
-    public function methodProvider() : array
+    public function methodProvider(): array
     {
         return [
             [

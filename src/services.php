@@ -82,10 +82,12 @@ return [
                     new ReadableResourceStream(STDIN, $loop),
                     new WritableResourceStream(STDOUT, $loop)
                 );
+
             case 'client':
                 $client = new TcpClient($loop);
 
                 return $client->connect(sprintf('127.0.0.1:%d', $port));
+
             case 'server':
                 return new TcpServer(sprintf('127.0.0.1:%d', $port), $loop);
         }
@@ -161,7 +163,7 @@ return [
 
         return $factory->createProxy(
             AggregateSourceLocator::class,
-            static function (&$wrappedObject, $proxy, $method, $parameters, &$initializer) use ($container) : void {
+            static function (&$wrappedObject, $proxy, $method, $parameters, &$initializer) use ($container): void {
                 $locator = new AstLocator(
                     $container->get(Parser::class),
                     static function () use ($container) {
@@ -188,7 +190,7 @@ return [
 
         return $factory->createProxy(
             CTagsProvider::class,
-            static function (&$wrappedObject, $proxy, $method, $parameters, &$initializer) use ($container) : void {
+            static function (&$wrappedObject, $proxy, $method, $parameters, &$initializer) use ($container): void {
                 $initializer = null;
                 $config      = $container->get('config')['ctags'];
 

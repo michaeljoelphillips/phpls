@@ -13,14 +13,14 @@ use Roave\BetterReflection\Reflection\ReflectionClassConstant;
 
 class ClassConstantProviderTest extends TestCase
 {
-    public function testSupports() : void
+    public function testSupports(): void
     {
         $subject = new ClassConstantProvider();
 
         $this->assertTrue($subject->supports(new ClassConstFetch('Foo', 'bar')));
     }
 
-    public function testComplete() : void
+    public function testComplete(): void
     {
         $subject = new ClassConstantProvider();
 

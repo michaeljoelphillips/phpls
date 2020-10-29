@@ -9,12 +9,14 @@ use PhpParser\ErrorHandler;
 use PhpParser\ErrorHandler\Collecting;
 use PhpParser\Parser;
 use Psr\Log\LoggerInterface;
+
 use function array_slice;
 use function explode;
 use function implode;
 use function preg_replace_callback_array;
 use function sprintf;
 use function trim;
+
 use const PHP_EOL;
 
 class CorrectiveParser implements Parser
@@ -180,7 +182,7 @@ class CorrectiveParser implements Parser
         return $result;
     }
 
-    private function amendIncompleteSource(string $source) : string
+    private function amendIncompleteSource(string $source): string
     {
         return preg_replace_callback_array(
             [
@@ -192,7 +194,7 @@ class CorrectiveParser implements Parser
         );
     }
 
-    private function formatOffendingLines(string $code, Error $error) : string
+    private function formatOffendingLines(string $code, Error $error): string
     {
         $lines = array_slice(
             explode(PHP_EOL, $code),

@@ -18,7 +18,7 @@ class MessageSerializer implements MessageSerializerInterface
         $this->serializer = $serializer;
     }
 
-    public function deserialize(string $request) : ?Message
+    public function deserialize(string $request): ?Message
     {
         try {
             return $this->serializer->deserialize($request, Message::class, 'jsonrpc');
@@ -27,7 +27,7 @@ class MessageSerializer implements MessageSerializerInterface
         }
     }
 
-    public function serialize(Message $response) : string
+    public function serialize(Message $response): string
     {
         try {
             return $this->serializer->serialize($response, 'jsonrpc');
