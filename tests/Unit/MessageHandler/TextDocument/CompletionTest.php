@@ -4,28 +4,26 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test\Unit\MessageHandler\TextDocument;
 
-use LanguageServer\Completion\CompletionProvider;
 use LanguageServer\Completion\InstanceMethodProvider;
+use LanguageServer\Completion\InstanceVariableProvider;
 use LanguageServer\Inference\TypeResolver;
 use LanguageServer\MessageHandler\TextDocument\Completion;
 use LanguageServer\Server\Protocol\RequestMessage;
 use LanguageServer\Server\Protocol\ResponseMessage;
 use LanguageServer\Test\Unit\ParserTestCase;
 use LanguageServer\TextDocumentRegistry;
+use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionList;
 use Psr\Log\LoggerInterface;
 
 class CompletionTest extends ParserTestCase
 {
     private TextDocumentRegistry $registry;
-    private CompletionProvider $completionProvider;
     private Completion $subject;
 
     public function setUp() : void
     {
-        $this->registry           = new TextDocumentRegistry();
-        $this->completionProvider = new InstanceMethodProvider();
-
+        $this->registry = new TextDocumentRegistry();
         $classReflector = $this->getClassReflector();
         $typeResolver   = new TypeResolver($classReflector);
 
@@ -34,7 +32,8 @@ class CompletionTest extends ParserTestCase
             $classReflector,
             $typeResolver,
             $this->createMock(LoggerInterface::class),
-            $this->completionProvider
+            new InstanceMethodProvider(),
+            new InstanceVariableProvider(),
         );
     }
 
@@ -47,7 +46,7 @@ class CompletionTest extends ParserTestCase
         $request = new RequestMessage(1, 'textDocument/completion', [
             'textDocument' => ['uri' => $document->getUri()],
             'position' => [
-                'line' => 10,
+                'line' => 12,
                 'character' => 15,
             ],
         ]);
@@ -59,7 +58,8 @@ class CompletionTest extends ParserTestCase
 
         self::assertInstanceOf(ResponseMessage::class, $response);
         self::assertInstanceOf(CompletionList::class, $response->result);
-        self::assertNotEmpty($response->result->items);
+        self::assertCount(5, $response->result->items);
+        self::assertContainsOnlyInstancesOf(CompletionItem::class, $response->result->items);
     }
 
     public function testCompleteWhenExpressionIsNotCompletable() : void
@@ -94,7 +94,7 @@ class CompletionTest extends ParserTestCase
         $request = new RequestMessage(1, 'textDocument/completion', [
             'textDocument' => ['uri' => $document->getUri()],
             'position' => [
-                'line' => 15,
+                'line' => 17,
                 'character' => 22,
             ],
         ]);
@@ -118,7 +118,7 @@ class CompletionTest extends ParserTestCase
         $request = new RequestMessage(1, 'textDocument/completion', [
             'textDocument' => ['uri' => $document->getUri()],
             'position' => [
-                'line' => 25,
+                'line' => 27,
                 'character' => 27,
             ],
         ]);

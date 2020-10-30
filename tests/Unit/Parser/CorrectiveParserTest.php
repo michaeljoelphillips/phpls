@@ -20,16 +20,23 @@ class CorrectiveParserTest extends FixtureTestCase
         $this->subject = new CorrectiveParser($this->parser, $this->createMock(LoggerInterface::class));
     }
 
+    public function testParseReturnsAnEmptyArrayWhenParsingFails(): void
+    {
+        $this
+            ->parser
+            ->method('parse')
+            ->willReturn(null);
+
+        $result = $this->subject->parse('<xml><foo></foo></xml>');
+
+        $this->assertEquals([], $result);
+    }
+
     /**
      * @dataProvider incompleteSyntaxProvider
      */
     public function testParseFixesIncompleteSyntax(string $incompleteSource, string $completedSource) : void
     {
-        $this
-            ->parser
-            ->method('parse')
-            ->willReturn([]);
-
         $this
             ->parser
             ->expects($this->once())

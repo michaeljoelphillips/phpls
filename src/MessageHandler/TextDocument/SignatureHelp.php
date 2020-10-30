@@ -128,11 +128,11 @@ class SignatureHelp implements MessageHandler
 
         if (empty($node->args) === false) {
             return $node->args[0]->getStartFilePos() - 1 <= $position
-                && $node->getEndFilePos() + 1 >= $position;
+                && $node->getEndFilePos() + 1 > $position;
         }
 
         return $node->getEndFilePos() - 1 <= $position
-            && $node->getEndFilePos() + 1 >= $position;
+            && $node->getEndFilePos() + 1 > $position;
     }
 
     private function emptySignatureHelpResponse() : SignatureHelpResponse
@@ -178,10 +178,10 @@ class SignatureHelp implements MessageHandler
                 $label = '';
 
                 if ($param->getType() !== null) {
-                    $label .= (string) $param->getType() . ' ';
+                    $label = $param->getType() . ' ';
                 }
 
-                $label .= '$' . (string) $param->getName();
+                $label .= '$' . $param->getName();
 
                 return new ParameterInformation($label, null);
             },
@@ -209,16 +209,12 @@ class SignatureHelp implements MessageHandler
         [$activeParameterPosition, $activeParameter] = $this->getActiveParameterFromCursorPosition($expression, $cursorPosition);
 
         if ($activeParameter === null) {
-            return 0;
-        }
-
-        $maximumParameterPosition = $method->getNumberOfParameters();
-
-        if ($activeParameterPosition <= $maximumParameterPosition) {
             return $activeParameterPosition;
         }
 
-        return $maximumParameterPosition;
+        $maximumParameterPosition = $method->getNumberOfParameters() - 1;
+
+        return $activeParameterPosition > $maximumParameterPosition ? $maximumParameterPosition : $activeParameterPosition;
     }
 
     /**
