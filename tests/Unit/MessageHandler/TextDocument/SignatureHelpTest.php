@@ -83,7 +83,7 @@ class SignatureHelpTest extends ParserTestCase
     /**
      * @dataProvider cursorPositionsProvider
      */
-    public function testSignatureHelpWithProvider(int $line, int $character, int $activeParameter, string $label) : void
+    public function testSignatureHelp(int $line, int $character, int $activeParameter, bool $signatureFound, ?string $label) : void
     {
         $document = $this->parse('SignatureHelpFixture.php');
 
@@ -103,7 +103,14 @@ class SignatureHelpTest extends ParserTestCase
 
         $response = $this->subject->__invoke($request, $next);
 
+        if ($signatureFound === false) {
+            $this->assertCount(0, $response->result->signatures);
+
+            return;
+        }
+
         $this->assertCount(1, $response->result->signatures);
+        $this->assertEquals(0, $response->result->activeSignature);
         $this->assertEquals($activeParameter, $response->result->activeParameter);
         $this->assertEquals($label, $response->result->signatures[0]->label);
     }
@@ -114,32 +121,51 @@ class SignatureHelpTest extends ParserTestCase
     public function cursorPositionsProvider() : array
     {
         return [
-            [18, 18, 0, 'stdClass $bar, array $baz'],
-            [18, 19, 0, 'stdClass $bar, array $baz'],
-            [19, 20, 0, 'stdClass $bar, array $baz'],
-            [19, 21, 0, 'stdClass $bar, array $baz'],
-            [19, 33, 0, 'stdClass $bar, array $baz'],
-            [19, 34, 1, 'stdClass $bar, array $baz'],
-            [19, 35, 1, 'stdClass $bar, array $baz'],
-            [19, 36, 1, 'stdClass $bar, array $baz'],
-            [19, 37, 1, 'stdClass $bar, array $baz'],
-            [22, 26, 0, 'stdClass $bar, array $baz'],
-            [23, 12, 1, 'stdClass $bar, array $baz'],
-            [23, 13, 1, 'stdClass $bar, array $baz'],
-            [27, 34, 0, 'stdClass $bar, array $baz'],
-            [27, 13, 0, 'stdClass $bar, array $baz'],
-            [27, 14, 0, 'stdClass $bar, array $baz'],
-            [27, 23, 0, '$baz'],
-            [27, 24, 0, '$baz'],
-            [27, 25, 0, '$baz'],
-            [27, 33, 0, 'stdClass $bar, array $baz'],
-            [27, 34, 0, 'stdClass $bar, array $baz'],
-            [27, 35, 0, '$baz'],
-            [27, 36, 1, '$baz'],
-            [27, 37, 1, '$baz'],
-            [27, 38, 1, '$baz'],
-            [27, 53, 1, '$baz'],
-            [38, 26, 0, 'int $code, string $body'],
+            [18, 16, 0, false, null],
+            [18, 17, 0, false, null],
+            [18, 18, 0, true, 'stdClass $bar, array $baz'],
+            [18, 19, 0, true, 'stdClass $bar, array $baz'],
+            [18, 20, 0, false, null],
+            [19, 16, 0, false, null],
+            [19, 17, 0, false, null],
+            [19, 18, 0, true, 'stdClass $bar, array $baz'],
+            [19, 19, 0, true, 'stdClass $bar, array $baz'],
+            [19, 20, 0, true, 'stdClass $bar, array $baz'],
+            [19, 21, 0, true, 'stdClass $bar, array $baz'],
+            [19, 33, 0, true, 'stdClass $bar, array $baz'],
+            [19, 34, 1, true, 'stdClass $bar, array $baz'],
+            [19, 35, 1, true, 'stdClass $bar, array $baz'],
+            [19, 36, 1, true, 'stdClass $bar, array $baz'],
+            [19, 37, 1, true, 'stdClass $bar, array $baz'],
+            [19, 38, 0, false, null],
+            [22, 26, 0, true, 'stdClass $bar, array $baz'],
+            [23, 12, 1, true, 'stdClass $bar, array $baz'],
+            [23, 13, 1, true, 'stdClass $bar, array $baz'],
+            [27, 13, 0, true, 'stdClass $bar, array $baz'],
+            [27, 14, 0, true, 'stdClass $bar, array $baz'],
+            [27, 22, 0, true, '$baz'],
+            [27, 23, 0, true, '$baz'],
+            [27, 24, 0, true, '$baz'],
+            [27, 25, 0, true, '$baz'],
+            [27, 33, 0, true, 'stdClass $bar, array $baz'],
+            [27, 34, 0, true, 'stdClass $bar, array $baz'],
+            [27, 35, 0, true, '$baz'],
+            [27, 36, 0, true, '$baz'],
+            [27, 37, 0, true, '$baz'],
+            [27, 38, 0, true, '$baz'],
+            [27, 53, 0, true, '$baz'],
+            [27, 54, 0, true, 'stdClass $bar, array $baz'],
+            [33, 22, 0, false, null],
+            [33, 23, 0, false, null],
+            [33, 24, 0, false, null],
+            [33, 25, 0, true, 'stdClass $bar, array $baz'],
+            [33, 26, 0, true, 'stdClass $bar, array $baz'],
+            [33, 27, 0, false, null],
+            [33, 28, 0, false, null],
+            [33, 29, 0, false, null],
+            [33, 30, 0, false, null],
+            [40, 26, 0, true, 'int $code, string $body'],
+            [40, 27, 0, true, 'int $code, string $body'],
             /* [43, 20, 0, 'string $view'], */
         ];
     }

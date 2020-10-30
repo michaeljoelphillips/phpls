@@ -20,7 +20,21 @@ class UsageAwareCacheTest extends TestCase
         $object = new stdClass();
         $subject->set('test', $object);
 
-        $this->assertSame($object, $subject->get('test'));
+        $reflection = new ReflectionClass(UsageAwareCache::class);
+        $property   = $reflection->getProperty('values');
+        $property->setAccessible(true);
+
+        $values                    = $property->getValue($subject);
+        $values['test']['expiry'] -= 100;
+        $originalExpiration        = $values['test']['expiry'];
+
+        $property->setValue($subject, $values);
+
+        $result        = $subject->get('test');
+        $newExpiration = $property->getValue($subject)['test']['expiry'];
+
+        $this->assertSame($object, $result);
+        $this->assertEquals(100, $newExpiration - $originalExpiration);
     }
 
     public function testGetWithDefaultObject() : void
@@ -84,8 +98,8 @@ class UsageAwareCacheTest extends TestCase
 
         $object = new stdClass();
         $subject->set('test', $object);
-        $subject->clear();
 
+        $this->assertTrue($subject->clear());
         $this->assertFalse($subject->has('test'));
     }
 
@@ -116,20 +130,22 @@ class UsageAwareCacheTest extends TestCase
         $property->setAccessible(true);
 
         $property->setValue($subject, [
-            'expiredObject' => [
-                'value' => new stdClass(),
-                'expiry' => 1584770777,
-            ],
             'validObject' => [
                 'value' => new stdClass(),
                 'expiry' => 9999999999,
+            ],
+            'expiredObject' => [
+                'value' => new stdClass(),
+                'expiry' => 1584770777,
             ],
         ]);
 
         $subject->clean();
 
-        $this->assertTrue($subject->has('validObject'));
-        $this->assertFalse($subject->has('expiredObject'));
+        $cache = $property->getValue($subject);
+
+        $this->assertArrayHasKey('validObject', $cache);
+        $this->assertArrayNotHasKey('expiredObject', $cache);
     }
 
     public function testGetMultipleWithNonIterable() : void

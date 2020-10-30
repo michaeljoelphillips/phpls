@@ -55,6 +55,6 @@ class RegistrySourceLocator implements SourceLocator
             $documents
         );
 
-        return new AggregateSourceLocator(array_filter(array_values($locators)));
+        return new AggregateSourceLocator($locators);
     }
 }

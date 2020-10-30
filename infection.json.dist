@@ -1,0 +1,26 @@
+{
+    "source": {
+        "directories": [
+            "src"
+        ],
+        "excludes": [
+            "src/Config/UsageAwareCache.php",
+            "src/MessageHandler/Initialize.php",
+            "src/Config/ServerConfiguration.php",
+        ]
+    },
+    "logs": {
+        "text": "infection.log"
+    },
+    "mutators": {
+        "@default": true,
+        "InstanceOf_": false,
+        "GreaterThan": {
+            "ignore": [
+            ]
+        },
+        "global-ignoreSourceCodeByRegex": [
+            "\\$this->logger.*"
+        ]
+    }
+}

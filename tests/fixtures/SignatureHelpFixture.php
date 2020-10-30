@@ -31,6 +31,8 @@ class SignatureHelpFixture
 
         new SignatureHelpFixture();
 
+        $var = $this->foo() . 'some value';
+
         return;
     }
 

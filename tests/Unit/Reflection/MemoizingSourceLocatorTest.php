@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\SimpleCache\CacheInterface;
 use Roave\BetterReflection\Identifier\Identifier;
 use Roave\BetterReflection\Identifier\IdentifierType;
+use Roave\BetterReflection\Reflection\Reflection;
 use Roave\BetterReflection\Reflector\Reflector;
 use Roave\BetterReflection\SourceLocator\Type\SourceLocator;
 
@@ -77,6 +78,11 @@ class MemoizingSourceLocatorTest extends TestCase
         $reflector      = $this->createMock(Reflector::class);
         $identifierType = new IdentifierType();
 
+        $reflections = [
+            $this->createMock(Reflection::class),
+            $this->createMock(Reflection::class),
+        ];
+
         $cache
             ->expects($this->once())
             ->method('has')
@@ -88,9 +94,13 @@ class MemoizingSourceLocatorTest extends TestCase
 
         $locator
             ->expects($this->once())
-            ->method('locateIdentifiersByType');
+            ->method('locateIdentifiersByType')
+            ->with($reflector, $identifierType)
+            ->willReturn($reflections);
 
-        $subject->locateIdentifiersByType($reflector, $identifierType);
+        $result = $subject->locateIdentifiersByType($reflector, $identifierType);
+
+        $this->assertEquals($reflections, $result);
     }
 
     public function testLocateIdentifierByTypeWithCacheHit() : void

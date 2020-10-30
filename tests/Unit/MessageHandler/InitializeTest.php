@@ -58,6 +58,7 @@ class InitializeTest extends TestCase
         };
 
         $this->expectException(ServerNotInitialized::class);
+        $this->expectExceptionCode(-32002);
 
         $subject->__invoke(new RequestMessage(1, 'textDocument/completion', []), $next);
     }
