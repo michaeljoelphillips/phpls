@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test\Unit\Server\Cache;
 
-use InvalidArgumentException;
 use LanguageServer\Server\Cache\UsageAwareCache;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;

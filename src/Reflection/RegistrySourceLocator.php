@@ -14,9 +14,7 @@ use Roave\BetterReflection\SourceLocator\Ast\Locator as AstLocator;
 use Roave\BetterReflection\SourceLocator\Type\AggregateSourceLocator;
 use Roave\BetterReflection\SourceLocator\Type\SourceLocator;
 
-use function array_filter;
 use function array_map;
-use function array_values;
 
 class RegistrySourceLocator implements SourceLocator
 {

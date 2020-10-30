@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace LanguageServer\Server\Log;
 
-use InvalidArgumentException;
 use LanguageServer\Server\MessageSerializer;
 use LanguageServer\Server\Protocol\LogMessageParams;
 use LanguageServer\Server\Protocol\NotificationMessage;

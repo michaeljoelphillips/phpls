@@ -6,6 +6,7 @@ namespace LanguageServer\Test\Unit\Parser;
 
 use LanguageServer\CursorPosition;
 use LanguageServer\Test\Unit\ParserTestCase;
+use PhpParser\Node;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Name;
 use PhpParser\Node\Stmt\ClassMethod;
@@ -14,7 +15,6 @@ use PhpParser\NodeAbstract;
 
 use function assert;
 use function count;
-use PhpParser\Node;
 
 class ParsedDocumentTest extends ParserTestCase
 {
@@ -120,7 +120,7 @@ class ParsedDocumentTest extends ParserTestCase
         $this->assertContainsOnlyInstancesOf(Node::class, $result);
     }
 
-    public function testGetInnermostNodeAtCursor() : void
+    public function testGetInnermostNodeAtCursor(): void
     {
         $subject = $this->parse('ParsedDocumentFixture.php');
         $result  = $subject->getInnermostNodeAtCursor(new CursorPosition(25, 19, 379));
