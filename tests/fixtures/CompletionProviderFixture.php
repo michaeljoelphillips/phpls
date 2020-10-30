@@ -6,6 +6,8 @@ namespace App;
 
 class CompletionProviderFixture
 {
+    private $property;
+
     public function foo()
     {
         $this->stub;

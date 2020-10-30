@@ -14,6 +14,7 @@ use PhpParser\NodeAbstract;
 
 use function assert;
 use function count;
+use PhpParser\Node;
 
 class ParsedDocumentTest extends ParserTestCase
 {
@@ -109,7 +110,17 @@ class ParsedDocumentTest extends ParserTestCase
         $this->assertContainsInstanceOf(MethodCall::class, $result);
     }
 
-    public function testGetInnermostNodeAtCursor(): void
+    public function testGetNodes(): void
+    {
+        $subject = $this->parse('ParsedDocumentFixture.php');
+
+        $result = $subject->getNodes();
+
+        $this->assertNotEmpty($result);
+        $this->assertContainsOnlyInstancesOf(Node::class, $result);
+    }
+
+    public function testGetInnermostNodeAtCursor() : void
     {
         $subject = $this->parse('ParsedDocumentFixture.php');
         $result  = $subject->getInnermostNodeAtCursor(new CursorPosition(25, 19, 379));
@@ -169,6 +180,7 @@ class ParsedDocumentTest extends ParserTestCase
             [0, 3, 3],
             [0, 4, 4],
             [2, 0, 7],
+            [99, 0, -1],
         ];
     }
 
