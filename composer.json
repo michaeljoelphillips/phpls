@@ -42,6 +42,7 @@
         "phpstan/phpstan": "^0.12.1",
         "phpunit/phpunit": "^9.1",
         "phpstan/phpstan-php-parser": "^0.12.1",
-        "phpbench/phpbench": "^0.17.1"
+        "phpbench/phpbench": "^0.17.1",
+        "infection/infection": "^0.19.2"
     }
 }
