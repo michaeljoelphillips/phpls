@@ -132,31 +132,4 @@ class UsageAwareCacheTest extends TestCase
         $this->assertTrue($subject->has('validObject'));
         $this->assertFalse($subject->has('expiredObject'));
     }
-
-    public function testGetMultipleWithNonIterable(): void
-    {
-        $subject = new UsageAwareCache();
-
-        $this->expectException(InvalidArgumentException::class);
-
-        $subject->getMultiple(new stdClass());
-    }
-
-    public function testSetMultipleWithNonIterable(): void
-    {
-        $subject = new UsageAwareCache();
-
-        $this->expectException(InvalidArgumentException::class);
-
-        $subject->setMultiple(new stdClass());
-    }
-
-    public function testDeleteMultipleWithNonIterable(): void
-    {
-        $subject = new UsageAwareCache();
-
-        $this->expectException(InvalidArgumentException::class);
-
-        $subject->deleteMultiple(new stdClass());
-    }
 }

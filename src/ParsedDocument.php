@@ -4,16 +4,19 @@ declare(strict_types=1);
 
 namespace LanguageServer;
 
+use PhpParser\Node;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Namespace_;
 use PhpParser\Node\Stmt\Property;
+use PhpParser\Node\Stmt\PropertyProperty;
 use PhpParser\Node\Stmt\Use_;
 use PhpParser\NodeAbstract;
 use PhpParser\NodeFinder;
 
 use function array_filter;
 use function array_key_last;
+use function assert;
 use function sprintf;
 use function str_split;
 
@@ -57,7 +60,7 @@ class ParsedDocument
         return $this->nodes;
     }
 
-    public function getInnermostNodeAtCursor(CursorPosition $cursorPosition): ?NodeAbstract
+    public function getInnermostNodeAtCursor(CursorPosition $cursorPosition): ?Node
     {
         $nodes = $this->getNodesAtCursor($cursorPosition);
 
@@ -69,7 +72,7 @@ class ParsedDocument
     }
 
     /**
-     * @return NodeAbstract[]
+     * @return Node[]
      */
     public function getNodesAtCursor(CursorPosition $cursorPosition): array
     {
@@ -85,29 +88,39 @@ class ParsedDocument
         $namespace = $this->getNamespace();
         $class     = $this->finder->findFirstInstanceOf($this->getNodes(), Class_::class);
 
+        assert($class instanceof Class_);
+
         return sprintf('%s\%s', $namespace, $class->name);
     }
 
     public function getMethod(string $methodName): ?ClassMethod
     {
-        return $this->finder->findFirst($this->getNodes(), static function (NodeAbstract $node) use ($methodName) {
+        $classMethod = $this->finder->findFirst($this->getNodes(), static function (NodeAbstract $node) use ($methodName) {
             return $node instanceof ClassMethod
                 && $node->name->name === $methodName;
         });
+
+        assert($classMethod instanceof ClassMethod || $classMethod === null);
+
+        return $classMethod;
     }
 
     public function getClassProperty(string $propertyName): ?Property
     {
-        return $this->finder->findFirst($this->getNodes(), static function (NodeAbstract $node) use ($propertyName) {
+        $property = $this->finder->findFirst($this->getNodes(), static function (NodeAbstract $node) use ($propertyName) {
             return $node instanceof Property
-                && array_filter($node->props, static function (NodeAbstract $node) use ($propertyName) {
+                && array_filter($node->props, static function (PropertyProperty $node) use ($propertyName) {
                     return $node->name->name === $propertyName;
                 });
         });
+
+        assert($property instanceof Property || $property === null);
+
+        return $property;
     }
 
     /**
-     * @return NodeAbstract[]
+     * @return Node[]
      */
     public function findNodes(string $class): array
     {
@@ -115,7 +128,7 @@ class ParsedDocument
     }
 
     /**
-     * @return NodeAbstract[]
+     * @return Node[]
      */
     public function searchNodes(callable $criteria): array
     {
@@ -123,27 +136,38 @@ class ParsedDocument
     }
 
     /**
-     * @return NodeAbstract[]
+     * @return Use_[]
      */
     public function getUseStatements(): array
     {
-        return $this->finder->findInstanceOf($this->getNodes(), Use_::class);
+        /** @var array<int, Use_> $useStatements */
+        $useStatements = $this->finder->findInstanceOf($this->getNodes(), Use_::class);
+
+        return $useStatements;
     }
 
     public function getConstructorNode(): ?ClassMethod
     {
-        return $this->finder->findFirst(
+        $constructor = $this->finder->findFirst(
             $this->getNodes(),
             static function (NodeAbstract $node) {
                 return $node instanceof ClassMethod
                     && $node->name->name === '__construct';
             }
         );
+
+        assert($constructor instanceof ClassMethod || $constructor === null);
+
+        return $constructor;
     }
 
     public function getNamespace(): string
     {
-        return (string) $this->finder->findFirstInstanceOf($this->getNodes(), Namespace_::class)->name;
+        $namespace = $this->finder->findFirstInstanceOf($this->getNodes(), Namespace_::class);
+
+        assert($namespace instanceof Namespace_);
+
+        return (string) $namespace->name;
     }
 
     /**

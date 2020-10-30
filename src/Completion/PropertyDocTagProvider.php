@@ -29,7 +29,7 @@ class PropertyDocTagProvider implements CompletionProvider
     }
 
     /**
-     * @return string[]
+     * @return array<int, array<int, string>>
      */
     private function parsePropertiesInDocblock(string $docblock): array
     {
@@ -49,7 +49,7 @@ class PropertyDocTagProvider implements CompletionProvider
     }
 
     /**
-     * @param string[] $properties
+     * @param array<int, array<int, string>> $properties
      *
      * @return CompletionItem[]
      */

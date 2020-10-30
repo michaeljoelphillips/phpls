@@ -7,11 +7,14 @@ namespace LanguageServer\Test\Unit\Parser;
 use LanguageServer\Parser\CorrectiveParser;
 use LanguageServer\Test\Unit\FixtureTestCase;
 use PhpParser\Parser;
+use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
 class CorrectiveParserTest extends FixtureTestCase
 {
     private CorrectiveParser $subject;
+
+    /** @var Parser&MockObject */
     private Parser $parser;
 
     public function setUp(): void

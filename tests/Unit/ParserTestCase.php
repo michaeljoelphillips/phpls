@@ -15,6 +15,8 @@ use Roave\BetterReflection\SourceLocator\Ast\Locator as AstLocator;
 use Roave\BetterReflection\SourceLocator\Type\FileIteratorSourceLocator;
 use Roave\BetterReflection\SourceLocator\Type\SourceLocator;
 
+use function assert;
+
 abstract class ParserTestCase extends FixtureTestCase
 {
     protected function getParser(): Parser
@@ -61,6 +63,8 @@ abstract class ParserTestCase extends FixtureTestCase
         $parser = $this->getParser();
         $source = $this->loadFixture($file);
         $nodes  = $parser->parse($source);
+
+        assert($nodes !== null);
 
         return new ParsedDocument($file, $source, $nodes);
     }

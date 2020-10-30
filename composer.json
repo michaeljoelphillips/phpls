@@ -44,6 +44,8 @@
         "phpstan/phpstan-php-parser": "^0.12.1",
         "phpbench/phpbench": "^0.17.1",
         "squizlabs/php_codesniffer": "^3.5",
-        "doctrine/coding-standard": "^8.2"
+        "doctrine/coding-standard": "^8.2",
+        "phpstan/phpstan-phpunit": "^0.12.16",
+        "phpstan/extension-installer": "^1.0"
     }
 }

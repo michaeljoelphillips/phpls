@@ -7,6 +7,7 @@ namespace LanguageServer\Test\Unit\Reflection;
 use LanguageServer\ParsedDocument;
 use LanguageServer\Reflection\RegistrySourceLocator;
 use LanguageServer\TextDocumentRegistry;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Roave\BetterReflection\Identifier\Identifier;
 use Roave\BetterReflection\Identifier\IdentifierType;
@@ -18,6 +19,8 @@ class RegistrySourceLocatorTest extends TestCase
     private const EMPTY_FILE_FIXTURE = __DIR__ . '/../../fixtures/EmptyFileFixture.php';
 
     private RegistrySourceLocator $subject;
+
+    /** @var TextDocumentRegistry&MockObject */
     private TextDocumentRegistry $registry;
 
     public function setUp(): void

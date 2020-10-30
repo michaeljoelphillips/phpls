@@ -7,7 +7,6 @@ namespace LanguageServer\Server\Protocol;
 class RequestMessage extends Message
 {
     public int $id;
-    public string $method;
 
     /** @var array<string, mixed>|null */
     public ?array $params;
@@ -17,8 +16,9 @@ class RequestMessage extends Message
      */
     public function __construct(int $id, string $method, ?array $params)
     {
+        parent::__construct($method);
+
         $this->id     = $id;
-        $this->method = $method;
         $this->params = $params;
     }
 }

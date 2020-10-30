@@ -113,8 +113,13 @@ return [
 
         if ($config['enabled'] === true) {
             $logLevel = $config['level'] === 'debug' ? Logger::DEBUG : Logger::INFO;
+            $file     = fopen($config['path'], 'a');
 
-            $logger->pushHandler(new StreamHandler(fopen($config['path'], 'a'), $logLevel));
+            if ($file === false) {
+                return new NullHandler();
+            }
+
+            $logger->pushHandler(new StreamHandler($file, $logLevel));
         } else {
             $logger->pushHandler(new NullHandler());
         }

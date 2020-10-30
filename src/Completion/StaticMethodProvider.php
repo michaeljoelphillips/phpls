@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace LanguageServer\Completion;
 
 use PhpParser\Node\Expr\ClassConstFetch;
+use PhpParser\Node\Name;
 use PhpParser\NodeAbstract;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionMethod;
+
+use function assert;
 
 class StaticMethodProvider extends MethodProvider
 {
@@ -26,7 +29,11 @@ class StaticMethodProvider extends MethodProvider
             return true;
         }
 
-        if ($expression->class->name->name === 'self') {
+        assert($expression instanceof ClassConstFetch);
+        assert($expression->class instanceof Name);
+        $className = $expression->class->getLast();
+
+        if ($className === 'self') {
             if ($method->isPrivate() === true) {
                 return $method->getDeclaringClass() === $class;
             }
@@ -34,7 +41,7 @@ class StaticMethodProvider extends MethodProvider
             return true;
         }
 
-        if ($expression->class->name->name === 'parent') {
+        if ($className === 'parent') {
             return $method->isProtected();
         }
 

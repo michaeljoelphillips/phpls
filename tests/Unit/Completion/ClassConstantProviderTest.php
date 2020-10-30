@@ -7,6 +7,7 @@ namespace LanguageServer\Test\Unit\Completion;
 use LanguageServer\Completion\ClassConstantProvider;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\ClassConstFetch;
+use PhpParser\Node\Name;
 use PHPUnit\Framework\TestCase;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionClassConstant;
@@ -17,7 +18,7 @@ class ClassConstantProviderTest extends TestCase
     {
         $subject = new ClassConstantProvider();
 
-        $this->assertTrue($subject->supports(new ClassConstFetch('Foo', 'bar')));
+        $this->assertTrue($subject->supports(new ClassConstFetch(new Name('Foo'), 'bar')));
     }
 
     public function testComplete(): void

@@ -9,6 +9,7 @@ use LanguageServer\Completion\InstanceVariableProvider;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\Variable;
+use PhpParser\Node\Name;
 use PHPUnit\Framework\TestCase;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionProperty;
@@ -21,7 +22,7 @@ class InstanceVariableProviderTest extends TestCase
         $subject = new InstanceVariableProvider();
 
         $this->assertTrue($subject->supports(new PropertyFetch(new Variable('Foo'), 'bar')));
-        $this->assertFalse($subject->supports(new ClassConstFetch('Foo', 'bar')));
+        $this->assertFalse($subject->supports(new ClassConstFetch(new Name('Foo'), 'bar')));
     }
 
     public function testCompleteOnPropertiesWithDocblockTypes(): void

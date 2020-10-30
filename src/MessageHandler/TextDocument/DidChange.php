@@ -7,8 +7,12 @@ namespace LanguageServer\MessageHandler\TextDocument;
 use LanguageServer\ParsedDocument;
 use LanguageServer\Server\MessageHandler;
 use LanguageServer\Server\Protocol\Message;
+use LanguageServer\Server\Protocol\RequestMessage;
 use LanguageServer\TextDocumentRegistry;
 use PhpParser\Parser;
+
+use function assert;
+use function is_array;
 
 class DidChange implements MessageHandler
 {
@@ -27,13 +31,16 @@ class DidChange implements MessageHandler
     public function __invoke(Message $message, callable $next)
     {
         if ($message->method !== 'textDocument/didChange') {
-            return $next->__invoke($message);
+            return $next($message);
         }
+
+        assert($message instanceof RequestMessage);
+        assert(is_array($message->params));
 
         $uri    = $message->params['textDocument']['uri'];
         $source = $message->params['contentChanges'][0]['text'];
         $nodes  = $this->parser->parse($source);
 
-        $this->registry->add(new ParsedDocument($uri, $source, $nodes));
+        $this->registry->add(new ParsedDocument($uri, $source, $nodes ?? []));
     }
 }

@@ -12,7 +12,9 @@ use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Identifier;
 use PhpParser\Parser;
 
+use function assert;
 use function file_get_contents;
+use function is_string;
 
 class TypeResolverBench
 {
@@ -36,9 +38,11 @@ class TypeResolverBench
      */
     public function benchGetTypeOnPHPUnitMockObject(): void
     {
-        $source   = file_get_contents('/home/nomad/Code/hermes/tests/Unit/Twitch/SerializedTokenStorageTest.php');
+        $source = file_get_contents('/home/nomad/Code/hermes/tests/Unit/Twitch/SerializedTokenStorageTest.php');
+        assert(is_string($source));
+
         $nodes    = $this->parser->parse($source);
-        $document = new ParsedDocument('file:///tmp/file.php', $source, $nodes);
+        $document = new ParsedDocument('file:///tmp/file.php', $source, $nodes ?? []);
 
         $node = new MethodCall(
             new MethodCall(

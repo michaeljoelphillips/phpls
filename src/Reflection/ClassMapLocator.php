@@ -44,6 +44,12 @@ class ClassMapLocator extends AbstractSourceLocator
             return null;
         }
 
-        return new LocatedSource(file_get_contents($file), $file);
+        $contents = file_get_contents($file);
+
+        if ($contents === false) {
+            return null;
+        }
+
+        return new LocatedSource($contents, $file);
     }
 }

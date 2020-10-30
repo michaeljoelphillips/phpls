@@ -9,7 +9,9 @@ use Evenement\EventEmitterTrait;
 
 use function array_filter;
 use function array_pop;
+use function assert;
 use function explode;
+use function is_int;
 use function strlen;
 use function strpos;
 use function substr;
@@ -38,7 +40,7 @@ class MessageParser implements EventEmitterInterface
 
             $this->trimBuffer();
 
-            if ($message === null) {
+            if (empty($message)) {
                 continue;
             }
 
@@ -59,8 +61,28 @@ class MessageParser implements EventEmitterInterface
         return strlen($this->buffer) >= $terminatorPosition + $messageLength;
     }
 
+    private function readMessageFromBuffer(): string
+    {
+        $terminatorPosition = $this->findHeaderTerminator();
+        assert(is_int($terminatorPosition));
+
+        $messageLength = $this->findContentLength($terminatorPosition);
+
+        return substr($this->buffer, 0, $terminatorPosition + strlen(self::HEADER_TERMINATOR) + $messageLength);
+    }
+
+    private function trimBuffer(): void
+    {
+        $terminatorPosition = $this->findHeaderTerminator();
+        assert(is_int($terminatorPosition));
+
+        $messageLength = $this->findContentLength($terminatorPosition);
+
+        $this->buffer = substr($this->buffer, $terminatorPosition + strlen(self::HEADER_TERMINATOR) + $messageLength);
+    }
+
     /**
-     * @return int|bool
+     * @return int|false
      */
     private function findHeaderTerminator()
     {
@@ -69,28 +91,13 @@ class MessageParser implements EventEmitterInterface
 
     private function findContentLength(int $terminatorPosition): int
     {
-        $headers = explode("\r\n", substr($this->buffer, 0, $terminatorPosition));
-
+        $headers       = explode("\r\n", substr($this->buffer, 0, $terminatorPosition));
         $contentLength = array_filter($headers, static fn (string $header) => strpos($header, 'Content-Length') !== false);
+
+        assert(empty($contentLength) === false);
 
         [$header, $contentLength] = explode(':', array_pop($contentLength));
 
         return (int) trim($contentLength);
-    }
-
-    private function readMessageFromBuffer(): string
-    {
-        $terminatorPosition = $this->findHeaderTerminator();
-        $messageLength      = $this->findContentLength($terminatorPosition);
-
-        return substr($this->buffer, 0, $terminatorPosition + strlen(self::HEADER_TERMINATOR) + $messageLength);
-    }
-
-    private function trimBuffer(): void
-    {
-        $terminatorPosition = $this->findHeaderTerminator();
-        $messageLength      = $this->findContentLength($terminatorPosition);
-
-        $this->buffer = substr($this->buffer, $terminatorPosition + strlen(self::HEADER_TERMINATOR) + $messageLength);
     }
 }

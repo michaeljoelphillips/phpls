@@ -7,6 +7,7 @@ namespace LanguageServer\Completion;
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
 use PhpParser\Node\Expr\ClassConstFetch;
+use PhpParser\Node\Name;
 use PhpParser\NodeAbstract;
 use ReflectionProperty as CoreReflectionProperty;
 use Roave\BetterReflection\Reflection\ReflectionClass;
@@ -15,6 +16,7 @@ use Roave\BetterReflection\Reflection\ReflectionProperty;
 use function array_filter;
 use function array_map;
 use function array_values;
+use function assert;
 use function implode;
 
 class StaticPropertyProvider implements CompletionProvider
@@ -49,7 +51,11 @@ class StaticPropertyProvider implements CompletionProvider
             return true;
         }
 
-        if ($expression->class->name->name === 'self') {
+        assert($expression instanceof ClassConstFetch);
+        assert($expression->class instanceof Name);
+        $className = $expression->class->getLast();
+
+        if ($className === 'self') {
             if ($property->isPrivate() === true) {
                 return $property->getDeclaringClass() === $class;
             }
@@ -57,7 +63,7 @@ class StaticPropertyProvider implements CompletionProvider
             return true;
         }
 
-        if ($expression->class->name->name === 'parent') {
+        if ($className === 'parent') {
             return $property->isProtected();
         }
 

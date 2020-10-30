@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace LanguageServer\Server;
 
-use InvalidArgumentException;
 use LanguageServer\Server\Protocol\Message;
+use LanguageServer\Server\Protocol\RequestMessage;
 use LanguageServer\Server\Protocol\ResponseMessage;
 use Psr\Log\LoggerInterface;
 use React\Promise\Promise;
@@ -14,6 +14,7 @@ use React\Socket\Server as TcpServer;
 use React\Stream\DuplexStreamInterface;
 use Throwable;
 
+use function assert;
 use function sprintf;
 
 class Server
@@ -36,7 +37,7 @@ class Server
         $this->parser     = new MessageParser($serializer);
 
         $this->handler = function (Message $message, int $position) use ($handlers) {
-            if ($message instanceof ResponseMessage || $message === null) {
+            if ($message instanceof ResponseMessage) {
                 return $message;
             }
 
@@ -47,7 +48,9 @@ class Server
             }
 
             $next = function (Message $message) use ($position) {
-                return $this->handler->__invoke($message, $position + 1);
+                $handler = $this->handler;
+
+                return $handler($message, $position + 1);
             };
 
             return $handlers[$position]->__invoke($message, $next);
@@ -59,7 +62,7 @@ class Server
     }
 
     /**
-     * @param TcpServer|DuplexStreamInterface|Promise<DuplexStreamInterface> $stream
+     * @param TcpServer|DuplexStreamInterface|Promise $stream
      */
     public function listen($stream): void
     {
@@ -84,7 +87,9 @@ class Server
 
             $this->stream = $stream;
 
-            $stream->on('data', fn (string $data) => $this->parser->handle($data));
+            $stream->on('data', function (string $data): void {
+                $this->parser->handle($data);
+            });
 
             $stream->on('close', function (): void {
                 $this->logger->critical('The connection to the client has closed unexpectedly');
@@ -94,21 +99,19 @@ class Server
 
             return;
         }
-
-        throw new InvalidArgumentException();
     }
 
-    /**
-     * @param NotificationMessage|RequestMessage $message
-     */
     private function handle(Message $message): void
     {
         $this->logger->notice(sprintf('Received %s request', $message->method));
 
         try {
-            $response = $this->handler->__invoke($message, 0);
+            $handler  = $this->handler;
+            $response = $handler($message, 0);
         } catch (Throwable $t) {
             $this->logger->error($t->getMessage());
+
+            assert($message instanceof RequestMessage);
 
             $response = new ResponseMessage($message, $t);
         }

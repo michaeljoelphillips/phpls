@@ -11,6 +11,7 @@ use PhpParser\Parser;
 use Psr\Log\LoggerInterface;
 
 use function array_slice;
+use function assert;
 use function explode;
 use function implode;
 use function preg_replace_callback_array;
@@ -184,7 +185,7 @@ class CorrectiveParser implements Parser
 
     private function amendIncompleteSource(string $source): string
     {
-        return preg_replace_callback_array(
+        $ammendedSource = preg_replace_callback_array(
             [
                 '/(\$|->|::)(\s+)(\$)/' => static fn ($match) => sprintf('%sstub%s%s', $match[1], $match[2], $match[3]),
                 sprintf('/(\$|->|::)(\s*)(%s)/', implode('|', self::SYMBOLS)) => static fn ($match) => sprintf('%sstub%s%s', $match[1], $match[2], $match[3]),
@@ -192,6 +193,10 @@ class CorrectiveParser implements Parser
             ],
             $source
         );
+
+        assert($ammendedSource !== null);
+
+        return $ammendedSource;
     }
 
     private function formatOffendingLines(string $code, Error $error): string

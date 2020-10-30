@@ -6,6 +6,7 @@ namespace LanguageServer\Test\Unit\Completion;
 
 use LanguageServer\Completion\StaticMethodProvider;
 use PhpParser\Node\Expr\ClassConstFetch;
+use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
 use PhpParser\Node\Stmt\Class_;
 use PHPUnit\Framework\TestCase;
@@ -19,14 +20,14 @@ class StaticMethodProviderTest extends TestCase
     {
         $subject = new StaticMethodProvider();
 
-        $this->assertTrue($subject->supports(new ClassConstFetch(new Class_('Foo'), new Name('foo'))));
+        $this->assertTrue($subject->supports(new ClassConstFetch(new Name('Foo'), new Identifier('foo'))));
     }
 
     public function testCompleteOnlyReturnsStaticMethods(): void
     {
         $subject = new StaticMethodProvider();
 
-        $expression = new ClassConstFetch(new Class_('Foo'), new Name('foo'));
+        $expression = new ClassConstFetch(new Name('Foo'), new Identifier('foo'));
         $reflection = $this->createMock(ReflectionClass::class);
         $method     = $this->createMock(ReflectionMethod::class);
 
@@ -48,7 +49,7 @@ class StaticMethodProviderTest extends TestCase
     {
         $subject = new StaticMethodProvider();
 
-        $expression = new ClassConstFetch(new Class_($class), new Name('foo'));
+        $expression = new ClassConstFetch(new Name($class), new Identifier('foo'));
         $reflection = $this->createMock(ReflectionClass::class);
         $method     = $this->createMock(ReflectionMethod::class);
 

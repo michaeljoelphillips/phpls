@@ -8,6 +8,7 @@ use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\PropertyFetch;
+use PhpParser\Node\Expr\Variable;
 use PhpParser\NodeAbstract;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionProperty;
@@ -16,6 +17,7 @@ use Throwable;
 use function array_filter;
 use function array_map;
 use function array_values;
+use function assert;
 use function implode;
 
 class InstanceVariableProvider implements CompletionProvider
@@ -25,6 +27,8 @@ class InstanceVariableProvider implements CompletionProvider
      */
     public function complete(NodeAbstract $expression, ReflectionClass $reflection): array
     {
+        assert($expression instanceof PropertyFetch);
+
         $properties = array_filter(
             $reflection->getProperties(),
             // phpcs:ignore
@@ -59,8 +63,10 @@ class InstanceVariableProvider implements CompletionProvider
         return implode('|', $docblockType);
     }
 
-    private function filterMethod(NodeAbstract $expression, ReflectionClass $class, ReflectionProperty $property): bool
+    private function filterMethod(PropertyFetch $expression, ReflectionClass $class, ReflectionProperty $property): bool
     {
+        assert($expression->var instanceof Variable);
+
         if ($property->isPublic() === true) {
             return true;
         }
@@ -78,6 +84,6 @@ class InstanceVariableProvider implements CompletionProvider
 
     public function supports(NodeAbstract $expression): bool
     {
-        return $expression instanceof PropertyFetch && ! $expression->var instanceof MethodCall;
+        return $expression instanceof PropertyFetch && $expression->var instanceof Variable;
     }
 }

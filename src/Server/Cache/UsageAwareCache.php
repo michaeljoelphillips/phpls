@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace LanguageServer\Server\Cache;
 
-use InvalidArgumentException;
 use Psr\SimpleCache\CacheInterface;
 
 use function array_key_exists;
-use function is_iterable;
+use function assert;
+use function is_int;
 use function time;
 
 class UsageAwareCache implements CacheInterface, CleanableCache
@@ -43,12 +43,16 @@ class UsageAwareCache implements CacheInterface, CleanableCache
     /**
      * {@inheritdoc}
      */
-    public function set($key, $value, $ttl = self::DEFAULT_TTL): void
+    public function set($key, $value, $ttl = self::DEFAULT_TTL)
     {
+        assert(is_int($ttl));
+
         $this->values[$key] = [
             'value' => $value,
             'expiry' => time() + (int) $ttl,
         ];
+
+        return true;
     }
 
     /**
@@ -57,17 +61,19 @@ class UsageAwareCache implements CacheInterface, CleanableCache
     public function delete($key)
     {
         unset($this->values[$key]);
+
+        return true;
     }
 
     /**
      * {@inheritdoc}
+     *
+     * @param iterable<string> $keys
+     *
+     * @return iterable<mixed>
      */
     public function getMultiple($keys, $default = null)
     {
-        if (is_iterable($keys) === false) {
-            throw new InvalidArgumentException('$keys must be an array or traversable');
-        }
-
         $result = [];
         foreach ($keys as $key) {
             $result[] = $this->get($key);
@@ -78,30 +84,30 @@ class UsageAwareCache implements CacheInterface, CleanableCache
 
     /**
      * {@inheritdoc}
+     *
+     * @param iterable<string, mixed> $values
      */
     public function setMultiple($values, $ttl = self::DEFAULT_TTL)
     {
-        if (is_iterable($values) === false) {
-            throw new InvalidArgumentException('$keys must be an array or traversable');
-        }
-
         foreach ($values as $key => $value) {
             $this->set($key, $value, $ttl);
         }
+
+        return true;
     }
 
     /**
      * {@inheritdoc}
+     *
+     * @param iterable<string> $keys
      */
     public function deleteMultiple($keys)
     {
-        if (is_iterable($keys) === false) {
-            throw new InvalidArgumentException('$keys must be an array or traversable');
-        }
-
         foreach ($keys as $key) {
             $this->delete($key);
         }
+
+        return true;
     }
 
     /**

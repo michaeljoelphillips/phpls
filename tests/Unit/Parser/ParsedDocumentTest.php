@@ -12,6 +12,7 @@ use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Property;
 use PhpParser\NodeAbstract;
 
+use function assert;
 use function count;
 
 class ParsedDocumentTest extends ParserTestCase
@@ -113,6 +114,8 @@ class ParsedDocumentTest extends ParserTestCase
         $subject = $this->parse('ParsedDocumentFixture.php');
         $result  = $subject->getInnermostNodeAtCursor(new CursorPosition(25, 19, 379));
 
+        assert($result instanceof Name);
+
         $this->assertInstanceOf(Name::class, $result);
         $this->assertEquals('Foo', (string) $result);
     }
@@ -139,6 +142,7 @@ class ParsedDocumentTest extends ParserTestCase
         $subject = $this->parse('NoConstructor.php');
 
         $constructor = $subject->getConstructorNode();
+        assert($constructor !== null);
 
         $this->assertEquals('__construct', $constructor->name->name);
     }

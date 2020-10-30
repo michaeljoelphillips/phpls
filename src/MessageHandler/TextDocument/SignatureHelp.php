@@ -9,6 +9,7 @@ use LanguageServer\Inference\TypeResolver;
 use LanguageServer\ParsedDocument;
 use LanguageServer\Server\MessageHandler;
 use LanguageServer\Server\Protocol\Message;
+use LanguageServer\Server\Protocol\RequestMessage;
 use LanguageServer\Server\Protocol\ResponseMessage;
 use LanguageServer\TextDocumentRegistry;
 use LanguageServerProtocol\ParameterInformation;
@@ -21,6 +22,7 @@ use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\StaticCall;
+use PhpParser\Node\Name;
 use PhpParser\Node\Stmt\Expression;
 use PhpParser\NodeAbstract;
 use Roave\BetterReflection\Reflection\ReflectionFunctionAbstract;
@@ -31,7 +33,10 @@ use Roave\BetterReflection\Reflector\FunctionReflector;
 use function array_filter;
 use function array_key_last;
 use function array_map;
+use function assert;
 use function implode;
+use function is_array;
+use function is_int;
 
 class SignatureHelp implements MessageHandler
 {
@@ -56,8 +61,11 @@ class SignatureHelp implements MessageHandler
     public function __invoke(Message $request, callable $next)
     {
         if ($request->method !== self::METHOD_NAME) {
-            return $next->__invoke($request);
+            return $next($request);
         }
+
+        assert($request instanceof RequestMessage);
+        assert(is_array($request->params));
 
         return new ResponseMessage($request, $this->getSignatureHelpResponse($request->params));
     }
@@ -91,6 +99,7 @@ class SignatureHelp implements MessageHandler
 
     private function findExpressionAtCursor(ParsedDocument $document, CursorPosition $cursorPosition): ?Expr
     {
+        /** @var array<int, Expr> $methodCallNodes */
         $methodCallNodes = $this->findMethodCallsNearCursor($document, $cursorPosition);
 
         if (empty($methodCallNodes)) {
@@ -144,10 +153,13 @@ class SignatureHelp implements MessageHandler
     private function reflectMethodFromExpression(ParsedDocument $document, Expr $expression): ReflectionFunctionAbstract
     {
         if ($expression instanceof FuncCall) {
+            assert($expression->name instanceof Name);
+
             return $this->functionReflector->reflect($expression->name->toCodeString());
         }
 
         $type = $this->resolver->getType($document, $expression);
+        assert($type !== null);
 
         $reflection = $this->classReflector->reflect($type);
 
@@ -216,6 +228,8 @@ class SignatureHelp implements MessageHandler
         $maximumParameterPosition = $method->getNumberOfParameters();
 
         if ($activeParameterPosition <= $maximumParameterPosition) {
+            assert(is_int($activeParameterPosition));
+
             return $activeParameterPosition;
         }
 
@@ -223,7 +237,7 @@ class SignatureHelp implements MessageHandler
     }
 
     /**
-     * @return array<int, int|Arg>
+     * @return array<int, int|Arg|null>
      */
     private function getActiveParameterFromCursorPosition(Expr $expression, CursorPosition $cursorPosition): array
     {

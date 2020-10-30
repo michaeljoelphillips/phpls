@@ -18,6 +18,7 @@ use function array_merge;
 use function array_pop;
 use function array_unique;
 use function assert;
+use function is_string;
 
 use const SORT_REGULAR;
 
@@ -45,11 +46,9 @@ class LocalVariableProvider implements CompletionProvider
 
         $completableVariables = array_unique(array_map(
             static function (Variable $variable): CompletionItem {
-                return new CompletionItem(
-                    (string) $variable->name,
-                    CompletionItemKind::VARIABLE,
-                    '',
-                );
+                assert(is_string($variable->name));
+
+                return new CompletionItem($variable->name, CompletionItemKind::VARIABLE, '');
             },
             $this->findCompletableVariablesWithinFunction($parentFunctionNode, $expression)
         ), SORT_REGULAR);
@@ -72,7 +71,10 @@ class LocalVariableProvider implements CompletionProvider
                 && $node->getStartFilePos() <= $variableNode->getStartFilePos();
         });
 
-        return array_pop($functionNodes);
+        $parentFunction = array_pop($functionNodes);
+        assert($parentFunction instanceof FunctionLike || $parentFunction === null);
+
+        return $parentFunction;
     }
 
     /**
@@ -82,14 +84,17 @@ class LocalVariableProvider implements CompletionProvider
     {
         $nodes = array_merge(
             $function->getParams(),
-            $function->getStmts(),
+            $function->getStmts() ?? [],
             $function instanceof Closure ? $function->uses : []
         );
 
-        return $this->finder->find($nodes, static function (NodeAbstract $node) use ($variableNode): bool {
+        /** @var array<int, Variable> $nodes */
+        $nodes = $this->finder->find($nodes, static function (NodeAbstract $node) use ($variableNode): bool {
             return $node instanceof Variable
                 && $node->getStartFilePos() < $variableNode->getStartFilePos();
         });
+
+        return $nodes;
     }
 
     public function supports(NodeAbstract $expression): bool

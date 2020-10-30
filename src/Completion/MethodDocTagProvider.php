@@ -39,7 +39,7 @@ class MethodDocTagProvider implements CompletionProvider
     }
 
     /**
-     * @return string[]
+     * @return array<int, array<int, string>>
      */
     private function parseMethodsInDocblock(string $docblock): array
     {
@@ -59,7 +59,7 @@ class MethodDocTagProvider implements CompletionProvider
     }
 
     /**
-     * @param string[] $methods
+     * @param array<int, array<int, string>> $methods
      *
      * @return CompletionItem[]
      */

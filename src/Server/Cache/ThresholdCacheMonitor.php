@@ -16,6 +16,7 @@ use function strtoupper;
 class ThresholdCacheMonitor implements CacheMonitor
 {
     private const MEMORY_USAGE_THRESHOLD = 0.9;
+    private const MEMORY_LIMIT_DEFAULT   = '128M';
     private const MEMORY_SIZE_MAP        = [
         'K' => 1,
         'M' => 2,
@@ -39,6 +40,10 @@ class ThresholdCacheMonitor implements CacheMonitor
     private static function getMemoryLimit(): int
     {
         $memoryLimit = ini_get('memory_limit');
+
+        if ($memoryLimit === false) {
+            $memoryLimit = self::MEMORY_LIMIT_DEFAULT;
+        }
 
         if ($memoryLimit === '-1') {
             return (int) $memoryLimit;

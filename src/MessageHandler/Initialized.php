@@ -15,7 +15,7 @@ class Initialized implements MessageHandler
     public function __invoke(Message $message, callable $next)
     {
         if ($message->method !== 'initialized') {
-            return $next->__invoke($message);
+            return $next($message);
         }
 
         return;

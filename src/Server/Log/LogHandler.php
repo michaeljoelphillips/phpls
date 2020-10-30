@@ -43,7 +43,7 @@ class LogHandler extends AbstractProcessingHandler
     }
 
     /**
-     * @param WritableStreamInterface|Server $stream
+     * @param WritableStreamInterface|Server|Promise $stream
      */
     public function setStream($stream): void
     {
@@ -68,12 +68,12 @@ class LogHandler extends AbstractProcessingHandler
 
             return;
         }
-
-        throw new InvalidArgumentException();
     }
 
     /**
      * {@inheritdoc}
+     *
+     * @param array<mixed> $record
      */
     protected function write(array $record): void
     {

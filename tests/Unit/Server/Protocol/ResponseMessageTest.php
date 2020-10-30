@@ -34,6 +34,7 @@ class ResponseMessageTest extends TestCase
 
         $this->assertNull($subject->result);
         $this->assertEquals(1, $subject->id);
+        $this->assertNotNull($subject->error);
         $this->assertEquals(-32603, $subject->error->code);
     }
 
@@ -45,6 +46,7 @@ class ResponseMessageTest extends TestCase
         $subject   = new ResponseMessage($request, $exception);
 
         $this->assertNull($subject->result);
+        $this->assertNotNull($subject->error);
         $this->assertEquals(1, $subject->id);
         $this->assertEquals(-32600, $subject->error->code);
     }

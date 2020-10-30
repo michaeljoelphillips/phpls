@@ -10,6 +10,7 @@ use LanguageServer\Inference\TypeResolver;
 use LanguageServer\ParsedDocument;
 use LanguageServer\Server\MessageHandler;
 use LanguageServer\Server\Protocol\Message;
+use LanguageServer\Server\Protocol\RequestMessage;
 use LanguageServer\Server\Protocol\ResponseMessage;
 use LanguageServer\TextDocumentRegistry;
 use LanguageServerProtocol\CompletionList;
@@ -24,7 +25,9 @@ use Roave\BetterReflection\Reflector\Reflector;
 use function array_filter;
 use function array_merge;
 use function array_values;
+use function assert;
 use function count;
+use function is_array;
 use function sprintf;
 
 class Completion implements MessageHandler
@@ -54,8 +57,11 @@ class Completion implements MessageHandler
     public function __invoke(Message $message, callable $next)
     {
         if ($message->method !== self::METHOD_NAME) {
-            return $next->__invoke($message);
+            return $next($message);
         }
+
+        assert($message instanceof RequestMessage);
+        assert(is_array($message->params));
 
         return new ResponseMessage($message, $this->getCompletionList($message->params));
     }
@@ -94,6 +100,8 @@ class Completion implements MessageHandler
 
         $reflection = $this->reflector->reflect($type);
 
+        assert($reflection instanceof ReflectionClass);
+
         return $this->completeExpression($expression, $reflection);
     }
 
@@ -102,7 +110,14 @@ class Completion implements MessageHandler
         $surroundingNodes = $document->getNodesAtCursor($cursor);
         $completableNodes = array_values(array_filter($surroundingNodes, fn (NodeAbstract $node) => $this->completable($node)));
 
-        return $completableNodes[0] ?? null;
+        if (empty($completableNodes) === true) {
+            return null;
+        }
+
+        $node = $completableNodes[0];
+        assert($node instanceof NodeAbstract);
+
+        return $node;
     }
 
     private function completable(NodeAbstract $node): bool

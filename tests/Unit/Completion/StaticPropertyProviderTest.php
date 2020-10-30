@@ -6,8 +6,8 @@ namespace LanguageServer\Test\Unit\Completion;
 
 use LanguageServer\Completion\StaticPropertyProvider;
 use PhpParser\Node\Expr\ClassConstFetch;
+use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
-use PhpParser\Node\Stmt\Class_;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 use Roave\BetterReflection\Reflection\ReflectionClass;
@@ -20,14 +20,14 @@ class StaticPropertyProviderTest extends TestCase
     {
         $subject = new StaticPropertyProvider();
 
-        $this->assertTrue($subject->supports(new ClassConstFetch('Foo', 'bar')));
+        $this->assertTrue($subject->supports(new ClassConstFetch(new Name('Foo'), new Identifier('bar'))));
     }
 
     public function testComplete(): void
     {
         $subject = new StaticPropertyProvider();
 
-        $expression = new ClassConstFetch(new Class_('Foo'), new Name('foo'));
+        $expression = new ClassConstFetch(new Name('Foo'), new Identifier('foo'));
         $reflection = $this->createMock(ReflectionClass::class);
         $property   = $this->createMock(ReflectionProperty::class);
 
@@ -68,7 +68,7 @@ class StaticPropertyProviderTest extends TestCase
     {
         $subject = new StaticPropertyProvider();
 
-        $expression = new ClassConstFetch(new Class_($class), new Name('foo'));
+        $expression = new ClassConstFetch(new Name($class), new Identifier('foo'));
         $reflection = $this->createMock(ReflectionClass::class);
         $property   = $this->createMock(ReflectionProperty::class);
 

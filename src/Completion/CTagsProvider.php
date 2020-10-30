@@ -11,6 +11,7 @@ use PhpParser\Node\Name;
 use PhpParser\NodeAbstract;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 
+use function assert;
 use function file_exists;
 use function strlen;
 
@@ -51,6 +52,8 @@ class CTagsProvider implements CompletionProvider
      */
     public function complete(NodeAbstract $expression, ReflectionClass $reflection): array
     {
+        assert($expression instanceof Name);
+
         $reader = $this->getTagReader();
 
         if ($reader === null) {

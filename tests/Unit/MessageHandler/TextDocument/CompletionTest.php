@@ -54,7 +54,9 @@ class CompletionTest extends ParserTestCase
 
         $response = $this->subject->__invoke(
             $request,
-            fn () => $this->fail('Next should never be called')
+            function (): void {
+                $this->fail('Next should never be called');
+            }
         );
 
         self::assertInstanceOf(ResponseMessage::class, $response);
@@ -76,7 +78,9 @@ class CompletionTest extends ParserTestCase
             ],
         ]);
 
-        $next = fn () => $this->fail('Next should never be called');
+        $next = function (): void {
+            $this->fail('Next should never be called');
+        };
 
         $response = $this->subject->__invoke($request, $next);
 
@@ -101,7 +105,9 @@ class CompletionTest extends ParserTestCase
 
         $response = $this->subject->__invoke(
             $request,
-            fn () => $this->fail('Next should never be called')
+            function (): void {
+                $this->fail('Next should never be called');
+            }
         );
 
         self::assertInstanceOf(ResponseMessage::class, $response);
@@ -125,7 +131,9 @@ class CompletionTest extends ParserTestCase
 
         $response = $this->subject->__invoke(
             $request,
-            fn () => $this->fail('Next should never be called')
+            function (): void {
+                $this->fail('Next should never be called');
+            }
         );
 
         self::assertInstanceOf(ResponseMessage::class, $response);

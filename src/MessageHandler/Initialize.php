@@ -8,6 +8,7 @@ use DI\Container;
 use LanguageServer\Server\Exception\ServerNotInitialized;
 use LanguageServer\Server\MessageHandler;
 use LanguageServer\Server\Protocol\Message;
+use LanguageServer\Server\Protocol\RequestMessage;
 use LanguageServer\Server\Protocol\ResponseMessage;
 use LanguageServerProtocol\CompletionOptions;
 use LanguageServerProtocol\InitializeResult;
@@ -16,10 +17,10 @@ use LanguageServerProtocol\ServerCapabilities;
 use LanguageServerProtocol\SignatureHelpOptions;
 use LanguageServerProtocol\TextDocumentSyncKind;
 use LanguageServerProtocol\TextDocumentSyncOptions;
-use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 
+use function assert;
 use function parse_url;
 use function realpath;
 use function sprintf;
@@ -29,7 +30,7 @@ use const PHP_URL_PATH;
 
 class Initialize implements MessageHandler
 {
-    private ContainerInterface $container;
+    private Container $container;
     private LoggerInterface $logger;
     private bool $hasBeenInitialized = false;
 
@@ -45,6 +46,8 @@ class Initialize implements MessageHandler
     public function __invoke(Message $request, callable $next)
     {
         if ($request->method === 'initialize') {
+            assert($request instanceof RequestMessage);
+
             $this->hasBeenInitialized = true;
 
             return new ResponseMessage($request, $this->getInitializeResult($request));
@@ -57,8 +60,9 @@ class Initialize implements MessageHandler
         return $next($request);
     }
 
-    public function getInitializeResult(Message $request): InitializeResult
+    private function getInitializeResult(RequestMessage $request): InitializeResult
     {
+        assert($request->params !== null);
         $this->setProjectRoot($request->params);
 
         $capabilities = new ServerCapabilities();
@@ -75,7 +79,7 @@ class Initialize implements MessageHandler
 
         $capabilities->hoverProvider                    = false;
         $capabilities->renameProvider                   = false;
-        $capabilities->codeLensProvider                 = false;
+        $capabilities->codeLensProvider                 = null;
         $capabilities->definitionProvider               = true;
         $capabilities->referencesProvider               = false;
         $capabilities->referencesProvider               = false;
@@ -88,7 +92,7 @@ class Initialize implements MessageHandler
         $capabilities->documentFormattingProvider       = false;
         $capabilities->xworkspaceReferencesProvider     = false;
         $capabilities->documentRangeFormattingProvider  = false;
-        $capabilities->documentOnTypeFormattingProvider = false;
+        $capabilities->documentOnTypeFormattingProvider = null;
 
         $capabilities->textDocumentSync      = $textDocumentSync;
         $capabilities->completionProvider    = new CompletionOptions(false, ['$', ':', '>']);
@@ -115,7 +119,13 @@ class Initialize implements MessageHandler
 
     private function parseProjectRootUri(string $uri): string
     {
-        $path = realpath(urldecode(parse_url($uri, PHP_URL_PATH)));
+        $url = parse_url($uri, PHP_URL_PATH);
+
+        if ($url === false || $url === null) {
+            throw new RuntimeException('The specified project root does not exist');
+        }
+
+        $path = realpath(urldecode($url));
 
         if ($path === false) {
             throw new RuntimeException('The specified project root does not exist');

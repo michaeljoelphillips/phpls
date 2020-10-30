@@ -6,6 +6,7 @@ namespace LanguageServer\Reflection;
 
 use Roave\BetterReflection\SourceLocator\Ast\Locator;
 use Roave\BetterReflection\SourceLocator\Type\AggregateSourceLocator;
+use Roave\BetterReflection\SourceLocator\Type\Composer\Factory\Exception\MissingComposerJson;
 use Roave\BetterReflection\SourceLocator\Type\Composer\Factory\MakeLocatorForComposerJsonAndInstalledJson;
 use Roave\BetterReflection\SourceLocator\Type\Composer\Psr\Psr4Mapping;
 use Roave\BetterReflection\SourceLocator\Type\Composer\PsrAutoloaderLocator;
@@ -34,12 +35,15 @@ class ComposerLocatorFactory
         return (new MakeLocatorForComposerJsonAndInstalledJson())($path, $astLocator);
     }
 
-    /**
-     * @return array<string, array<int, string>>
-     */
     private function psr4AutoloadDevLocator(string $root, Locator $astLocator): SourceLocator
     {
-        $composerJson = json_decode(file_get_contents($root . 'composer.json'), true);
+        $contents = file_get_contents($root . 'composer.json');
+
+        if ($contents === false) {
+            throw MissingComposerJson::inProjectPath($root);
+        }
+
+        $composerJson = json_decode($contents, true);
 
         $mappings = array_map(
             static fn (array $namespaces) => array_map(static fn ($path) => $root . $path, $namespaces),

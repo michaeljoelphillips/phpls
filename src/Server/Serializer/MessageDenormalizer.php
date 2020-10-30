@@ -16,6 +16,10 @@ class MessageDenormalizer implements DenormalizerInterface
 {
     /**
      * {@inheritdoc}
+     *
+     * @param array<mixed, mixed> $context
+     *
+     * @return Message
      */
     public function denormalize($data, $class, $format = null, array $context = [])
     {
