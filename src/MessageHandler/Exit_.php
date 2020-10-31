@@ -7,10 +7,7 @@ namespace LanguageServer\MessageHandler;
 use LanguageServer\Server\Exception\InvalidRequest;
 use LanguageServer\Server\MessageHandler;
 use LanguageServer\Server\Protocol\Message;
-use LanguageServer\Server\Protocol\RequestMessage;
 use LanguageServer\Server\Protocol\ResponseMessage;
-
-use function assert;
 
 // phpcs:ignore
 class Exit_ implements MessageHandler
@@ -22,8 +19,6 @@ class Exit_ implements MessageHandler
      */
     public function __invoke(Message $message, callable $next)
     {
-        assert($message instanceof RequestMessage);
-
         if ($this->wasShutdown === true) {
             if ($message->method !== 'exit') {
                 throw new InvalidRequest();
