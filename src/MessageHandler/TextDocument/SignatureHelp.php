@@ -22,6 +22,7 @@ use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\StaticCall;
+use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
 use PhpParser\Node\Stmt\Expression;
 use PhpParser\NodeAbstract;
@@ -37,6 +38,7 @@ use function assert;
 use function implode;
 use function is_array;
 use function is_int;
+use function property_exists;
 
 class SignatureHelp implements MessageHandler
 {
@@ -167,6 +169,9 @@ class SignatureHelp implements MessageHandler
             return $reflection->getConstructor();
         }
 
+        assert(property_exists($expression, 'name'));
+        assert($expression->name instanceof Identifier);
+
         return $reflection->getMethod($expression->name->name);
     }
 
@@ -238,6 +243,7 @@ class SignatureHelp implements MessageHandler
     {
         $position = 0;
 
+        assert(property_exists($expression, 'args'));
         foreach ($expression->args as $argument) {
             if ($cursorPosition->contains($argument)) {
                 return [$position, $argument];

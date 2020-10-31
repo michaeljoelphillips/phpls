@@ -7,7 +7,7 @@ namespace LanguageServer\MessageHandler\TextDocument;
 use LanguageServer\ParsedDocument;
 use LanguageServer\Server\MessageHandler;
 use LanguageServer\Server\Protocol\Message;
-use LanguageServer\Server\Protocol\RequestMessage;
+use LanguageServer\Server\Protocol\NotificationMessage;
 use LanguageServer\TextDocumentRegistry;
 use PhpParser\Parser;
 
@@ -35,7 +35,7 @@ class DidSave implements MessageHandler
             return $next($message);
         }
 
-        assert($message instanceof RequestMessage);
+        assert($message instanceof NotificationMessage);
         assert(is_array($message->params));
 
         $uri    = $message->params['textDocument']['uri'];

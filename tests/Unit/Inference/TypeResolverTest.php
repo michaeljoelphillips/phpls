@@ -61,7 +61,7 @@ class TypeResolverTest extends ParserTestCase
             [
                 new Variable('localVariable', [
                     'startFilePos' => 1,
-                    'endFilePos' => 900,
+                    'endFilePos' => 9999,
                 ]),
                 'Fixtures\LocalVariable',
             ],
@@ -247,6 +247,32 @@ class TypeResolverTest extends ParserTestCase
                         'startFilePos' => 1000,
                         'endFilePos' => 9999,
                     ]),
+                    new Identifier('publicProperty')
+                ),
+                'stdClass',
+            ],
+            [
+                new PropertyFetch(
+                    new PropertyFetch(
+                        new Variable('this', [
+                            'startFilePos' => 1000,
+                            'endFilePos' => 9999,
+                        ]),
+                        new Identifier('propertyAssignedInConstructor')
+                    ),
+                    new Identifier('publicProperty')
+                ),
+                'stdClass',
+            ],
+            [
+                new PropertyFetch(
+                    new PropertyFetch(
+                        new Variable('this', [
+                            'startFilePos' => 1000,
+                            'endFilePos' => 9999,
+                        ]),
+                        new Identifier('propertyConstructedInConstructor')
+                    ),
                     new Identifier('publicProperty')
                 ),
                 'stdClass',

@@ -6,6 +6,7 @@ namespace LanguageServer\Test\Unit\Server\Protocol;
 
 use Exception;
 use LanguageServer\Server\Exception\InvalidRequest;
+use LanguageServer\Server\Protocol\NotificationMessage;
 use LanguageServer\Server\Protocol\RequestMessage;
 use LanguageServer\Server\Protocol\ResponseMessage;
 use PHPUnit\Framework\TestCase;
@@ -38,7 +39,7 @@ class ResponseMessageTest extends TestCase
         $this->assertEquals(-32603, $subject->error->code);
     }
 
-    public function testResponseMessageWithException(): void
+    public function testResponseMessageWithRequestAndException(): void
     {
         $request = new RequestMessage(1, 'textDocument/completion', []);
 
@@ -49,5 +50,18 @@ class ResponseMessageTest extends TestCase
         $this->assertNotNull($subject->error);
         $this->assertEquals(1, $subject->id);
         $this->assertEquals(-32600, $subject->error->code);
+    }
+
+    public function testResponseMessageWithNotificationAndException(): void
+    {
+        $request = new NotificationMessage('textDocument/didChange', []);
+
+        $exception = new Exception();
+        $subject   = new ResponseMessage($request, $exception);
+
+        $this->assertNull($subject->result);
+        $this->assertNotNull($subject->error);
+        $this->assertEquals(null, $subject->id);
+        $this->assertEquals(-32603, $subject->error->code);
     }
 }

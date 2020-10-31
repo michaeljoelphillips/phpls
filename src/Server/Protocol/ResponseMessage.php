@@ -8,7 +8,7 @@ use Throwable;
 
 class ResponseMessage extends Message
 {
-    public int $id;
+    public ?int $id = null;
 
     /** @var mixed|ResponseError|null */
     public $result;
@@ -18,9 +18,11 @@ class ResponseMessage extends Message
     /**
      * @param mixed|Throwable|null $result
      */
-    public function __construct(RequestMessage $request, $result)
+    public function __construct(Message $request, $result)
     {
-        $this->id = $request->id;
+        if ($request instanceof RequestMessage) {
+            $this->id = $request->id;
+        }
 
         if ($result instanceof Throwable) {
             $this->error = new ResponseError($result);

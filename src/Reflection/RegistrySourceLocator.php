@@ -15,6 +15,7 @@ use Roave\BetterReflection\SourceLocator\Type\AggregateSourceLocator;
 use Roave\BetterReflection\SourceLocator\Type\SourceLocator;
 
 use function array_map;
+use function array_values;
 
 class RegistrySourceLocator implements SourceLocator
 {
@@ -53,6 +54,6 @@ class RegistrySourceLocator implements SourceLocator
             $documents
         );
 
-        return new AggregateSourceLocator($locators);
+        return new AggregateSourceLocator(array_values($locators));
     }
 }

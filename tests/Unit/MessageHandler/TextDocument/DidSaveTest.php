@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace LanguageServer\Test\Unit\MessageHandler\TextDocument;
 
 use LanguageServer\MessageHandler\TextDocument\DidSave;
-use LanguageServer\Server\Protocol\RequestMessage;
+use LanguageServer\Server\Protocol\NotificationMessage;
 use LanguageServer\TextDocumentRegistry;
 use PhpParser\Parser;
 use PHPUnit\Framework\TestCase;
@@ -26,7 +26,7 @@ class DidSaveTest extends TestCase
             ->method('parse')
             ->willReturn([]);
 
-        $request = new RequestMessage(1, 'textDocument/didSave', [
+        $request = new NotificationMessage('textDocument/didSave', [
             'textDocument' => [
                 'uri' => __DIR__ . '/../../../fixtures/ParsedDocumentFixture.php',
             ],

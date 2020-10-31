@@ -26,6 +26,7 @@ class TypeResolverFixture extends ParentFixture
     {
         $this->nativelyTypedProperty = $nativelyTypedProperty;
         $this->propertyAssignedInConstructor = $propertyAssignedInConstructor;
+        $this->propertyConstructedInConstructor = new stdClass();
     }
 
     public function getTypeForLocalVariableFixture()

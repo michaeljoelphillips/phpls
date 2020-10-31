@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace LanguageServer\Server;
 
 use LanguageServer\Server\Protocol\Message;
-use LanguageServer\Server\Protocol\RequestMessage;
 use LanguageServer\Server\Protocol\ResponseMessage;
 use Psr\Log\LoggerInterface;
 use React\Promise\Promise;
@@ -14,7 +13,6 @@ use React\Socket\Server as TcpServer;
 use React\Stream\DuplexStreamInterface;
 use Throwable;
 
-use function assert;
 use function sprintf;
 
 class Server
@@ -110,8 +108,6 @@ class Server
             $response = $handler($message, 0);
         } catch (Throwable $t) {
             $this->logger->error($t->getMessage());
-
-            assert($message instanceof RequestMessage);
 
             $response = new ResponseMessage($message, $t);
         }

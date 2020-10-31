@@ -34,6 +34,7 @@ use function array_values;
 use function assert;
 use function implode;
 use function in_array;
+use function property_exists;
 use function sprintf;
 use function usort;
 
@@ -196,16 +197,21 @@ class TypeResolver
      */
     private function findVariableReferencesInDocument(Variable $variable, ParsedDocument $document): array
     {
-        return $document->searchNodes(
+        /** @var array<int, NodeAbstract> $nodes */
+        $nodes = $document->searchNodes(
             static function (NodeAbstract $node) use ($variable): bool {
                 if (! $node instanceof Assign && ! $node instanceof Param) {
                     return false;
                 }
 
+                assert(property_exists($node->var, 'name'));
+
                 return $node->var->name === $variable->name
                     && $node->getEndFilePos() < $variable->getEndFilePos();
             }
         );
+
+        return $nodes;
     }
 
     /**
@@ -358,15 +364,27 @@ class TypeResolver
         $propertyAssignment = array_values(array_filter(
             $constructor->stmts ?? [],
             static function (NodeAbstract $node) use ($property) {
-                return $node instanceof Expression
-                    && $node->expr instanceof Assign
-                    && $node->expr->var->name->name === $property->name->name;
+                if (($node instanceof Expression && $node->expr instanceof Assign) === false) {
+                    return false;
+                }
+
+                if ($node->expr->var instanceof PropertyFetch === false) {
+                    return false;
+                }
+
+                assert($property->name instanceof Identifier);
+                assert($node->expr->var->name instanceof Identifier);
+
+                return $node->expr->var->name->name === $property->name->name;
             }
         ));
 
         if (empty($propertyAssignment)) {
             return null;
         }
+
+        assert($propertyAssignment[0] instanceof Expression);
+        assert($propertyAssignment[0]->expr instanceof Assign);
 
         return $this->getType($document, $propertyAssignment[0]->expr->expr);
     }

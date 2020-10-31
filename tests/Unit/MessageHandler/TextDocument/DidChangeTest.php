@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace LanguageServer\Test\Unit\MessageHandler\TextDocument;
 
 use LanguageServer\MessageHandler\TextDocument\DidChange;
-use LanguageServer\Server\Protocol\RequestMessage;
+use LanguageServer\Server\Protocol\NotificationMessage;
 use LanguageServer\TextDocumentRegistry;
 use PhpParser\Parser;
 use PHPUnit\Framework\TestCase;
@@ -26,7 +26,7 @@ class DidChangeTest extends TestCase
             ->expects($this->once())
             ->method('add');
 
-        $request = new RequestMessage(1, 'textDocument/didChange', [
+        $request = new NotificationMessage('textDocument/didChange', [
             'textDocument' => [
                 'uri' => 'file:///tmp/foo.php',
                 'version' => 1,
