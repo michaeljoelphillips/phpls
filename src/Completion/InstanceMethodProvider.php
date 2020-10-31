@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace LanguageServer\Completion;
 
 use PhpParser\Node\Expr\PropertyFetch;
-use PhpParser\Node\Expr\Variable;
+use PhpParser\Node\Identifier;
 use PhpParser\NodeAbstract;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionMethod;
 
 use function assert;
+use function is_string;
+use function property_exists;
 
 class InstanceMethodProvider extends MethodProvider
 {
@@ -21,9 +23,6 @@ class InstanceMethodProvider extends MethodProvider
 
     protected function filterMethod(NodeAbstract $expression, ReflectionClass $class, ReflectionMethod $method): bool
     {
-        assert($expression instanceof PropertyFetch);
-        assert($expression->var instanceof Variable);
-
         if ($method->isStatic() === true) {
             return false;
         }
@@ -32,7 +31,10 @@ class InstanceMethodProvider extends MethodProvider
             return true;
         }
 
-        if ($expression->var->name === 'this') {
+        assert(property_exists($expression, 'var'));
+        assert($expression->var->name instanceof Identifier || is_string($expression->var->name));
+
+        if ((string) $expression->var->name === 'this') {
             if ($method->isPrivate() === true) {
                 return $method->getDeclaringClass() === $class;
             }
