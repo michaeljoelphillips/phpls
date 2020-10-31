@@ -107,7 +107,7 @@ class Server
             $handler  = $this->handler;
             $response = $handler($message, 0);
         } catch (Throwable $t) {
-            $this->logger->error($t->getMessage());
+            $this->logger->error($t->getMessage(), ['exception' => $t]);
 
             $response = new ResponseMessage($message, $t);
         }
