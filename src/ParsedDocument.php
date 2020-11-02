@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer;
 
+use PhpParser\Error;
 use PhpParser\Node;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
@@ -24,20 +25,28 @@ use const PHP_EOL;
 
 class ParsedDocument
 {
+    private string $uri;
+
+    private string $source;
+
     /** @var NodeAbstract[] */
     private array $nodes;
-    private string $uri;
-    private string $source;
+
+    /** @var Error[] */
+    private array $errors;
+
     private NodeFinder $finder;
 
     /**
      * @param NodeAbstract[] $nodes
+     * @param Error[]        $errors
      */
-    public function __construct(string $uri, string $source, array $nodes)
+    public function __construct(string $uri, string $source, array $nodes, array $errors = [])
     {
         $this->uri    = $uri;
         $this->source = $source;
         $this->nodes  = $nodes;
+        $this->errors = $errors;
 
         $this->finder = new NodeFinder();
     }
@@ -45,6 +54,13 @@ class ParsedDocument
     public function getUri(): string
     {
         return $this->uri;
+    }
+
+    public function getPath(): string
+    {
+        $url = parse_url($this->getUri());
+
+        return $url['path'];
     }
 
     public function getSource(): string
@@ -58,6 +74,19 @@ class ParsedDocument
     public function getNodes(): array
     {
         return $this->nodes;
+    }
+
+    public function hasErrors(): bool
+    {
+        return empty($this->getErrors()) === false;
+    }
+
+    /**
+     * @return Error[]
+     */
+    public function getErrors(): array
+    {
+        return $this->errors;
     }
 
     public function getInnermostNodeAtCursor(CursorPosition $cursorPosition): ?Node

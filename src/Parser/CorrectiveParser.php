@@ -159,20 +159,19 @@ class CorrectiveParser implements Parser
      */
     public function parse(string $source, ?ErrorHandler $errorHandler = null)
     {
-        $errorHandler    = new Collecting();
         $completedSource = $this->amendIncompleteSource($source);
         $result          = $this->wrappedParser->parse($completedSource, $errorHandler);
 
-        if ($errorHandler->hasErrors()) {
-            foreach ($errorHandler->getErrors() as $error) {
-                $this->logger->debug(
-                    sprintf('Parse Error: %s', $error->getMessage()),
-                    [
-                        'lines' => $this->formatOffendingLines($completedSource, $error),
-                    ],
-                );
-            }
-        }
+/*         if ($errorHandler->hasErrors()) { */
+/*             foreach ($errorHandler->getErrors() as $error) { */
+/*                 $this->logger->debug( */
+/*                     sprintf('Parse Error: %s', $error->getMessage()), */
+/*                     [ */
+/*                         'lines' => $this->formatOffendingLines($completedSource, $error), */
+/*                     ], */
+/*                 ); */
+/*             } */
+/*         } */
 
         if ($result === null) {
             $this->logger->error('The parser failed to parse the source');

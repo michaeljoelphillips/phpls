@@ -13,6 +13,12 @@ use LanguageServer\Completion\StaticMethodProvider;
 use LanguageServer\Completion\StaticPropertyProvider;
 use LanguageServer\Config\ConfigFactory;
 use LanguageServer\Console\RunCommand;
+use LanguageServer\Diagnostics\DiagnosticService;
+use LanguageServer\Diagnostics\ParserRunner;
+use LanguageServer\Diagnostics\PhpStan\DiagnosticRunner as PhpStanRunner;
+use LanguageServer\Diagnostics\PhpStan\DiagnosticCommand as PhpStanCommand;
+use LanguageServer\Diagnostics\PhpCs\DiagnosticRunner as PhpCsRunner;
+use LanguageServer\Diagnostics\PhpCs\DiagnosticCommand as PhpCsCommand;
 use LanguageServer\Inference\TypeResolver;
 use LanguageServer\MessageHandler\Exit_;
 use LanguageServer\MessageHandler\Initialize;
@@ -254,5 +260,13 @@ return [
     },
     'config' => static function () {
         return (new ConfigFactory())->__invoke();
+    },
+    DiagnosticService::class => static function (ContainerInterface $container) {
+        return new DiagnosticService(
+            $container->get(TextDocumentRegistry::class),
+            new ParserRunner(),
+            new PhpStanRunner(new PhpStanCommand($container->get(LoopInterface::class), '/home/nomad/Code/phpls')),
+            new PhpCsRunner(new PhpCsCommand($container->get(LoopInterface::class), '/home/nomad/Code/phpls'))
+        );
     },
 ];

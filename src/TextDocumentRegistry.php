@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace LanguageServer;
 
-class TextDocumentRegistry
+use Evenement\EventEmitterInterface;
+use Evenement\EventEmitterTrait;
+
+class TextDocumentRegistry implements EventEmitterInterface
 {
+    use EventEmitterTrait;
+
     /** @var array<string, ParsedDocument> */
     private array $documents = [];
 
@@ -17,6 +22,8 @@ class TextDocumentRegistry
     public function add(ParsedDocument $document): void
     {
         $this->documents[$document->getUri()] = $document;
+
+        $this->emit('documentAdded', [$document]);
     }
 
     /**

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace LanguageServer\Server;
 
+use Evenement\EventEmitterInterface;
 use LanguageServer\Server\Protocol\Message;
+use LanguageServer\Server\Protocol\NotificationMessage;
 use LanguageServer\Server\Protocol\ResponseMessage;
 use Psr\Log\LoggerInterface;
 use React\Promise\Promise;
@@ -56,6 +58,16 @@ class Server
 
         $this->parser->on('message', function (Message $request): void {
             $this->handle($request);
+        });
+    }
+
+    public function observeNotifications(EventEmitterInterface $service): void
+    {
+        $service->on('notification', function (array $diagnostic): void {
+            $notification = new NotificationMessage('textDocument/publishDiagnostics', $diagnostic);
+            $response     = $this->serializer->serialize($notification);
+
+            $this->stream->write($response);
         });
     }
 

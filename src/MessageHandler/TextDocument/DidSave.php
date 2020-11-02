@@ -9,18 +9,18 @@ use LanguageServer\Server\MessageHandler;
 use LanguageServer\Server\Protocol\Message;
 use LanguageServer\Server\Protocol\NotificationMessage;
 use LanguageServer\TextDocumentRegistry;
-use PhpParser\Parser;
 
 use function assert;
 use function file_get_contents;
 use function is_array;
+use LanguageServer\Parser\DocumentParser;
 
 class DidSave implements MessageHandler
 {
     private TextDocumentRegistry $registry;
-    private Parser $parser;
+    private DocumentParser $parser;
 
-    public function __construct(TextDocumentRegistry $registry, Parser $parser)
+    public function __construct(TextDocumentRegistry $registry, DocumentParser $parser)
     {
         $this->registry = $registry;
         $this->parser   = $parser;
@@ -40,9 +40,9 @@ class DidSave implements MessageHandler
 
         $uri    = $message->params['textDocument']['uri'];
         $source = $this->read($uri);
-        $nodes  = $this->parser->parse($source);
+        $document  = $this->parser->parse($uri, $source);
 
-        $this->registry->add(new ParsedDocument($uri, $source, $nodes ?? []));
+        $this->registry->add($document);
     }
 
     private function read(string $uri): string
