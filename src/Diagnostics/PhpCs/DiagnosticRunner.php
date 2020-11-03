@@ -4,17 +4,19 @@ declare(strict_types=1);
 
 namespace LanguageServer\Diagnostics\PhpCs;
 
-use LanguageServer\Diagnostics\DiagnosticRunner as DiagnosticRunnerInterface;
-use React\Promise\PromiseInterface;
-use LanguageServer\ParsedDocument;
-
-use function React\Promise\resolve;
-use function json_decode;
 use LanguageServer\Diagnostics\DiagnosticCommand;
+use LanguageServer\Diagnostics\DiagnosticRunner as DiagnosticRunnerInterface;
+use LanguageServer\ParsedDocument;
 use LanguageServerProtocol\Diagnostic;
+use LanguageServerProtocol\DiagnosticSeverity;
 use LanguageServerProtocol\Position;
 use LanguageServerProtocol\Range;
-use LanguageServerProtocol\DiagnosticSeverity;
+use React\Promise\PromiseInterface;
+
+use function array_map;
+use function array_merge;
+use function array_values;
+use function json_decode;
 
 class DiagnosticRunner implements DiagnosticRunnerInterface
 {
@@ -22,7 +24,8 @@ class DiagnosticRunner implements DiagnosticRunnerInterface
 
     private DiagnosticCommand $command;
 
-    private bool $isRunning = false;
+    /** @var array<int, Diagnostic> */
+    private array $diagnostics = [];
 
     public function __construct(DiagnosticCommand $command)
     {
@@ -31,26 +34,29 @@ class DiagnosticRunner implements DiagnosticRunnerInterface
 
     public function __invoke(ParsedDocument $document): PromiseInterface
     {
-        if ($document->hasErrors() || $this->isRunning) {
-            return resolve([]);
+        if ($this->command->isRunning()) {
+            $this->command->terminate();
         }
-
-        $this->isRunning = true;
 
         return $this
             ->command
             ->execute($document)
-            ->then(function (string $output): array {
-                $this->isRunning = false;
+            ->then(
+                function (string $output): array {
+                    $this->diagnostics = $this->gatherDiagnostics($output);
 
-                return $this->handleOutput($output);
-            });
+                    return $this->diagnostics;
+                },
+                function (): array {
+                    return $this->diagnostics;
+                }
+            );
     }
 
     /**
      * @return array<int, Diagnostic>
      */
-    private function handleOutput(string $output): array
+    private function gatherDiagnostics(string $output): array
     {
         $output = json_decode($output, true);
 
@@ -66,11 +72,11 @@ class DiagnosticRunner implements DiagnosticRunnerInterface
                 return new Diagnostic(
                     $error['message'],
                     new Range(
-                        new Position($error['line'] - 1, 0),
-                        new Position($error['line'] - 1, 0)
+                        new Position($error['line'] - 1, $error['column'] - 1),
+                        new Position($error['line'] - 1, -1)
                     ),
-                    500,
-                    DiagnosticSeverity::WARNING,
+                    $error['severity'],
+                    DiagnosticSeverity::ERROR,
                     self::RUNNER_NAME
                 );
             },
