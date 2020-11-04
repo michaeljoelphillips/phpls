@@ -22,7 +22,7 @@ abstract class DiagnosticCommand
 
     private string $cwd;
 
-    private ?Process $runningProcess = null;
+    private ?Process $process = null;
 
     public function __construct(LoopInterface $loop, string $cwd)
     {
@@ -32,39 +32,50 @@ abstract class DiagnosticCommand
 
     public function execute(ParsedDocument $document): PromiseInterface
     {
-        $deferred             = new Deferred();
-        $this->runningProcess = new Process($this->getCommand($document), $this->cwd);
-        $input                = $this->input($document);
+        $input  = $this->input($document);
+        $output = null;
 
-        $this->runningProcess->start($this->loop);
+        $deferred      = new Deferred();
+        $this->process = new Process($this->getCommand($document), $this->cwd);
 
-        assert($this->runningProcess->stdin instanceof WritableStreamInterface);
-        assert($this->runningProcess->stdout instanceof ReadableStreamInterface);
+        $this->process->start($this->loop);
+
+        assert($this->process->stdin instanceof WritableStreamInterface);
+        assert($this->process->stdout instanceof ReadableStreamInterface);
 
         if ($input !== null) {
-            $this->runningProcess->stdin->write($input);
-            $this->runningProcess->stdin->end();
+            $this->process->stdin->write($input);
+            $this->process->stdin->end();
         }
 
-        $output = '';
-        $this->runningProcess->stdout->on('data', static function (string $data) use (&$output): void {
-            $output .= $data;
-        });
-
-        $this->runningProcess->on('exit', static function (?int $code, ?int $term) use (&$output, &$deferred): void {
-            if ($term !== null) {
-                $deferred->reject();
+        $this->process->stdout->on(
+            'data',
+            static function (string $data) use (&$output): void {
+                $output .= $data;
             }
+        );
 
-            $deferred->resolve($output);
-        });
+        assert($this->process !== null);
+
+        $this->process->on(
+            'exit',
+            function (?int $code, ?int $term) use (&$output, &$deferred): void {
+                if ($term !== null) {
+                    $deferred->reject();
+                } else {
+                    $deferred->resolve($output);
+                }
+
+                $this->cleanup();
+            }
+        );
 
         return $deferred->promise();
     }
 
     public function isRunning(): bool
     {
-        return $this->runningProcess !== null;
+        return $this->process !== null;
     }
 
     public function terminate(): void
@@ -73,9 +84,14 @@ abstract class DiagnosticCommand
             return;
         }
 
-        assert($this->runningProcess !== null);
+        assert($this->process !== null);
 
-        $this->runningProcess->terminate(SIGTERM);
+        $this->process->terminate(SIGTERM);
+    }
+
+    public function cleanup(): void
+    {
+        $this->process = null;
     }
 
     protected function input(ParsedDocument $document): ?string
