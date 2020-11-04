@@ -8,6 +8,8 @@ use LanguageServer\ParsedDocument;
 use PhpParser\ErrorHandler\Collecting;
 use PhpParser\Parser as AstParser;
 
+use function file_get_contents;
+
 class DocumentParser
 {
     private AstParser $astParser;
@@ -23,5 +25,14 @@ class DocumentParser
         $nodes        = $this->astParser->parse($source, $errorHandler) ?? [];
 
         return new ParsedDocument($uri, $source, $nodes, $errorHandler->getErrors());
+    }
+
+    public function parseFromFile(string $uri): ParsedDocument
+    {
+        $source       = file_get_contents($uri) ?: '';
+        $errorHandler = new Collecting();
+        $nodes        = $this->astParser->parse($source, $errorHandler) ?? [];
+
+        return new ParsedDocument($uri, $source, $nodes, $errorHandler->getErrors(), true);
     }
 }

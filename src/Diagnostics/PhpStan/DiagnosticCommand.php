@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace LanguageServer\Diagnostics\PhpStan;
 
 use LanguageServer\Diagnostics\DiagnosticCommand as AbstractDiagnosticCommand;
-use React\Promise\Deferred;
-use React\ChildProcess\Process;
-use React\EventLoop\LoopInterface;
 use LanguageServer\ParsedDocument;
+
+use function assert;
+use function file_put_contents;
+use function implode;
+use function is_string;
+use function sys_get_temp_dir;
+use function tempnam;
 
 class DiagnosticCommand extends AbstractDiagnosticCommand
 {
@@ -20,7 +24,11 @@ class DiagnosticCommand extends AbstractDiagnosticCommand
 
     protected function getCommand(ParsedDocument $document): string
     {
-        $file            = $document->getPath();
+        $name = tempnam(sys_get_temp_dir(), 'phpstanls');
+        assert(is_string($name));
+        file_put_contents($name, $document->getSource());
+
+        $file            = $name;
         $command         = self::COMMAND_PARTS;
         $command['file'] = $file;
 

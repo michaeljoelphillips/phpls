@@ -17,6 +17,7 @@ use function array_map;
 use function array_merge;
 use function array_values;
 use function json_decode;
+use function React\Promise\reject;
 
 class DiagnosticRunner implements DiagnosticRunnerInterface
 {
@@ -24,16 +25,22 @@ class DiagnosticRunner implements DiagnosticRunnerInterface
 
     private DiagnosticCommand $command;
 
-    /** @var array<int, Diagnostic> */
-    private array $diagnostics = [];
-
     public function __construct(DiagnosticCommand $command)
     {
         $this->command = $command;
     }
 
-    public function __invoke(ParsedDocument $document): PromiseInterface
+    public function getDiagnosticName(): string
     {
+        return self::RUNNER_NAME;
+    }
+
+    public function run(ParsedDocument $document): PromiseInterface
+    {
+        if ($document->hasErrors() || $document->isPersisted()) {
+            return reject();
+        }
+
         if ($this->command->isRunning()) {
             $this->command->terminate();
         }
@@ -43,12 +50,7 @@ class DiagnosticRunner implements DiagnosticRunnerInterface
             ->execute($document)
             ->then(
                 function (string $output): array {
-                    $this->diagnostics = $this->gatherDiagnostics($output);
-
-                    return $this->diagnostics;
-                },
-                function (): array {
-                    return $this->diagnostics;
+                    return $this->gatherDiagnostics($output);
                 }
             );
     }

@@ -7,7 +7,6 @@ namespace LanguageServer;
 use PhpParser\Error;
 use PhpParser\Node;
 use PhpParser\Node\Stmt\Class_;
-use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Namespace_;
 use PhpParser\Node\Stmt\Property;
 use PhpParser\Node\Stmt\PropertyProperty;
@@ -16,8 +15,10 @@ use PhpParser\NodeAbstract;
 use PhpParser\NodeFinder;
 
 use function array_filter;
+use function array_key_exists;
 use function array_key_last;
 use function assert;
+use function parse_url;
 use function sprintf;
 use function str_split;
 
@@ -35,20 +36,28 @@ class ParsedDocument
     /** @var Error[] */
     private array $errors;
 
+    private bool $persisted = false;
+
     private NodeFinder $finder;
 
     /**
      * @param NodeAbstract[] $nodes
      * @param Error[]        $errors
      */
-    public function __construct(string $uri, string $source, array $nodes, array $errors = [])
+    public function __construct(string $uri, string $source, array $nodes, array $errors = [], bool $persisted = false)
     {
-        $this->uri    = $uri;
-        $this->source = $source;
-        $this->nodes  = $nodes;
-        $this->errors = $errors;
+        $this->uri       = $uri;
+        $this->source    = $source;
+        $this->nodes     = $nodes;
+        $this->errors    = $errors;
+        $this->persisted = $persisted;
 
         $this->finder = new NodeFinder();
+    }
+
+    public function isPersisted(): bool
+    {
+        return $this->persisted;
     }
 
     public function getUri(): string
@@ -59,6 +68,9 @@ class ParsedDocument
     public function getPath(): string
     {
         $url = parse_url($this->getUri());
+
+        assert($url !== false);
+        assert(array_key_exists('path', $url));
 
         return $url['path'];
     }

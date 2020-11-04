@@ -4,16 +4,14 @@ declare(strict_types=1);
 
 namespace LanguageServer\MessageHandler\TextDocument;
 
-use LanguageServer\ParsedDocument;
+use LanguageServer\Parser\DocumentParser;
 use LanguageServer\Server\MessageHandler;
 use LanguageServer\Server\Protocol\Message;
 use LanguageServer\Server\Protocol\NotificationMessage;
 use LanguageServer\TextDocumentRegistry;
 
 use function assert;
-use function file_get_contents;
 use function is_array;
-use LanguageServer\Parser\DocumentParser;
 
 class DidSave implements MessageHandler
 {
@@ -38,15 +36,9 @@ class DidSave implements MessageHandler
         assert($message instanceof NotificationMessage);
         assert(is_array($message->params));
 
-        $uri    = $message->params['textDocument']['uri'];
-        $source = $this->read($uri);
-        $document  = $this->parser->parse($uri, $source);
+        $uri      = $message->params['textDocument']['uri'];
+        $document = $this->parser->parseFromFile($uri);
 
         $this->registry->add($document);
-    }
-
-    private function read(string $uri): string
-    {
-        return file_get_contents($uri) ?: '';
     }
 }

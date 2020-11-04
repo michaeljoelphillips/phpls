@@ -4,14 +4,11 @@ declare(strict_types=1);
 
 namespace LanguageServer\MessageHandler\TextDocument;
 
-use LanguageServer\Diagnostics\AstParser\ErrorHandler;
-use LanguageServer\ParsedDocument;
+use LanguageServer\Parser\DocumentParser;
 use LanguageServer\Server\MessageHandler;
 use LanguageServer\Server\Protocol\Message;
 use LanguageServer\Server\Protocol\NotificationMessage;
 use LanguageServer\TextDocumentRegistry;
-use PhpParser\Parser;
-use LanguageServer\Parser\DocumentParser;
 
 use function assert;
 use function is_array;
@@ -23,8 +20,8 @@ class DidOpen implements MessageHandler
 
     public function __construct(TextDocumentRegistry $registry, DocumentParser $parser)
     {
-        $this->registry     = $registry;
-        $this->parser       = $parser;
+        $this->registry = $registry;
+        $this->parser   = $parser;
     }
 
     /**

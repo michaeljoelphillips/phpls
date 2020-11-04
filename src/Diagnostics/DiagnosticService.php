@@ -8,9 +8,10 @@ use Evenement\EventEmitterInterface;
 use Evenement\EventEmitterTrait;
 use LanguageServer\ParsedDocument;
 use LanguageServer\TextDocumentRegistry;
+use LanguageServerProtocol\Diagnostic;
 
 use function array_merge;
-use function React\Promise\all;
+use function array_values;
 
 class DiagnosticService implements EventEmitterInterface
 {
@@ -18,6 +19,9 @@ class DiagnosticService implements EventEmitterInterface
 
     /** @var array<int, DiagnosticRunner> */
     private array $runners;
+
+    /** @var array<string, array<int, Diagnostic>> */
+    private array $diagnostics = [];
 
     public function __construct(TextDocumentRegistry $registry, DiagnosticRunner ...$runners)
     {
@@ -30,23 +34,21 @@ class DiagnosticService implements EventEmitterInterface
 
     public function diagnose(ParsedDocument $document): void
     {
-        $promises = [];
-
         foreach ($this->runners as $runner) {
-            $promises[] = $runner($document);
+            $runner
+                ->run($document)
+                ->then(
+                    function (array $diagnostics) use ($runner, $document): void {
+                        $this->diagnostics[$runner->getDiagnosticName()] = $diagnostics;
+
+                        $this->emit('notification', [
+                            [
+                                'uri' => $document->getUri(),
+                                'diagnostics' => array_merge(...array_values($this->diagnostics)),
+                            ],
+                        ]);
+                    }
+                );
         }
-
-        $uri = $document->getUri();
-
-        all($promises)->then(function (array $diagnostics) use ($uri): void {
-            $diagnostics = array_merge(...$diagnostics);
-
-            $this->emit('notification', [
-                [
-                    'diagnostics' => $diagnostics,
-                    'uri' => $uri,
-                ],
-            ]);
-        });
     }
 }

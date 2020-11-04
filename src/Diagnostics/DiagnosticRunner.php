@@ -9,5 +9,7 @@ use React\Promise\PromiseInterface;
 
 interface DiagnosticRunner
 {
-    public function __invoke(ParsedDocument $document): PromiseInterface;
+    public function run(ParsedDocument $document): PromiseInterface;
+
+    public function getDiagnosticName(): string;
 }

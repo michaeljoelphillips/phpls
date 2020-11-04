@@ -36,7 +36,11 @@ abstract class DiagnosticCommand
         $this->runningProcess = new Process($this->getCommand($document), $this->cwd);
         $input                = $this->input($document);
 
+
         $this->runningProcess->start($this->loop);
+
+        assert($this->runningProcess->stdin instanceof WritableStreamInterface);
+        assert($this->runningProcess->stdout instanceof ReadableStreamInterface);
 
         if ($input !== null) {
             $this->runningProcess->stdin->write($input);

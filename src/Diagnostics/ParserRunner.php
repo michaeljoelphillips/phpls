@@ -16,7 +16,14 @@ use function array_map;
 
 class ParserRunner implements DiagnosticRunner
 {
-    public function __invoke(ParsedDocument $document): PromiseInterface
+    private const RUNNER_NAME = 'PHP';
+
+    public function getDiagnosticName(): string
+    {
+        return self::RUNNER_NAME;
+    }
+
+    public function run(ParsedDocument $document): PromiseInterface
     {
         $deferred = new Deferred();
 
