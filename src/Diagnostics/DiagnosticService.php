@@ -7,6 +7,7 @@ namespace LanguageServer\Diagnostics;
 use Evenement\EventEmitterInterface;
 use Evenement\EventEmitterTrait;
 use LanguageServer\ParsedDocument;
+use LanguageServer\Server\Protocol\NotificationMessage;
 use LanguageServer\TextDocumentRegistry;
 use LanguageServerProtocol\Diagnostic;
 
@@ -48,10 +49,10 @@ class DiagnosticService implements EventEmitterInterface
                         $this->diagnostics[$uri][$diagnosticName] = $diagnostics;
 
                         $this->emit('notification', [
-                            [
+                            new NotificationMessage('textDocument/publishDiagnostics', [
                                 'uri' => $document->getUri(),
                                 'diagnostics' => array_merge(...array_values($this->diagnostics[$uri])),
-                            ],
+                            ]),
                         ]);
                     }
                 );

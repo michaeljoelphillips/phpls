@@ -63,9 +63,8 @@ class Server
 
     public function observeNotifications(EventEmitterInterface $service): void
     {
-        $service->on('notification', function (array $diagnostic): void {
-            $notification = new NotificationMessage('textDocument/publishDiagnostics', $diagnostic);
-            $response     = $this->serializer->serialize($notification);
+        $service->on('notification', function (NotificationMessage $notification): void {
+            $response = $this->serializer->serialize($notification);
 
             $this->stream->write($response);
         });
