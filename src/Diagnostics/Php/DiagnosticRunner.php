@@ -2,19 +2,20 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Diagnostics;
+namespace LanguageServer\Diagnostics\Php;
 
+use LanguageServer\Diagnostics\DiagnosticRunner as DiagnosticRunnerInterface;
 use LanguageServer\ParsedDocument;
 use LanguageServerProtocol\Diagnostic;
 use LanguageServerProtocol\Position;
 use LanguageServerProtocol\Range;
 use PhpParser\Error;
-use React\Promise\Deferred;
 use React\Promise\PromiseInterface;
 
 use function array_map;
+use function React\Promise\resolve;
 
-class ParserRunner implements DiagnosticRunner
+class DiagnosticRunner implements DiagnosticRunnerInterface
 {
     private const RUNNER_NAME = 'PHP';
 
@@ -25,9 +26,7 @@ class ParserRunner implements DiagnosticRunner
 
     public function run(ParsedDocument $document): PromiseInterface
     {
-        $deferred = new Deferred();
-
-        $deferred->resolve(array_map(
+        return resolve(array_map(
             static function (Error $error): Diagnostic {
                 return new Diagnostic(
                     $error->getRawMessage(),
@@ -42,7 +41,5 @@ class ParserRunner implements DiagnosticRunner
             },
             $document->getErrors()
         ));
-
-        return $deferred->promise();
     }
 }
