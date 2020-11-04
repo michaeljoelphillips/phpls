@@ -20,7 +20,10 @@ class DiagnosticService implements EventEmitterInterface
     /** @var array<int, DiagnosticRunner> */
     private array $runners;
 
-    /** @var array<string, array<int, Diagnostic>> */
+    /**
+     * @var array<string, array<string, array<string, Diagnostic>>>
+     * @example ['uri' => [ 'diagnostic' => [], ]]
+     **/
     private array $diagnostics = [];
 
     public function __construct(TextDocumentRegistry $registry, DiagnosticRunner ...$runners)
@@ -39,12 +42,15 @@ class DiagnosticService implements EventEmitterInterface
                 ->run($document)
                 ->then(
                     function (array $diagnostics) use ($runner, $document): void {
-                        $this->diagnostics[$runner->getDiagnosticName()] = $diagnostics;
+                        $uri            = $document->getUri();
+                        $diagnosticName = $runner->getDiagnosticName();
+
+                        $this->diagnostics[$uri][$diagnosticName] = $diagnostics;
 
                         $this->emit('notification', [
                             [
                                 'uri' => $document->getUri(),
-                                'diagnostics' => array_merge(...array_values($this->diagnostics)),
+                                'diagnostics' => array_merge(...array_values($this->diagnostics[$uri])),
                             ],
                         ]);
                     }
