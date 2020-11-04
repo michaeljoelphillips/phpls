@@ -27,7 +27,7 @@ class DiagnosticServiceTest extends TestCase
             ->expects($this->once())
             ->method('on');
 
-        new DiagnosticService($registry);
+        new DiagnosticService($registry, []);
     }
 
     public function testDiagnoseEmitsPublishDiagnosticsNotification(): void
@@ -35,7 +35,7 @@ class DiagnosticServiceTest extends TestCase
         $runner   = $this->createMock(DiagnosticRunner::class);
         $registry = $this->createMock(TextDocumentRegistry::class);
         $document = new ParsedDocument('file://tmp/foo', '<?php', []);
-        $subject  = new DiagnosticService($registry, $runner);
+        $subject  = new DiagnosticService($registry, [], $runner);
 
         $diagnostics = [
             new Diagnostic('Test Diagnostic', new Range(
@@ -65,7 +65,7 @@ class DiagnosticServiceTest extends TestCase
     {
         $runnerA = $this->createMock(DiagnosticRunner::class);
         $runnerB = $this->createMock(DiagnosticRunner::class);
-        $subject = new DiagnosticService($this->createMock(TextDocumentRegistry::class), $runnerA, $runnerB);
+        $subject = new DiagnosticService($this->createMock(TextDocumentRegistry::class), [], $runnerA, $runnerB);
 
         $runnerADiagnostic = new Diagnostic('Test Diagnostic', new Range(new Position(0, 0), new Position(0, -1)), 1, 1, 'Runner A');
         $runnerBDiagnostic = new Diagnostic('Test Diagnostic', new Range(new Position(0, 0), new Position(0, -1)), 1, 1, 'Runner B');
@@ -112,7 +112,7 @@ class DiagnosticServiceTest extends TestCase
         $runner   = $this->createMock(DiagnosticRunner::class);
         $registry = $this->createMock(TextDocumentRegistry::class);
         $document = new ParsedDocument('file://tmp/foo', '<?php', []);
-        $subject  = new DiagnosticService($registry, $runner);
+        $subject  = new DiagnosticService($registry, [], $runner);
 
         $runner
             ->method('run')
@@ -126,5 +126,36 @@ class DiagnosticServiceTest extends TestCase
         $subject->diagnose($document);
 
         self::addToAssertionCount(1);
+    }
+
+    /**
+     * @dataProvider ignoredFilesProvider
+     */
+    public function testDiagnoseSkipsDocumentsSpecifiedInIgnoreList(ParsedDocument $document): void
+    {
+        $runner   = $this->createMock(DiagnosticRunner::class);
+        $registry = $this->createMock(TextDocumentRegistry::class);
+        $subject  = new DiagnosticService($registry, ['vendor/', 'cache/'], $runner);
+
+        $runner
+            ->expects($this->never())
+            ->method('run');
+
+        $subject->on('notification', static function (): void {
+            self::fail('Files listed as ignored should never be diagnosed');
+        });
+
+        $subject->diagnose($document);
+    }
+
+    /**
+     * @return array<int, array<int, ParsedDocument>>
+     */
+    public function ignoredFilesProvider(): array
+    {
+        return [
+            [new ParsedDocument('file:///tmp/cache/Foo.php', '<?php', [])],
+            [new ParsedDocument('file:///tmp/vendor/Foo.php', '<?php', [])],
+        ];
     }
 }

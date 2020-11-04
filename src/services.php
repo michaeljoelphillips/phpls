@@ -264,6 +264,7 @@ return [
     DiagnosticService::class => static function (ContainerInterface $container) {
         return new DiagnosticService(
             $container->get(TextDocumentRegistry::class),
+            ['vendor/'],
             new PhpRunner(),
             new PhpStanRunner(new PhpStanCommand($container->get(LoopInterface::class), '/home/nomad/Code/phpls')),
             new PhpCsRunner(new PhpCsCommand($container->get(LoopInterface::class), '/home/nomad/Code/phpls'))

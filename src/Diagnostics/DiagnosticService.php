@@ -13,10 +13,14 @@ use LanguageServerProtocol\Diagnostic;
 
 use function array_merge;
 use function array_values;
+use function strpos;
 
 class DiagnosticService implements EventEmitterInterface
 {
     use EventEmitterTrait;
+
+    /** @var array<int, string> */
+    private array $ignorePaths = [];
 
     /** @var array<int, DiagnosticRunner> */
     private array $runners;
@@ -27,9 +31,13 @@ class DiagnosticService implements EventEmitterInterface
      **/
     private array $diagnostics = [];
 
-    public function __construct(TextDocumentRegistry $registry, DiagnosticRunner ...$runners)
+    /**
+     * @param array<int, string> $ignorePaths
+     */
+    public function __construct(TextDocumentRegistry $registry, array $ignorePaths, DiagnosticRunner ...$runners)
     {
-        $this->runners = $runners;
+        $this->runners     = $runners;
+        $this->ignorePaths = $ignorePaths;
 
         $registry->on('documentAdded', function (ParsedDocument $document): void {
             $this->diagnose($document);
@@ -38,6 +46,12 @@ class DiagnosticService implements EventEmitterInterface
 
     public function diagnose(ParsedDocument $document): void
     {
+        foreach ($this->ignorePaths as $ignorePath) {
+            if (strpos($document->getUri(), $ignorePath) !== false) {
+                return;
+            }
+        }
+
         foreach ($this->runners as $runner) {
             $runner
                 ->run($document)
