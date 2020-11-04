@@ -29,8 +29,8 @@ class DocumentParser
 
     public function parseFromFile(string $uri): ParsedDocument
     {
-        $source       = file_get_contents($uri) ?: '';
         $errorHandler = new Collecting();
+        $source       = file_get_contents($uri) ?: '';
         $nodes        = $this->astParser->parse($source, $errorHandler) ?? [];
 
         return new ParsedDocument($uri, $source, $nodes, $errorHandler->getErrors(), true);

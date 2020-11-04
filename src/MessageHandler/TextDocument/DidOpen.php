@@ -40,6 +40,8 @@ class DidOpen implements MessageHandler
         $source   = $message->params['textDocument']['text'];
         $document = $this->parser->parse($uri, $source);
 
+        $document->markAsPersisted();
+
         $this->registry->add($document);
     }
 }

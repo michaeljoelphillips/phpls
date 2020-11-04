@@ -60,6 +60,11 @@ class ParsedDocument
         return $this->persisted;
     }
 
+    public function markAsPersisted(): void
+    {
+        $this->persisted = true;
+    }
+
     public function getUri(): string
     {
         return $this->uri;
