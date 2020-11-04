@@ -37,7 +37,7 @@ class DiagnosticRunner implements DiagnosticRunnerInterface
 
     public function run(ParsedDocument $document): PromiseInterface
     {
-        if ($document->hasErrors() || $document->isPersisted()) {
+        if ($document->hasErrors() || $document->isPersisted() === false) {
             return reject();
         }
 
