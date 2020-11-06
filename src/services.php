@@ -270,9 +270,11 @@ return [
         return (new ConfigFactory())->__invoke();
     },
     DiagnosticService::class => static function (ContainerInterface $container) {
+        $config = $container->get('config')['diagnostics'];
+
         return new DiagnosticService(
             $container->get(TextDocumentRegistry::class),
-            ['vendor/'],
+            $config['ignore'],
             ...$container->get('diagnostic_runners')
         );
     },
