@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace LanguageServer\Console;
 
 use DI\Container;
-use LanguageServer\Diagnostics\DiagnosticService;
 use LanguageServer\Server\Cache\ThresholdCacheMonitor;
 use LanguageServer\Server\Cache\TtlCacheMonitor;
 use LanguageServer\Server\Server as LanguageServer;
@@ -53,10 +52,9 @@ class RunCommand extends Command
     {
         $this->setOptions($input, $output);
 
-        $loop        = $this->container->get(LoopInterface::class);
-        $stream      = $this->container->get('stream');
-        $server      = $this->container->get(LanguageServer::class);
-        $diagnostics = $this->container->get(DiagnosticService::class);
+        $loop   = $this->container->get(LoopInterface::class);
+        $stream = $this->container->get('stream');
+        $server = $this->container->get(LanguageServer::class);
 
         $logger         = $this->container->get(LoggerInterface::class)->withName('cache');
         $parserCache    = $this->container->get('parserCache');
@@ -65,9 +63,7 @@ class RunCommand extends Command
         (new ThresholdCacheMonitor($logger, $parserCache, $reflectorCache))(15, $loop);
         (new TtlCacheMonitor($parserCache, $reflectorCache))(60, $loop);
 
-        $server->observeNotifications($diagnostics);
         $server->listen($stream);
-
         $loop->run();
 
         return 0;

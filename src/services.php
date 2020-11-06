@@ -13,6 +13,7 @@ use LanguageServer\Completion\StaticMethodProvider;
 use LanguageServer\Completion\StaticPropertyProvider;
 use LanguageServer\Config\ConfigFactory;
 use LanguageServer\Console\RunCommand;
+use LanguageServer\Diagnostics\DiagnosticRunner;
 use LanguageServer\Diagnostics\DiagnosticService;
 use LanguageServer\Diagnostics\Php\DiagnosticRunner as PhpRunner;
 use LanguageServer\Diagnostics\PhpCs\DiagnosticCommand as PhpCsCommand;
@@ -71,11 +72,18 @@ use Symfony\Component\Serializer\SerializerInterface;
 
 return [
     LanguageServer::class => static function (ContainerInterface $container) {
-        return new LanguageServer(
+        $config = $container->get('config');
+        $server = new LanguageServer(
             $container->get(MessageSerializer::class),
             $container->get(LoggerInterface::class)->withName('server'),
             $container->get('messageHandlers')
         );
+
+        if ($config['diagnostics']['enabled'] === true) {
+            $server->observeNotifications($container->get(DiagnosticService::class));
+        }
+
+        return $server;
     },
     'stream' => static function (ContainerInterface $container) {
         $mode = $container->get('mode');
@@ -265,9 +273,47 @@ return [
         return new DiagnosticService(
             $container->get(TextDocumentRegistry::class),
             ['vendor/'],
-            new PhpRunner(),
-            new PhpStanRunner(new PhpStanCommand($container->get(LoopInterface::class), '/home/nomad/Code/phpls')),
-            new PhpCsRunner(new PhpCsCommand($container->get(LoopInterface::class), '/home/nomad/Code/phpls'))
+            ...$container->get('diagnostic_runners')
+        );
+    },
+    'diagnostic_runners' => [
+        DI\get(PhpRunner::class),
+        DI\get(PhpCsRunner::class),
+        DI\get(PhpStanRunner::class),
+    ],
+    PhpRunner::class => static function (ContainerInterface $container): DiagnosticRunner {
+        return new PhpRunner();
+    },
+    PhpCsRunner::class => static function (ContainerInterface $container): DiagnosticRunner {
+        $factory = new LazyLoadingValueHolderFactory();
+
+        return $factory->createProxy(
+            PhpCsRunner::class,
+            static function (&$wrappedObject, $proxy, $method, $parameters, &$initializer) use ($container): void {
+                $initializer   = null;
+                $wrappedObject = new PhpCsRunner(
+                    new PhpCsCommand(
+                        $container->get(LoopInterface::class),
+                        $container->get('project_root')
+                    )
+                );
+            }
+        );
+    },
+    PhpStanRunner::class => static function (ContainerInterface $container): DiagnosticRunner {
+        $factory = new LazyLoadingValueHolderFactory();
+
+        return $factory->createProxy(
+            PhpStanRunner::class,
+            static function (&$wrappedObject, $proxy, $method, $parameters, &$initializer) use ($container): void {
+                $initializer   = null;
+                $wrappedObject = new PhpStanRunner(
+                    new PhpStanCommand(
+                        $container->get(LoopInterface::class),
+                        $container->get('project_root')
+                    )
+                );
+            }
         );
     },
 ];
