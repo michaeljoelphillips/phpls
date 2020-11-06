@@ -60,13 +60,15 @@ abstract class DiagnosticCommand
         $this->process->on(
             'exit',
             function (?int $code, ?int $term) use (&$output, &$deferred): void {
+                $this->cleanup();
+
                 if ($term !== null) {
                     $deferred->reject();
-                } else {
-                    $deferred->resolve($output);
+
+                    return;
                 }
 
-                $this->cleanup();
+                $deferred->resolve($output);
             }
         );
 
