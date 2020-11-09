@@ -15,6 +15,7 @@ use LanguageServer\Config\ConfigFactory;
 use LanguageServer\Console\RunCommand;
 use LanguageServer\Diagnostics\DiagnosticRunner;
 use LanguageServer\Diagnostics\DiagnosticService;
+use LanguageServer\Diagnostics\NullRunner;
 use LanguageServer\Diagnostics\Php\DiagnosticRunner as PhpRunner;
 use LanguageServer\Diagnostics\PhpCs\DiagnosticCommand as PhpCsCommand;
 use LanguageServer\Diagnostics\PhpCs\DiagnosticRunner as PhpCsRunner;
@@ -284,36 +285,56 @@ return [
         DI\get(PhpStanRunner::class),
     ],
     PhpRunner::class => static function (ContainerInterface $container): DiagnosticRunner {
+        $config = $container->get('config')['diagnostics'];
+
+        if ($config['php']['enabled'] === false) {
+            return new NullRunner();
+        }
+
         return new PhpRunner();
     },
     PhpCsRunner::class => static function (ContainerInterface $container): DiagnosticRunner {
+        $config = $container->get('config')['diagnostics'];
+
+        if ($config['phpcs']['enabled'] === false) {
+            return new NullRunner();
+        }
+
         $factory = new LazyLoadingValueHolderFactory();
 
         return $factory->createProxy(
             PhpCsRunner::class,
-            static function (&$wrappedObject, $proxy, $method, $parameters, &$initializer) use ($container): void {
+            static function (&$wrappedObject, $proxy, $method, $parameters, &$initializer) use ($container, $config): void {
                 $initializer   = null;
                 $wrappedObject = new PhpCsRunner(
                     new PhpCsCommand(
                         $container->get(LoopInterface::class),
                         $container->get('project_root')
-                    )
+                    ),
+                    $config['phpcs']['severity']
                 );
             }
         );
     },
     PhpStanRunner::class => static function (ContainerInterface $container): DiagnosticRunner {
+        $config = $container->get('config')['diagnostics'];
+
+        if ($config['phpstan']['enabled'] === false) {
+            return new NullRunner();
+        }
+
         $factory = new LazyLoadingValueHolderFactory();
 
         return $factory->createProxy(
             PhpStanRunner::class,
-            static function (&$wrappedObject, $proxy, $method, $parameters, &$initializer) use ($container): void {
+            static function (&$wrappedObject, $proxy, $method, $parameters, &$initializer) use ($container, $config): void {
                 $initializer   = null;
                 $wrappedObject = new PhpStanRunner(
                     new PhpStanCommand(
                         $container->get(LoopInterface::class),
                         $container->get('project_root')
-                    )
+                    ),
+                    $config['phpstan']['severity']
                 );
             }
         );

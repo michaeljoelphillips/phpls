@@ -10,6 +10,7 @@ use LanguageServerProtocol\Diagnostic;
 use LanguageServerProtocol\Position;
 use LanguageServerProtocol\Range;
 use React\Promise\PromiseInterface;
+use UnexpectedValueException;
 
 use function array_map;
 use function array_merge;
@@ -23,9 +24,16 @@ class DiagnosticRunner implements DiagnosticRunnerInterface
 
     private DiagnosticCommand $command;
 
-    public function __construct(DiagnosticCommand $command)
+    private int $severity;
+
+    public function __construct(DiagnosticCommand $command, string $severity)
     {
-        $this->command = $command;
+        if ($severity !== 'error' && $severity !== 'warning') {
+            throw new UnexpectedValueException();
+        }
+
+        $this->command  = $command;
+        $this->severity = $severity === 'error' ? 1 : 2;
     }
 
     public function getDiagnosticName(): string
@@ -68,7 +76,7 @@ class DiagnosticRunner implements DiagnosticRunnerInterface
         $errors = array_merge(...$errors);
 
         return array_map(
-            static function (array $error): Diagnostic {
+            function (array $error): Diagnostic {
                 return new Diagnostic(
                     $error['message'],
                     new Range(
@@ -76,7 +84,7 @@ class DiagnosticRunner implements DiagnosticRunnerInterface
                         new Position($error['line'] - 1, -1)
                     ),
                     500,
-                    1,
+                    $this->severity,
                     self::RUNNER_NAME
                 );
             },
