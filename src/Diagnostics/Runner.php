@@ -7,9 +7,9 @@ namespace LanguageServer\Diagnostics;
 use LanguageServer\ParsedDocument;
 use React\Promise\PromiseInterface;
 
-interface DiagnosticRunner
+interface Runner
 {
-    public function run(ParsedDocument $document): PromiseInterface;
+    public function getName(): string;
 
-    public function getDiagnosticName(): string;
+    public function run(ParsedDocument $document): PromiseInterface;
 }

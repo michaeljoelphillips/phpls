@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test\Unit\Diagnostics\Php;
 
-use LanguageServer\Diagnostics\Php\DiagnosticRunner;
+use LanguageServer\Diagnostics\Php\Runner;
 use LanguageServer\ParsedDocument;
 use LanguageServerProtocol\Diagnostic;
 use PhpParser\Error;
 use PHPUnit\Framework\TestCase;
 
-class DiagnosticRunnerTest extends TestCase
+class RunnerTest extends TestCase
 {
     public function testRunReturnsErrorsFromParsedDocument(): void
     {
-        $subject  = new DiagnosticRunner();
+        $subject  = new Runner();
         $error    = new Error('Test Error', ['startLine' => 2, 'endLine' => 3]);
         $document = new ParsedDocument('file:///tmp/foo', '<?php', [], [$error]);
 
@@ -36,8 +36,8 @@ class DiagnosticRunnerTest extends TestCase
 
     public function testGetDiagnosticName(): void
     {
-        $subject = new DiagnosticRunner();
+        $subject = new Runner();
 
-        self::assertEquals('PHP', $subject->getDiagnosticName());
+        self::assertEquals('PHP', $subject->getName());
     }
 }

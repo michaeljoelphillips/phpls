@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test\Unit\Diagnostics;
 
-use LanguageServer\Diagnostics\DiagnosticRunner;
 use LanguageServer\Diagnostics\DiagnosticService;
+use LanguageServer\Diagnostics\Runner;
 use LanguageServer\ParsedDocument;
 use LanguageServer\Server\Protocol\NotificationMessage;
 use LanguageServer\TextDocumentRegistry;
@@ -32,7 +32,7 @@ class DiagnosticServiceTest extends TestCase
 
     public function testDiagnoseEmitsPublishDiagnosticsNotification(): void
     {
-        $runner   = $this->createMock(DiagnosticRunner::class);
+        $runner   = $this->createMock(Runner::class);
         $registry = $this->createMock(TextDocumentRegistry::class);
         $document = new ParsedDocument('file://tmp/foo', '<?php', []);
         $subject  = new DiagnosticService($registry, [], $runner);
@@ -45,7 +45,7 @@ class DiagnosticServiceTest extends TestCase
         ];
 
         $runner
-            ->method('getDiagnosticName')
+            ->method('getName')
             ->willReturn('TestDiagnostics');
 
         $runner
@@ -63,15 +63,15 @@ class DiagnosticServiceTest extends TestCase
 
     public function testDiagnoseEmitsNotificationWithAggregatedDiagnostics(): void
     {
-        $runnerA = $this->createMock(DiagnosticRunner::class);
-        $runnerB = $this->createMock(DiagnosticRunner::class);
+        $runnerA = $this->createMock(Runner::class);
+        $runnerB = $this->createMock(Runner::class);
         $subject = new DiagnosticService($this->createMock(TextDocumentRegistry::class), [], $runnerA, $runnerB);
 
         $runnerADiagnostic = new Diagnostic('Test Diagnostic', new Range(new Position(0, 0), new Position(0, -1)), 1, 1, 'Runner A');
         $runnerBDiagnostic = new Diagnostic('Test Diagnostic', new Range(new Position(0, 0), new Position(0, -1)), 1, 1, 'Runner B');
 
         $runnerA
-            ->method('getDiagnosticName')
+            ->method('getName')
             ->willReturn('Runner A');
 
         $runnerA
@@ -79,7 +79,7 @@ class DiagnosticServiceTest extends TestCase
             ->willReturn(resolve([$runnerADiagnostic]));
 
         $runnerB
-            ->method('getDiagnosticName')
+            ->method('getName')
             ->willReturn('Runner B');
 
         $runnerB
@@ -109,7 +109,7 @@ class DiagnosticServiceTest extends TestCase
 
     public function testDiagnoseDoesNotEmitANotificationWhenRunnerRejectsAPromise(): void
     {
-        $runner   = $this->createMock(DiagnosticRunner::class);
+        $runner   = $this->createMock(Runner::class);
         $registry = $this->createMock(TextDocumentRegistry::class);
         $document = new ParsedDocument('file://tmp/foo', '<?php', []);
         $subject  = new DiagnosticService($registry, [], $runner);
@@ -133,7 +133,7 @@ class DiagnosticServiceTest extends TestCase
      */
     public function testDiagnoseSkipsDocumentsSpecifiedInIgnoreList(ParsedDocument $document): void
     {
-        $runner   = $this->createMock(DiagnosticRunner::class);
+        $runner   = $this->createMock(Runner::class);
         $registry = $this->createMock(TextDocumentRegistry::class);
         $subject  = new DiagnosticService($registry, ['vendor/', 'cache/'], $runner);
 

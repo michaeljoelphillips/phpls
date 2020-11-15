@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Diagnostics\Php;
 
-use LanguageServer\Diagnostics\DiagnosticRunner as DiagnosticRunnerInterface;
+use LanguageServer\Diagnostics\Runner as RunnerInterface;
 use LanguageServer\ParsedDocument;
 use LanguageServerProtocol\Diagnostic;
 use LanguageServerProtocol\Position;
@@ -15,11 +15,11 @@ use React\Promise\PromiseInterface;
 use function array_map;
 use function React\Promise\resolve;
 
-class DiagnosticRunner implements DiagnosticRunnerInterface
+class Runner implements RunnerInterface
 {
     private const RUNNER_NAME = 'PHP';
 
-    public function getDiagnosticName(): string
+    public function getName(): string
     {
         return self::RUNNER_NAME;
     }

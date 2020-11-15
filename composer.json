@@ -48,6 +48,7 @@
         "doctrine/coding-standard": "^8.2",
         "phpstan/phpstan-phpunit": "^0.12.16",
         "phpstan/extension-installer": "^1.0",
-        "infection/infection": "^0.19.2"
+        "infection/infection": "^0.19.2",
+        "clue/block-react": "^1.4"
     }
 }

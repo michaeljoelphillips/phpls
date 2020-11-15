@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace LanguageServer\Diagnostics\PhpCs;
 
-use LanguageServer\Diagnostics\DiagnosticCommand as AbstractDiagnosticCommand;
+use LanguageServer\Diagnostics\Command as AbstractCommand;
 use LanguageServer\ParsedDocument;
 
 use function implode;
 
-class DiagnosticCommand extends AbstractDiagnosticCommand
+class Command extends AbstractCommand
 {
     private const COMMAND_PARTS = [
         'executable' => 'php vendor/bin/phpcs',
@@ -18,7 +18,7 @@ class DiagnosticCommand extends AbstractDiagnosticCommand
         'file' => '-',
     ];
 
-    protected function getCommand(ParsedDocument $document): string
+    public function getCommand(ParsedDocument $document): string
     {
         $command          = self::COMMAND_PARTS;
         $command['path'] .= $document->getPath();

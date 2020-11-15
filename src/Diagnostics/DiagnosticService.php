@@ -22,7 +22,7 @@ class DiagnosticService implements EventEmitterInterface
     /** @var array<int, string> */
     private array $ignorePaths = [];
 
-    /** @var array<int, DiagnosticRunner> */
+    /** @var array<int, Runner> */
     private array $runners;
 
     /**
@@ -34,7 +34,7 @@ class DiagnosticService implements EventEmitterInterface
     /**
      * @param array<int, string> $ignorePaths
      */
-    public function __construct(TextDocumentRegistry $registry, array $ignorePaths, DiagnosticRunner ...$runners)
+    public function __construct(TextDocumentRegistry $registry, array $ignorePaths, Runner ...$runners)
     {
         $this->runners     = $runners;
         $this->ignorePaths = $ignorePaths;
@@ -58,7 +58,7 @@ class DiagnosticService implements EventEmitterInterface
                 ->then(
                     function (array $diagnostics) use ($runner, $document): void {
                         $uri            = $document->getUri();
-                        $diagnosticName = $runner->getDiagnosticName();
+                        $diagnosticName = $runner->getName();
 
                         $this->diagnostics[$uri][$diagnosticName] = $diagnostics;
 

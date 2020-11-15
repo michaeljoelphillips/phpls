@@ -13,14 +13,14 @@ use LanguageServer\Completion\StaticMethodProvider;
 use LanguageServer\Completion\StaticPropertyProvider;
 use LanguageServer\Config\ConfigFactory;
 use LanguageServer\Console\RunCommand;
-use LanguageServer\Diagnostics\DiagnosticRunner;
+use LanguageServer\Diagnostics\Runner;
 use LanguageServer\Diagnostics\DiagnosticService;
 use LanguageServer\Diagnostics\NullRunner;
-use LanguageServer\Diagnostics\Php\DiagnosticRunner as PhpRunner;
-use LanguageServer\Diagnostics\PhpCs\DiagnosticCommand as PhpCsCommand;
-use LanguageServer\Diagnostics\PhpCs\DiagnosticRunner as PhpCsRunner;
-use LanguageServer\Diagnostics\PhpStan\DiagnosticCommand as PhpStanCommand;
-use LanguageServer\Diagnostics\PhpStan\DiagnosticRunner as PhpStanRunner;
+use LanguageServer\Diagnostics\Php\Runner as PhpRunner;
+use LanguageServer\Diagnostics\PhpCs\Command as PhpCsCommand;
+use LanguageServer\Diagnostics\PhpCs\Runner as PhpCsRunner;
+use LanguageServer\Diagnostics\PhpStan\Command as PhpStanCommand;
+use LanguageServer\Diagnostics\PhpStan\Runner as PhpStanRunner;
 use LanguageServer\Inference\TypeResolver;
 use LanguageServer\MessageHandler\Exit_;
 use LanguageServer\MessageHandler\Initialize;
@@ -284,7 +284,7 @@ return [
         DI\get(PhpCsRunner::class),
         DI\get(PhpStanRunner::class),
     ],
-    PhpRunner::class => static function (ContainerInterface $container): DiagnosticRunner {
+    PhpRunner::class => static function (ContainerInterface $container): Runner {
         $config = $container->get('config')['diagnostics'];
 
         if ($config['php']['enabled'] === false) {
@@ -293,7 +293,7 @@ return [
 
         return new PhpRunner();
     },
-    PhpCsRunner::class => static function (ContainerInterface $container): DiagnosticRunner {
+    PhpCsRunner::class => static function (ContainerInterface $container): Runner {
         $config = $container->get('config')['diagnostics'];
 
         if ($config['phpcs']['enabled'] === false) {
@@ -311,12 +311,13 @@ return [
                         $container->get(LoopInterface::class),
                         $container->get('project_root')
                     ),
+                    $container->get(LoggerInterface::class)->withName('diagnostics'),
                     $config['phpcs']['severity']
                 );
             }
         );
     },
-    PhpStanRunner::class => static function (ContainerInterface $container): DiagnosticRunner {
+    PhpStanRunner::class => static function (ContainerInterface $container): Runner {
         $config = $container->get('config')['diagnostics'];
 
         if ($config['phpstan']['enabled'] === false) {
@@ -334,6 +335,7 @@ return [
                         $container->get(LoopInterface::class),
                         $container->get('project_root')
                     ),
+                    $container->get(LoggerInterface::class)->withName('diagnostics'),
                     $config['phpstan']['severity']
                 );
             }

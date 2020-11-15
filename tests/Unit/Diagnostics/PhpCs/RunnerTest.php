@@ -4,17 +4,19 @@ declare(strict_types=1);
 
 namespace LanguageServer\Unit\Diagnostics\PhpCs;
 
-use LanguageServer\Diagnostics\DiagnosticCommand;
-use LanguageServer\Diagnostics\PhpCs\DiagnosticRunner;
+use LanguageServer\Diagnostics\Command;
+use LanguageServer\Diagnostics\PhpCs\Runner;
 use LanguageServer\ParsedDocument;
 use LanguageServerProtocol\Diagnostic;
 use LanguageServerProtocol\DiagnosticSeverity;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use UnexpectedValueException;
 
 use function React\Promise\resolve;
 
-class DiagnosticRunnerTest extends TestCase
+class RunnerTest extends TestCase
 {
     private const PHPCS_OUTPUT_NO_ERRORS = <<<'JSON'
 {
@@ -55,71 +57,81 @@ JSON;
 }
 JSON;
 
+    private const PHPCS_OUTPUT_CONFIG_ERROR = <<<OUTPUT
+ERROR: Ruleset ~/Code/phpls/phpcs.xml.dist is not valid
+    - On line 4, column 5: error parsing attribute name
+    - On line 4, column 5: attributes construct error
+    - On line 4, column 5: Couldn't find end of Start Tag arg line 3
+
+
+    Run "phpcs --help" for usage information
+
+OUTPUT;
+
+    /** @var MockObject&Command */
+    private $command;
+
+    private Runner $subject;
+
+    public function setUp(): void
+    {
+        $this->command = $this->createMock(Command::class);
+        $this->subject = new Runner($this->command, $this->createMock(LoggerInterface::class), 'error');
+    }
+
     public function testConstructorOnlyTakesErrorOrWarningForSeverity(): void
     {
-        $command = $this->createMock(DiagnosticCommand::class);
+        $command = $this->createMock(Command::class);
 
         $this->expectException(UnexpectedValueException::class);
 
-        new DiagnosticRunner($command, 'foo');
+        new Runner($command, $this->createMock(LoggerInterface::class), 'foo');
     }
 
     public function testGetDiagnosticName(): void
     {
-        $command = $this->createMock(DiagnosticCommand::class);
-        $subject = new DiagnosticRunner($command, 'error');
-
-        self::assertEquals('PHPCS', $subject->getDiagnosticName());
+        self::assertEquals('PHPCS', $this->subject->getName());
     }
 
     public function testRunnerRejectsDocumentsThatAreNotPersisted(): void
     {
-        $command = $this->createMock(DiagnosticCommand::class);
-        $subject = new DiagnosticRunner($command, 'error');
-
-        $command
+        $this->command
             ->expects($this->never())
             ->method('execute');
 
-        $subject->run(new ParsedDocument('file:///tmp/foo.php', '<?php', [], [], false));
+        $this->subject->run(new ParsedDocument('file:///tmp/foo.php', '<?php', [], [], false));
     }
 
     public function testRunnerTerminatesRunningCommands(): void
     {
-        $command = $this->createMock(DiagnosticCommand::class);
-        $subject = new DiagnosticRunner($command, 'error');
-
-        $command
+        $this->command
             ->method('isRunning')
             ->willReturn(true);
 
-        $command
+        $this->command
             ->expects($this->once())
             ->method('terminate');
 
-        $command
+        $this->command
             ->method('execute')
             ->willReturn(resolve('{}'));
 
-        $subject->run(new ParsedDocument('file:///tmp/foo.php', '<?php', [], [], true));
+        $this->subject->run(new ParsedDocument('file:///tmp/foo.php', '<?php', [], [], true));
     }
 
     public function testRunnerResolvesEarlyWithNoErrorsReturned(): void
     {
-        $command = $this->createMock(DiagnosticCommand::class);
-        $subject = new DiagnosticRunner($command, 'error');
-
-        $command
+        $this->command
             ->method('isRunning')
             ->willReturn(false);
 
-        $command
+        $this->command
             ->method('execute')
             ->willReturn(resolve(self::PHPCS_OUTPUT_NO_ERRORS));
 
         $result = null;
 
-        $subject
+        $this->subject
             ->run(new ParsedDocument('file:///tmp/foo.php', '<?php', [], [], true))
             ->then(static function (array $diagnostics) use (&$result): void {
                 $result = $diagnostics;
@@ -131,18 +143,17 @@ JSON;
 
     public function testRunnerResolvesWithDiagnosticsWhenPhpCsReportsErrors(): void
     {
-        $command = $this->createMock(DiagnosticCommand::class);
-        $subject = new DiagnosticRunner($command, 'error');
-
-        $command
+        $this->command
             ->method('isRunning')
             ->willReturn(false);
 
-        $command
+        $this->command
             ->method('execute')
             ->willReturn(resolve(self::PHPCS_OUTPUT_WITH_ERRORS));
 
-        $subject
+        $result = null;
+
+        $this->subject
             ->run(new ParsedDocument('file:///tmp/foo.php', '<?php', [], [], true))
             ->then(static function (array $diagnostics) use (&$result): void {
                 $result = $diagnostics;
@@ -165,5 +176,27 @@ JSON;
         self::assertEquals(200, $result[1]->range->end->line);
         self::assertEquals(DiagnosticSeverity::ERROR, $result[1]->severity);
         self::assertEquals('Class CorrectiveParser contains unused private method formatOffendingLines().', $result[1]->message);
+    }
+
+    public function testRunnerReturnsEmptyListWhenPhpCsDoesNotOutputJson(): void
+    {
+        $this->command
+            ->method('isRunning')
+            ->willReturn(false);
+
+        $this->command
+            ->method('execute')
+            ->willReturn(resolve(self::PHPCS_OUTPUT_CONFIG_ERROR));
+
+        $result = null;
+
+        $this->subject
+            ->run(new ParsedDocument('file:///tmp/foo.php', '<?php', [], [], true))
+            ->then(static function (array $diagnostics) use (&$result): void {
+                $result = $diagnostics;
+            });
+
+        self::assertIsArray($result);
+        self::assertEmpty($result);
     }
 }

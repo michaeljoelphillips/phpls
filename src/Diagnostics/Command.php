@@ -11,12 +11,13 @@ use React\Promise\Deferred;
 use React\Promise\PromiseInterface;
 use React\Stream\ReadableStreamInterface;
 use React\Stream\WritableStreamInterface;
+use RuntimeException;
 
 use function assert;
 
 use const SIGTERM;
 
-abstract class DiagnosticCommand
+abstract class Command
 {
     private LoopInterface $loop;
 
@@ -63,7 +64,7 @@ abstract class DiagnosticCommand
                 $this->cleanup();
 
                 if ($term !== null) {
-                    $deferred->reject();
+                    $deferred->reject(new RuntimeException('The command was terminated'));
 
                     return;
                 }
@@ -91,7 +92,7 @@ abstract class DiagnosticCommand
         $this->process->terminate(SIGTERM);
     }
 
-    public function cleanup(): void
+    private function cleanup(): void
     {
         $this->process = null;
     }
@@ -101,5 +102,5 @@ abstract class DiagnosticCommand
         return null;
     }
 
-    abstract protected function getCommand(ParsedDocument $document): string;
+    abstract public function getCommand(ParsedDocument $document): string;
 }

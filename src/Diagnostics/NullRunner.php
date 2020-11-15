@@ -9,17 +9,15 @@ use React\Promise\PromiseInterface;
 
 use function React\Promise\reject;
 
-class NullRunner implements DiagnosticRunner
+class NullRunner implements Runner
 {
-    private const RUNNER_NAME = 'Null';
-
     public function run(ParsedDocument $document): PromiseInterface
     {
         return reject();
     }
 
-    public function getDiagnosticName(): string
+    public function getName(): string
     {
-        return self::RUNNER_NAME;
+        return 'Null';
     }
 }
