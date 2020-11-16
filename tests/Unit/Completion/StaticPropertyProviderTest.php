@@ -6,8 +6,8 @@ namespace LanguageServer\Test\Unit\Completion;
 
 use LanguageServer\Completion\StaticPropertyProvider;
 use PhpParser\Node\Expr\ClassConstFetch;
+use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
-use PhpParser\Node\Stmt\Class_;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 use Roave\BetterReflection\Reflection\ReflectionClass;
@@ -16,18 +16,18 @@ use stdClass;
 
 class StaticPropertyProviderTest extends TestCase
 {
-    public function testSupports() : void
+    public function testSupports(): void
     {
         $subject = new StaticPropertyProvider();
 
-        $this->assertTrue($subject->supports(new ClassConstFetch('Foo', 'bar')));
+        $this->assertTrue($subject->supports(new ClassConstFetch(new Name('Foo'), new Identifier('bar'))));
     }
 
-    public function testComplete() : void
+    public function testComplete(): void
     {
         $subject = new StaticPropertyProvider();
 
-        $expression = new ClassConstFetch(new Class_('Foo'), new Name('foo'));
+        $expression = new ClassConstFetch(new Name('Foo'), new Identifier('foo'));
         $reflection = $this->createMock(ReflectionClass::class);
         $property   = $this->createMock(ReflectionProperty::class);
 
@@ -64,11 +64,11 @@ class StaticPropertyProviderTest extends TestCase
     /**
      * @dataProvider methodProvider
      */
-    public function testCompleteReturnsPropertiesInScope(string $class, stdClass $visibility, bool $expectation) : void
+    public function testCompleteReturnsPropertiesInScope(string $class, stdClass $visibility, bool $expectation): void
     {
         $subject = new StaticPropertyProvider();
 
-        $expression = new ClassConstFetch(new Class_($class), new Name('foo'));
+        $expression = new ClassConstFetch(new Name($class), new Identifier('foo'));
         $reflection = $this->createMock(ReflectionClass::class);
         $property   = $this->createMock(ReflectionProperty::class);
 
@@ -100,7 +100,7 @@ class StaticPropertyProviderTest extends TestCase
     /**
      * @return array<int, array<int, mixed>>
      */
-    public function methodProvider() : array
+    public function methodProvider(): array
     {
         return [
             [

@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test\Unit\Server\Cache;
 
-use InvalidArgumentException;
 use LanguageServer\Server\Cache\UsageAwareCache;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use stdClass;
+
 use function time;
 
 class UsageAwareCacheTest extends TestCase
 {
-    public function testGet() : void
+    public function testGet(): void
     {
         $subject = new UsageAwareCache();
 
@@ -37,7 +37,7 @@ class UsageAwareCacheTest extends TestCase
         $this->assertEquals(100, $newExpiration - $originalExpiration);
     }
 
-    public function testGetWithDefaultObject() : void
+    public function testGetWithDefaultObject(): void
     {
         $subject = new UsageAwareCache();
 
@@ -46,7 +46,7 @@ class UsageAwareCacheTest extends TestCase
         $this->assertSame($object, $subject->get('test', $object));
     }
 
-    public function testHas() : void
+    public function testHas(): void
     {
         $subject = new UsageAwareCache();
 
@@ -57,7 +57,7 @@ class UsageAwareCacheTest extends TestCase
         $this->assertFalse($subject->has('nonexistentObject'));
     }
 
-    public function testDelete() : void
+    public function testDelete(): void
     {
         $subject = new UsageAwareCache();
 
@@ -68,7 +68,7 @@ class UsageAwareCacheTest extends TestCase
         $this->assertFalse($subject->has('test'));
     }
 
-    public function testGetSetAndDeleteMultiple() : void
+    public function testGetSetAndDeleteMultiple(): void
     {
         $subject = new UsageAwareCache();
 
@@ -92,7 +92,7 @@ class UsageAwareCacheTest extends TestCase
         $this->assertFalse($subject->has('objectB'));
     }
 
-    public function testClear() : void
+    public function testClear(): void
     {
         $subject = new UsageAwareCache();
 
@@ -103,7 +103,7 @@ class UsageAwareCacheTest extends TestCase
         $this->assertFalse($subject->has('test'));
     }
 
-    public function testGetExtendsTheTtl() : void
+    public function testGetExtendsTheTtl(): void
     {
         $originalTime = time();
 
@@ -121,7 +121,7 @@ class UsageAwareCacheTest extends TestCase
         $this->assertEquals($originalTime + 180, $expiry);
     }
 
-    public function testCleanClearsExpiredCacheEntries() : void
+    public function testCleanClearsExpiredCacheEntries(): void
     {
         $subject = new UsageAwareCache();
 
@@ -146,32 +146,5 @@ class UsageAwareCacheTest extends TestCase
 
         $this->assertArrayHasKey('validObject', $cache);
         $this->assertArrayNotHasKey('expiredObject', $cache);
-    }
-
-    public function testGetMultipleWithNonIterable() : void
-    {
-        $subject = new UsageAwareCache();
-
-        $this->expectException(InvalidArgumentException::class);
-
-        $subject->getMultiple(new stdClass());
-    }
-
-    public function testSetMultipleWithNonIterable() : void
-    {
-        $subject = new UsageAwareCache();
-
-        $this->expectException(InvalidArgumentException::class);
-
-        $subject->setMultiple(new stdClass());
-    }
-
-    public function testDeleteMultipleWithNonIterable() : void
-    {
-        $subject = new UsageAwareCache();
-
-        $this->expectException(InvalidArgumentException::class);
-
-        $subject->deleteMultiple(new stdClass());
     }
 }

@@ -10,6 +10,7 @@ use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\NodeAbstract;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionClassConstant;
+
 use function array_map;
 use function array_values;
 
@@ -18,7 +19,7 @@ class ClassConstantProvider implements CompletionProvider
     /**
      * {@inheritdoc}
      */
-    public function complete(NodeAbstract $expression, ReflectionClass $reflection) : array
+    public function complete(NodeAbstract $expression, ReflectionClass $reflection): array
     {
         return array_values(array_map(
             static function (ReflectionClassConstant $constant) {
@@ -33,7 +34,7 @@ class ClassConstantProvider implements CompletionProvider
         ));
     }
 
-    public function supports(NodeAbstract $expression) : bool
+    public function supports(NodeAbstract $expression): bool
     {
         return $expression instanceof ClassConstFetch;
     }

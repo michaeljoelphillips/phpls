@@ -6,7 +6,7 @@
         "excludes": [
             "src/Config/UsageAwareCache.php",
             "src/MessageHandler/Initialize.php",
-            "src/Config/ServerConfiguration.php",
+            "src/Config/ServerConfiguration.php"
         ]
     },
     "logs": {

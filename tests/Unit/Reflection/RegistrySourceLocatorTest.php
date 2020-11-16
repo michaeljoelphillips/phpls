@@ -7,6 +7,7 @@ namespace LanguageServer\Test\Unit\Reflection;
 use LanguageServer\ParsedDocument;
 use LanguageServer\Reflection\RegistrySourceLocator;
 use LanguageServer\TextDocumentRegistry;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Roave\BetterReflection\Identifier\Identifier;
 use Roave\BetterReflection\Identifier\IdentifierType;
@@ -18,9 +19,11 @@ class RegistrySourceLocatorTest extends TestCase
     private const EMPTY_FILE_FIXTURE = __DIR__ . '/../../fixtures/EmptyFileFixture.php';
 
     private RegistrySourceLocator $subject;
+
+    /** @var TextDocumentRegistry&MockObject */
     private TextDocumentRegistry $registry;
 
-    public function setUp() : void
+    public function setUp(): void
     {
         $astLocator     = $this->createMock(Locator::class);
         $this->registry = $this->createMock(TextDocumentRegistry::class);
@@ -28,7 +31,7 @@ class RegistrySourceLocatorTest extends TestCase
         $this->subject = new RegistrySourceLocator($astLocator, $this->registry);
     }
 
-    public function testLocateIdentifier() : void
+    public function testLocateIdentifier(): void
     {
         $this
             ->registry
@@ -41,7 +44,7 @@ class RegistrySourceLocatorTest extends TestCase
         $this->subject->locateIdentifier($reflector, new Identifier('Foo', new IdentifierType()));
     }
 
-    public function testLocateIdentifierWhenRegistryContainsAnEmptyTextDocument() : void
+    public function testLocateIdentifierWhenRegistryContainsAnEmptyTextDocument(): void
     {
         $this
             ->registry
@@ -54,7 +57,7 @@ class RegistrySourceLocatorTest extends TestCase
         $this->subject->locateIdentifier($reflector, new Identifier('Foo', new IdentifierType()));
     }
 
-    public function testLocateIdentifiersByType() : void
+    public function testLocateIdentifiersByType(): void
     {
         $this
             ->registry

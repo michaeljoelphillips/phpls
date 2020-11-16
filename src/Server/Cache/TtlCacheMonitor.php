@@ -16,9 +16,9 @@ class TtlCacheMonitor implements CacheMonitor
         $this->caches = $caches;
     }
 
-    public function __invoke(int $interval, LoopInterface $loop) : void
+    public function __invoke(int $interval, LoopInterface $loop): void
     {
-        $loop->addPeriodicTimer($interval, function () : void {
+        $loop->addPeriodicTimer($interval, function (): void {
             foreach ($this->caches as $cache) {
                 $cache->clean();
             }

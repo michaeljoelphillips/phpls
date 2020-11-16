@@ -10,14 +10,14 @@ use LanguageServerProtocol\CompletionItemKind;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\Variable;
+use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
-use PhpParser\Node\Stmt\Class_;
 use PHPUnit\Framework\TestCase;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 
 class MethodDocTagProviderTest extends TestCase
 {
-    public function testCompletionOnInstanceMethodsFromClassMethodDocblock() : void
+    public function testCompletionOnInstanceMethodsFromClassMethodDocblock(): void
     {
         $subject = new MethodDocTagProvider();
 
@@ -50,11 +50,11 @@ EOF
         $this->assertEquals('public transcriptions(string $sid): \Namespaced\Class_', $completionItems[2]->detail);
     }
 
-    public function testCompletionOnStaticMethodsFromClassMethodDocblock() : void
+    public function testCompletionOnStaticMethodsFromClassMethodDocblock(): void
     {
         $subject = new MethodDocTagProvider();
 
-        $expression = new ClassConstFetch(new Class_('Foo'), new Name('foo'));
+        $expression = new ClassConstFetch(new Name('Foo'), new Identifier('foo'));
         $reflection = $this->createMock(ReflectionClass::class);
 
         $reflection

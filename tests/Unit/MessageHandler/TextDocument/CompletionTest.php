@@ -21,7 +21,7 @@ class CompletionTest extends ParserTestCase
     private TextDocumentRegistry $registry;
     private Completion $subject;
 
-    public function setUp() : void
+    public function setUp(): void
     {
         $this->registry = new TextDocumentRegistry();
         $classReflector = $this->getClassReflector();
@@ -37,7 +37,7 @@ class CompletionTest extends ParserTestCase
         );
     }
 
-    public function testCompleteWhenExpressionIsCompletable() : void
+    public function testCompleteWhenExpressionIsCompletable(): void
     {
         $document = $this->parse('CompletionProviderFixture.php');
 
@@ -53,7 +53,9 @@ class CompletionTest extends ParserTestCase
 
         $response = $this->subject->__invoke(
             $request,
-            fn() => $this->fail('Next should never be called')
+            function (): void {
+                $this->fail('Next should never be called');
+            }
         );
 
         self::assertInstanceOf(ResponseMessage::class, $response);
@@ -62,7 +64,7 @@ class CompletionTest extends ParserTestCase
         self::assertContainsOnlyInstancesOf(CompletionItem::class, $response->result->items);
     }
 
-    public function testCompleteWhenExpressionIsNotCompletable() : void
+    public function testCompleteWhenExpressionIsNotCompletable(): void
     {
         $document = $this->parse('TypeResolverFixture.php');
 
@@ -76,7 +78,9 @@ class CompletionTest extends ParserTestCase
             ],
         ]);
 
-        $next = fn() => $this->fail('Next should never be called');
+        $next = function (): void {
+            $this->fail('Next should never be called');
+        };
 
         $response = $this->subject->__invoke($request, $next);
 
@@ -85,7 +89,7 @@ class CompletionTest extends ParserTestCase
         self::assertEmpty($response->result->items);
     }
 
-    public function testCompleteWhenTypeCannotBeResolved() : void
+    public function testCompleteWhenTypeCannotBeResolved(): void
     {
         $document = $this->parse('CompletionProviderFixture.php');
 
@@ -101,7 +105,9 @@ class CompletionTest extends ParserTestCase
 
         $response = $this->subject->__invoke(
             $request,
-            fn() => $this->fail('Next should never be called')
+            function (): void {
+                $this->fail('Next should never be called');
+            }
         );
 
         self::assertInstanceOf(ResponseMessage::class, $response);
@@ -109,7 +115,7 @@ class CompletionTest extends ParserTestCase
         self::assertEmpty($response->result->items);
     }
 
-    public function testCompleteWithPartialIdentifier() : void
+    public function testCompleteWithPartialIdentifier(): void
     {
         $document = $this->parse('CompletionProviderFixture.php');
 
@@ -125,7 +131,9 @@ class CompletionTest extends ParserTestCase
 
         $response = $this->subject->__invoke(
             $request,
-            fn() => $this->fail('Next should never be called')
+            function (): void {
+                $this->fail('Next should never be called');
+            }
         );
 
         self::assertInstanceOf(ResponseMessage::class, $response);

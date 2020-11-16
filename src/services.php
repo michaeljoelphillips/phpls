@@ -13,6 +13,14 @@ use LanguageServer\Completion\StaticMethodProvider;
 use LanguageServer\Completion\StaticPropertyProvider;
 use LanguageServer\Config\ConfigFactory;
 use LanguageServer\Console\RunCommand;
+use LanguageServer\Diagnostics\Runner;
+use LanguageServer\Diagnostics\DiagnosticService;
+use LanguageServer\Diagnostics\NullRunner;
+use LanguageServer\Diagnostics\Php\Runner as PhpRunner;
+use LanguageServer\Diagnostics\PhpCs\Command as PhpCsCommand;
+use LanguageServer\Diagnostics\PhpCs\Runner as PhpCsRunner;
+use LanguageServer\Diagnostics\PhpStan\Command as PhpStanCommand;
+use LanguageServer\Diagnostics\PhpStan\Runner as PhpStanRunner;
 use LanguageServer\Inference\TypeResolver;
 use LanguageServer\MessageHandler\Exit_;
 use LanguageServer\MessageHandler\Initialize;
@@ -65,11 +73,18 @@ use Symfony\Component\Serializer\SerializerInterface;
 
 return [
     LanguageServer::class => static function (ContainerInterface $container) {
-        return new LanguageServer(
+        $config = $container->get('config');
+        $server = new LanguageServer(
             $container->get(MessageSerializer::class),
             $container->get(LoggerInterface::class)->withName('server'),
             $container->get('messageHandlers')
         );
+
+        if ($config['diagnostics']['enabled'] === true) {
+            $server->observeNotifications($container->get(DiagnosticService::class));
+        }
+
+        return $server;
     },
     'stream' => static function (ContainerInterface $container) {
         $mode = $container->get('mode');
@@ -82,10 +97,12 @@ return [
                     new ReadableResourceStream(STDIN, $loop),
                     new WritableResourceStream(STDOUT, $loop)
                 );
+
             case 'client':
                 $client = new TcpClient($loop);
 
                 return $client->connect(sprintf('127.0.0.1:%d', $port));
+
             case 'server':
                 return new TcpServer(sprintf('127.0.0.1:%d', $port), $loop);
         }
@@ -111,8 +128,13 @@ return [
 
         if ($config['enabled'] === true) {
             $logLevel = $config['level'] === 'debug' ? Logger::DEBUG : Logger::INFO;
+            $file     = fopen($config['path'], 'a');
 
-            $logger->pushHandler(new StreamHandler(fopen($config['path'], 'a'), $logLevel));
+            if ($file === false) {
+                return new NullHandler();
+            }
+
+            $logger->pushHandler(new StreamHandler($file, $logLevel));
         } else {
             $logger->pushHandler(new NullHandler());
         }
@@ -161,7 +183,7 @@ return [
 
         return $factory->createProxy(
             AggregateSourceLocator::class,
-            static function (&$wrappedObject, $proxy, $method, $parameters, &$initializer) use ($container) : void {
+            static function (&$wrappedObject, $proxy, $method, $parameters, &$initializer) use ($container): void {
                 $locator = new AstLocator(
                     $container->get(Parser::class),
                     static function () use ($container) {
@@ -188,7 +210,7 @@ return [
 
         return $factory->createProxy(
             CTagsProvider::class,
-            static function (&$wrappedObject, $proxy, $method, $parameters, &$initializer) use ($container) : void {
+            static function (&$wrappedObject, $proxy, $method, $parameters, &$initializer) use ($container): void {
                 $initializer = null;
                 $config      = $container->get('config')['ctags'];
 
@@ -247,5 +269,76 @@ return [
     },
     'config' => static function () {
         return (new ConfigFactory())->__invoke();
+    },
+    DiagnosticService::class => static function (ContainerInterface $container) {
+        $config = $container->get('config')['diagnostics'];
+
+        return new DiagnosticService(
+            $container->get(TextDocumentRegistry::class),
+            $config['ignore'],
+            ...$container->get('diagnostic_runners')
+        );
+    },
+    'diagnostic_runners' => [
+        DI\get(PhpRunner::class),
+        DI\get(PhpCsRunner::class),
+        DI\get(PhpStanRunner::class),
+    ],
+    PhpRunner::class => static function (ContainerInterface $container): Runner {
+        $config = $container->get('config')['diagnostics'];
+
+        if ($config['php']['enabled'] === false) {
+            return new NullRunner();
+        }
+
+        return new PhpRunner();
+    },
+    PhpCsRunner::class => static function (ContainerInterface $container): Runner {
+        $config = $container->get('config')['diagnostics'];
+
+        if ($config['phpcs']['enabled'] === false) {
+            return new NullRunner();
+        }
+
+        $factory = new LazyLoadingValueHolderFactory();
+
+        return $factory->createProxy(
+            PhpCsRunner::class,
+            static function (&$wrappedObject, $proxy, $method, $parameters, &$initializer) use ($container, $config): void {
+                $initializer   = null;
+                $wrappedObject = new PhpCsRunner(
+                    new PhpCsCommand(
+                        $container->get(LoopInterface::class),
+                        $container->get('project_root')
+                    ),
+                    $container->get(LoggerInterface::class)->withName('diagnostics'),
+                    $config['phpcs']['severity']
+                );
+            }
+        );
+    },
+    PhpStanRunner::class => static function (ContainerInterface $container): Runner {
+        $config = $container->get('config')['diagnostics'];
+
+        if ($config['phpstan']['enabled'] === false) {
+            return new NullRunner();
+        }
+
+        $factory = new LazyLoadingValueHolderFactory();
+
+        return $factory->createProxy(
+            PhpStanRunner::class,
+            static function (&$wrappedObject, $proxy, $method, $parameters, &$initializer) use ($container, $config): void {
+                $initializer   = null;
+                $wrappedObject = new PhpStanRunner(
+                    new PhpStanCommand(
+                        $container->get(LoopInterface::class),
+                        $container->get('project_root')
+                    ),
+                    $container->get(LoggerInterface::class)->withName('diagnostics'),
+                    $config['phpstan']['severity']
+                );
+            }
+        );
     },
 ];

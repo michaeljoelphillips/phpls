@@ -8,6 +8,7 @@ use LanguageServer\Server\Protocol\Message;
 use LanguageServer\Server\Protocol\NotificationMessage;
 use LanguageServer\Server\Protocol\RequestMessage;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
+
 use function array_key_exists;
 use function is_array;
 
@@ -15,6 +16,10 @@ class MessageDenormalizer implements DenormalizerInterface
 {
     /**
      * {@inheritdoc}
+     *
+     * @param array<mixed, mixed> $context
+     *
+     * @return Message
      */
     public function denormalize($data, $class, $format = null, array $context = [])
     {

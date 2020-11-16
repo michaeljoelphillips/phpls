@@ -6,13 +6,14 @@ namespace LanguageServer\Test\Unit\Config;
 
 use LanguageServer\Config\ConfigFactory;
 use PHPUnit\Framework\TestCase;
+
 use function chmod;
 use function putenv;
 use function sprintf;
 
 class ConfigFactoryTest extends TestCase
 {
-    public function testFactoryReturnsDefaultConfigWhenXDGConfigIsNotSet() : void
+    public function testFactoryReturnsDefaultConfigWhenXDGConfigIsNotSet(): void
     {
         putenv('XDG_CONFIG_HOME');
 
@@ -29,7 +30,7 @@ class ConfigFactoryTest extends TestCase
         );
     }
 
-    public function testFactoryReturnsDefaultConfigWhenConfigDirectoryCannotBeLocated() : void
+    public function testFactoryReturnsDefaultConfigWhenConfigDirectoryCannotBeLocated(): void
     {
         putenv('XDG_CONFIG_HOME=/tmp/empty-dir');
 
@@ -46,7 +47,7 @@ class ConfigFactoryTest extends TestCase
         );
     }
 
-    public function testFactoryReturnsDefaultConfigWhenNoConfigIsFound() : void
+    public function testFactoryReturnsDefaultConfigWhenNoConfigIsFound(): void
     {
         $emptyConfigDir = __DIR__ . '/../../fixtures/config-directories/empty-config';
 
@@ -65,7 +66,7 @@ class ConfigFactoryTest extends TestCase
         );
     }
 
-    public function testFactoryReturnsGlobalConfigWhenGlobalConfigExists() : void
+    public function testFactoryReturnsGlobalConfigWhenGlobalConfigExists(): void
     {
         $emptyConfigDir = __DIR__ . '/../../fixtures/config-directories/nonempty-config';
 
@@ -85,7 +86,7 @@ class ConfigFactoryTest extends TestCase
         );
     }
 
-    public function testFactoryReturnsDefaultConfigWhenConfigIsNotReadable() : void
+    public function testFactoryReturnsDefaultConfigWhenConfigIsNotReadable(): void
     {
         $emptyConfigDir = __DIR__ . '/../../fixtures/config-directories/unreadable-config';
 

@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace LanguageServer\Parser;
 
+use PhpParser\Error;
 use PhpParser\ErrorHandler;
+use PhpParser\ErrorHandler\Collecting;
 use PhpParser\Parser;
 use Psr\SimpleCache\CacheInterface;
+
 use function hash;
 use function strlen;
 
@@ -29,13 +32,34 @@ class MemoizingParser implements Parser
         $hash = hash('sha256', $code) . ':' . strlen($code);
 
         if ($this->cache->has($hash)) {
-            return $this->cache->get($hash);
+            [$nodes, $errors] = $this->cache->get($hash);
+
+            $this->handleErrors($errorHandler, $errors);
+
+            return $nodes;
         }
 
-        $result = $this->wrappedParser->parse($code, $errorHandler);
+        $localHandler = new Collecting();
+        $nodes        = $this->wrappedParser->parse($code, $localHandler);
+        $errors       = $localHandler->getErrors();
 
-        $this->cache->set($hash, $result);
+        $this->cache->set($hash, [$nodes, $errors]);
+        $this->handleErrors($errorHandler, $errors);
 
-        return $result;
+        return $nodes;
+    }
+
+    /**
+     * @param array<int, Error> $errors
+     */
+    private function handleErrors(?ErrorHandler $handler, array $errors): void
+    {
+        if ($handler === null) {
+            return;
+        }
+
+        foreach ($errors as $error) {
+            $handler->handleError($error);
+        }
     }
 }

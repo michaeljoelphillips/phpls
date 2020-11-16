@@ -6,8 +6,6 @@ namespace LanguageServer\Server\Protocol;
 
 class NotificationMessage extends Message
 {
-    public string $method;
-
     /** @var array<string, mixed>|object */
     public $params;
 
@@ -16,7 +14,8 @@ class NotificationMessage extends Message
      */
     public function __construct(string $method, $params)
     {
-        $this->method = $method;
+        parent::__construct($method);
+
         $this->params = $params;
     }
 }

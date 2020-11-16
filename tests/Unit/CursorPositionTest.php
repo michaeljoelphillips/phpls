@@ -12,7 +12,7 @@ use PHPUnit\Framework\TestCase;
 
 class CursorPositionTest extends TestCase
 {
-    public function testGetters() : void
+    public function testGetters(): void
     {
         $subject = new CursorPosition(1, 10, 30);
 
@@ -24,7 +24,7 @@ class CursorPositionTest extends TestCase
     /**
      * @dataProvider coordinatesContainingNode
      */
-    public function testContains(int $line, int $character, int $position, bool $contains) : void
+    public function testContains(int $line, int $character, int $position, bool $contains): void
     {
         $node = new PropertyFetch(new Variable('foo'), 'bar', [
             'startFilePos' => 10,
@@ -39,7 +39,7 @@ class CursorPositionTest extends TestCase
     /**
      * @return array<int, array<int, mixed>>
      */
-    public function coordinatesContainingNode() : array
+    public function coordinatesContainingNode(): array
     {
         return [
             [1, 10, 21, true],
@@ -53,7 +53,7 @@ class CursorPositionTest extends TestCase
     /**
      * @dataProvider coordinatesWithinNode
      */
-    public function testIsWithin(int $line, int $character, int $position, bool $isWithin) : void
+    public function testIsWithin(int $line, int $character, int $position, bool $isWithin): void
     {
         $node = new PropertyFetch(new Variable('foo'), 'bar', [
             'startFilePos' => 10,
@@ -68,7 +68,7 @@ class CursorPositionTest extends TestCase
     /**
      * @return array<int, array<int, mixed>>
      */
-    public function coordinatesWithinNode() : array
+    public function coordinatesWithinNode(): array
     {
         return [
             [1, 10, 15, true],
@@ -77,7 +77,7 @@ class CursorPositionTest extends TestCase
         ];
     }
 
-    public function testIsBordering() : void
+    public function testIsBordering(): void
     {
         $expr = $this->createMock(Expr::class);
         $node = new PropertyFetch($expr, 'testProperty', [
@@ -95,7 +95,7 @@ class CursorPositionTest extends TestCase
         $this->assertFalse($subject->isBordering($node));
     }
 
-    public function testIsSurrounding() : void
+    public function testIsSurrounding(): void
     {
         $expr = $this->createMock(Expr::class);
         $node = new PropertyFetch($expr, 'testProperty', [

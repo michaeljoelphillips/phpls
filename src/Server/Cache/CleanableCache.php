@@ -6,5 +6,5 @@ namespace LanguageServer\Server\Cache;
 
 interface CleanableCache
 {
-    public function clean() : void;
+    public function clean(): void;
 }

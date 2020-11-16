@@ -33,10 +33,10 @@ class Exit_ implements MessageHandler
             return new ResponseMessage($message, null);
         }
 
-        return $next->__invoke($message);
+        return $next($message);
     }
 
-    private function exit() : void
+    private function exit(): void
     {
         exit;
     }

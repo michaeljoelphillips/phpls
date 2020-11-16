@@ -13,8 +13,7 @@ use Roave\BetterReflection\Reflector\Reflector;
 use Roave\BetterReflection\SourceLocator\Ast\Locator as AstLocator;
 use Roave\BetterReflection\SourceLocator\Type\AggregateSourceLocator;
 use Roave\BetterReflection\SourceLocator\Type\SourceLocator;
-use Throwable;
-use function array_filter;
+
 use function array_map;
 use function array_values;
 
@@ -29,7 +28,7 @@ class RegistrySourceLocator implements SourceLocator
         $this->registry   = $registry;
     }
 
-    public function locateIdentifier(Reflector $reflector, Identifier $identifier) : ?Reflection
+    public function locateIdentifier(Reflector $reflector, Identifier $identifier): ?Reflection
     {
         $aggregateLocator = $this->getAggregateLocator();
 
@@ -39,14 +38,14 @@ class RegistrySourceLocator implements SourceLocator
     /**
      * @return Reflection[]
      */
-    public function locateIdentifiersByType(Reflector $reflector, IdentifierType $identifierType) : array
+    public function locateIdentifiersByType(Reflector $reflector, IdentifierType $identifierType): array
     {
         $aggregateLocator = $this->getAggregateLocator();
 
         return $aggregateLocator->locateIdentifiersByType($reflector, $identifierType);
     }
 
-    private function getAggregateLocator() : AggregateSourceLocator
+    private function getAggregateLocator(): AggregateSourceLocator
     {
         $documents = $this->registry->getAll();
 
@@ -55,6 +54,6 @@ class RegistrySourceLocator implements SourceLocator
             $documents
         );
 
-        return new AggregateSourceLocator($locators);
+        return new AggregateSourceLocator(array_values($locators));
     }
 }

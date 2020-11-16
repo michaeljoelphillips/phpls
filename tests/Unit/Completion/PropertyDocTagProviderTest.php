@@ -13,7 +13,7 @@ use Roave\BetterReflection\Reflection\ReflectionClass;
 
 class PropertyDocTagProviderTest extends TestCase
 {
-    public function testCompletionOnPropertiesFromClassDocblock() : void
+    public function testCompletionOnPropertiesFromClassDocblock(): void
     {
         $subject = new PropertyDocTagProvider();
 

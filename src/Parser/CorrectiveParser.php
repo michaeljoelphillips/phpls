@@ -6,15 +6,17 @@ namespace LanguageServer\Parser;
 
 use PhpParser\Error;
 use PhpParser\ErrorHandler;
-use PhpParser\ErrorHandler\Collecting;
 use PhpParser\Parser;
 use Psr\Log\LoggerInterface;
+
 use function array_slice;
+use function assert;
 use function explode;
 use function implode;
 use function preg_replace_callback_array;
 use function sprintf;
 use function trim;
+
 use const PHP_EOL;
 
 class CorrectiveParser implements Parser
@@ -156,20 +158,19 @@ class CorrectiveParser implements Parser
      */
     public function parse(string $source, ?ErrorHandler $errorHandler = null)
     {
-        $errorHandler    = new Collecting();
         $completedSource = $this->amendIncompleteSource($source);
         $result          = $this->wrappedParser->parse($completedSource, $errorHandler);
 
-        if ($errorHandler->hasErrors()) {
-            foreach ($errorHandler->getErrors() as $error) {
-                $this->logger->debug(
-                    sprintf('Parse Error: %s', $error->getMessage()),
-                    [
-                        'lines' => $this->formatOffendingLines($completedSource, $error),
-                    ],
-                );
-            }
-        }
+/*         if ($errorHandler->hasErrors()) { */
+/*             foreach ($errorHandler->getErrors() as $error) { */
+/*                 $this->logger->debug( */
+/*                     sprintf('Parse Error: %s', $error->getMessage()), */
+/*                     [ */
+/*                         'lines' => $this->formatOffendingLines($completedSource, $error), */
+/*                     ], */
+/*                 ); */
+/*             } */
+/*         } */
 
         if ($result === null) {
             $this->logger->error('The parser failed to parse the source');
@@ -180,9 +181,9 @@ class CorrectiveParser implements Parser
         return $result;
     }
 
-    private function amendIncompleteSource(string $source) : string
+    private function amendIncompleteSource(string $source): string
     {
-        return preg_replace_callback_array(
+        $ammendedSource = preg_replace_callback_array(
             [
                 '/(\$|->|::)(\s+)(\$)/' => static fn ($match) => sprintf('%sstub%s%s', $match[1], $match[2], $match[3]),
                 sprintf('/(\$|->|::)(\s*)(%s)/', implode('|', self::SYMBOLS)) => static fn ($match) => sprintf('%sstub%s%s', $match[1], $match[2], $match[3]),
@@ -190,9 +191,13 @@ class CorrectiveParser implements Parser
             ],
             $source
         );
+
+        assert($ammendedSource !== null);
+
+        return $ammendedSource;
     }
 
-    private function formatOffendingLines(string $code, Error $error) : string
+    private function formatOffendingLines(string $code, Error $error): string
     {
         $lines = array_slice(
             explode(PHP_EOL, $code),

@@ -11,7 +11,7 @@ use PHPUnit\Framework\TestCase;
 
 class LocalVariableProviderTest extends TestCase
 {
-    public function testProviderSupportsVariableNodes() : void
+    public function testProviderSupportsVariableNodes(): void
     {
         $subject = new LocalVariableProvider();
 

@@ -11,6 +11,7 @@ use PhpParser\Node\Name;
 use PhpParser\Node\Stmt\Class_;
 use PHPUnit\Framework\TestCase;
 use Roave\BetterReflection\Reflection\ReflectionClass;
+
 use function implode;
 use function in_array;
 use function sprintf;
@@ -24,7 +25,7 @@ class CTagsProviderTest extends TestCase
         CompletionItemKind::INTERFACE,
     ];
 
-    public function testProviderDoesCannotCompleteWhenATagsFileCannotBeFound() : void
+    public function testProviderDoesCannotCompleteWhenATagsFileCannotBeFound(): void
     {
         $subject = new CTagsProvider('/tmp', 3);
 
@@ -32,14 +33,14 @@ class CTagsProviderTest extends TestCase
         $this->assertFalse($subject->supports(new Class_('foo')));
     }
 
-    public function testProviderCompletesWhenTagsFileCanBeFound() : void
+    public function testProviderCompletesWhenTagsFileCanBeFound(): void
     {
         $subject = new CTagsProvider(self::TAGS_FIXTURE_DIR, 3);
 
         $this->assertTrue($subject->supports(new Name('foo')));
     }
 
-    public function testProviderDoesNotCompleteOnNamesSmallerThanTheMinimumKeywordLength() : void
+    public function testProviderDoesNotCompleteOnNamesSmallerThanTheMinimumKeywordLength(): void
     {
         $subject = new CTagsProvider(self::TAGS_FIXTURE_DIR, 3);
 
@@ -48,7 +49,7 @@ class CTagsProviderTest extends TestCase
         $this->assertTrue($subject->supports(new Name('foo')));
     }
 
-    public function testComplete() : void
+    public function testComplete(): void
     {
         $subject    = new CTagsProvider(self::TAGS_FIXTURE_DIR, 3);
         $reflection = $this->createMock(ReflectionClass::class);

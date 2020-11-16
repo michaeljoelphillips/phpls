@@ -10,6 +10,7 @@ use Roave\BetterReflection\Identifier\IdentifierType;
 use Roave\BetterReflection\Reflection\Reflection;
 use Roave\BetterReflection\Reflector\Reflector;
 use Roave\BetterReflection\SourceLocator\Type\SourceLocator;
+
 use function spl_object_hash;
 use function sprintf;
 
@@ -24,7 +25,7 @@ class MemoizingSourceLocator implements SourceLocator
         $this->wrappedLocator = $wrappedLocator;
     }
 
-    public function locateIdentifier(Reflector $reflector, Identifier $identifier) : ?Reflection
+    public function locateIdentifier(Reflector $reflector, Identifier $identifier): ?Reflection
     {
         $cacheKey = $this->getCacheKey($reflector, $identifier->getType(), $identifier);
 
@@ -42,7 +43,7 @@ class MemoizingSourceLocator implements SourceLocator
     /**
      * {@inheritdoc}
      */
-    public function locateIdentifiersByType(Reflector $reflector, IdentifierType $identifierType) : array
+    public function locateIdentifiersByType(Reflector $reflector, IdentifierType $identifierType): array
     {
         $cacheKey = $this->getCacheKey($reflector, $identifierType, null);
 
@@ -57,7 +58,7 @@ class MemoizingSourceLocator implements SourceLocator
         return $reflection;
     }
 
-    private function getCacheKey(Reflector $reflector, IdentifierType $identifierType, ?Identifier $identifier) : string
+    private function getCacheKey(Reflector $reflector, IdentifierType $identifierType, ?Identifier $identifier): string
     {
         $key = sprintf(
             '%s:%s',

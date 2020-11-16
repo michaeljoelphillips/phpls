@@ -15,7 +15,7 @@ use Roave\BetterReflection\SourceLocator\Type\SourceLocator;
 
 class MemoizingSourceLocatorTest extends TestCase
 {
-    public function testLocateIdentifierWithCacheMiss() : void
+    public function testLocateIdentifierWithCacheMiss(): void
     {
         $cache   = $this->createMock(CacheInterface::class);
         $locator = $this->createMock(SourceLocator::class);
@@ -40,7 +40,7 @@ class MemoizingSourceLocatorTest extends TestCase
         $subject->locateIdentifier($reflector, $identifier);
     }
 
-    public function testLocateIdentifierWithCacheHit() : void
+    public function testLocateIdentifierWithCacheHit(): void
     {
         $cache   = $this->createMock(CacheInterface::class);
         $locator = $this->createMock(SourceLocator::class);
@@ -69,7 +69,7 @@ class MemoizingSourceLocatorTest extends TestCase
         $subject->locateIdentifier($reflector, $identifier);
     }
 
-    public function testLocateIdentifierByTypeWithCacheMiss() : void
+    public function testLocateIdentifierByTypeWithCacheMiss(): void
     {
         $cache   = $this->createMock(CacheInterface::class);
         $locator = $this->createMock(SourceLocator::class);
@@ -103,7 +103,7 @@ class MemoizingSourceLocatorTest extends TestCase
         $this->assertEquals($reflections, $result);
     }
 
-    public function testLocateIdentifierByTypeWithCacheHit() : void
+    public function testLocateIdentifierByTypeWithCacheHit(): void
     {
         $cache   = $this->createMock(CacheInterface::class);
         $locator = $this->createMock(SourceLocator::class);

@@ -9,6 +9,8 @@ use LanguageServer\Server\Protocol\Message;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 use Symfony\Component\Serializer\SerializerInterface;
 
+use function assert;
+
 class MessageSerializer implements MessageSerializerInterface
 {
     private SerializerInterface $serializer;
@@ -18,16 +20,20 @@ class MessageSerializer implements MessageSerializerInterface
         $this->serializer = $serializer;
     }
 
-    public function deserialize(string $request) : ?Message
+    public function deserialize(string $request): ?Message
     {
         try {
-            return $this->serializer->deserialize($request, Message::class, 'jsonrpc');
+            $message = $this->serializer->deserialize($request, Message::class, 'jsonrpc');
+
+            assert($message instanceof Message);
+
+            return $message;
         } catch (NotEncodableValueException $e) {
             return null;
         }
     }
 
-    public function serialize(Message $response) : string
+    public function serialize(Message $response): string
     {
         try {
             return $this->serializer->serialize($response, 'jsonrpc');

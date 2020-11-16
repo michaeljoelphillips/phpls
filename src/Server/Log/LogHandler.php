@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace LanguageServer\Server\Log;
 
-use InvalidArgumentException;
 use LanguageServer\Server\MessageSerializer;
 use LanguageServer\Server\Protocol\LogMessageParams;
 use LanguageServer\Server\Protocol\NotificationMessage;
@@ -43,12 +42,12 @@ class LogHandler extends AbstractProcessingHandler
     }
 
     /**
-     * @param WritableStreamInterface|Server $stream
+     * @param WritableStreamInterface|Server|Promise $stream
      */
-    public function setStream($stream) : void
+    public function setStream($stream): void
     {
         if ($stream instanceof Server) {
-            $stream->on('connection', function (ConnectionInterface $connection) : void {
+            $stream->on('connection', function (ConnectionInterface $connection): void {
                 $this->setStream($connection);
             });
 
@@ -56,7 +55,7 @@ class LogHandler extends AbstractProcessingHandler
         }
 
         if ($stream instanceof Promise) {
-            $stream->then(function (ConnectionInterface $connection) : void {
+            $stream->then(function (ConnectionInterface $connection): void {
                 $this->setStream($connection);
             });
 
@@ -68,14 +67,14 @@ class LogHandler extends AbstractProcessingHandler
 
             return;
         }
-
-        throw new InvalidArgumentException();
     }
 
     /**
      * {@inheritdoc}
+     *
+     * @param array<mixed> $record
      */
-    protected function write(array $record) : void
+    protected function write(array $record): void
     {
         $message = $this->buildNotificationFromRecord($record);
         $message = $this->serializer->serialize($message);
@@ -86,7 +85,7 @@ class LogHandler extends AbstractProcessingHandler
     /**
      * @param array<string, mixed> $record
      */
-    private function buildNotificationFromRecord(array $record) : NotificationMessage
+    private function buildNotificationFromRecord(array $record): NotificationMessage
     {
         $params = new LogMessageParams($record['message'], self::LSP_LOG_LEVELS[$record['level_name']]);
 

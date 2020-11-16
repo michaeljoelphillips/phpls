@@ -7,14 +7,17 @@ namespace LanguageServer\Test\Unit\Parser;
 use LanguageServer\Parser\CorrectiveParser;
 use LanguageServer\Test\Unit\FixtureTestCase;
 use PhpParser\Parser;
+use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
 class CorrectiveParserTest extends FixtureTestCase
 {
     private CorrectiveParser $subject;
+
+    /** @var Parser&MockObject */
     private Parser $parser;
 
-    public function setUp() : void
+    public function setUp(): void
     {
         $this->parser  = $this->createMock(Parser::class);
         $this->subject = new CorrectiveParser($this->parser, $this->createMock(LoggerInterface::class));
@@ -35,7 +38,7 @@ class CorrectiveParserTest extends FixtureTestCase
     /**
      * @dataProvider incompleteSyntaxProvider
      */
-    public function testParseFixesIncompleteSyntax(string $incompleteSource, string $completedSource) : void
+    public function testParseFixesIncompleteSyntax(string $incompleteSource, string $completedSource): void
     {
         $this
             ->parser
@@ -49,7 +52,7 @@ class CorrectiveParserTest extends FixtureTestCase
     /**
      * @return array<int, array<int, mixed>>
      */
-    public function incompleteSyntaxProvider() : array
+    public function incompleteSyntaxProvider(): array
     {
         return [
             [

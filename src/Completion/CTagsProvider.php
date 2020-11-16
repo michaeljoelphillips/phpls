@@ -10,6 +10,8 @@ use LanguageServerProtocol\CompletionItemKind;
 use PhpParser\Node\Name;
 use PhpParser\NodeAbstract;
 use Roave\BetterReflection\Reflection\ReflectionClass;
+
+use function assert;
 use function file_exists;
 use function strlen;
 
@@ -25,7 +27,7 @@ class CTagsProvider implements CompletionProvider
         $this->keywordLength = $keywordLength;
     }
 
-    private function resolveTagsFile() : ?string
+    private function resolveTagsFile(): ?string
     {
         if (file_exists($this->projectRoot . '/tags')) {
             return $this->projectRoot . '/tags';
@@ -34,7 +36,7 @@ class CTagsProvider implements CompletionProvider
         return null;
     }
 
-    private function getTagReader() : ?Reader
+    private function getTagReader(): ?Reader
     {
         $tagFile = $this->resolveTagsFile();
 
@@ -48,8 +50,10 @@ class CTagsProvider implements CompletionProvider
     /**
      * @return CompletionItem[]
      */
-    public function complete(NodeAbstract $expression, ReflectionClass $reflection) : array
+    public function complete(NodeAbstract $expression, ReflectionClass $reflection): array
     {
+        assert($expression instanceof Name);
+
         $reader = $this->getTagReader();
 
         if ($reader === null) {
@@ -70,22 +74,25 @@ class CTagsProvider implements CompletionProvider
         return $completionItems;
     }
 
-    private function completionItemKind(?string $kind) : ?int
+    private function completionItemKind(?string $kind): ?int
     {
         switch ($kind) {
             case 'i':
                 return CompletionItemKind::INTERFACE;
+
             case 'c':
             case 't':
                 return CompletionItemKind::CLASS_;
+
             case 'f':
                 return CompletionItemKind::FUNCTION;
+
             default:
                 return null;
         }
     }
 
-    public function supports(NodeAbstract $expression) : bool
+    public function supports(NodeAbstract $expression): bool
     {
         return $this->resolveTagsFile() !== null
             && $expression instanceof Name

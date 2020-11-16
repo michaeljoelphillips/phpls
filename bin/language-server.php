@@ -1,6 +1,8 @@
 #!/usr/bin/env php
 <?php
 
+declare(strict_types=1);
+
 use Composer\XdebugHandler\XdebugHandler;
 use DI\ContainerBuilder;
 use Symfony\Component\Console\Application;

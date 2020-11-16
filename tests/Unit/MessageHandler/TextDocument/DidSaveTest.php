@@ -5,37 +5,36 @@ declare(strict_types=1);
 namespace LanguageServer\Test\Unit\MessageHandler\TextDocument;
 
 use LanguageServer\MessageHandler\TextDocument\DidSave;
-use LanguageServer\Server\Protocol\RequestMessage;
+use LanguageServer\ParsedDocument;
+use LanguageServer\Parser\DocumentParser;
+use LanguageServer\Server\Protocol\NotificationMessage;
 use LanguageServer\TextDocumentRegistry;
-use PhpParser\Parser;
 use PHPUnit\Framework\TestCase;
 
 class DidSaveTest extends TestCase
 {
-    public function testDidSave() : void
+    public function testDidSave(): void
     {
         $registry = $this->createMock(TextDocumentRegistry::class);
-        $parser   = $this->createMock(Parser::class);
+        $parser   = $this->createMock(DocumentParser::class);
         $subject  = new DidSave($registry, $parser);
+        $document = new ParsedDocument('file:///tmp/foo.php', '<?php echo "Hi";?>', []);
+
+        $parser
+            ->method('parseFromFile')
+            ->willReturn($document);
 
         $registry
             ->expects($this->once())
-            ->method('add');
+            ->method('add')
+            ->with($document);
 
-        $parser
-            ->method('parse')
-            ->willReturn([]);
-
-        $request = new RequestMessage(1, 'textDocument/didSave', [
-            'textDocument' => [
-                'uri' => __DIR__ . '/../../../fixtures/ParsedDocumentFixture.php',
-            ],
+        $request = new NotificationMessage('textDocument/didSave', [
+            'textDocument' => ['uri' => 'file:///tmp/foo.php'],
         ]);
 
-        $next = function () : void {
+        $subject->__invoke($request, function (): void {
             $this->fail('The next method should never be called');
-        };
-
-        $subject->__invoke($request, $next);
+        });
     }
 }

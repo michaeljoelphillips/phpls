@@ -6,24 +6,27 @@ namespace LanguageServer\Test\Unit\Parser;
 
 use LanguageServer\CursorPosition;
 use LanguageServer\Test\Unit\ParserTestCase;
+use OutOfBoundsException;
+use PhpParser\Node;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Name;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Property;
 use PhpParser\NodeAbstract;
+
+use function assert;
 use function count;
-use PhpParser\Node;
 
 class ParsedDocumentTest extends ParserTestCase
 {
-    public function testGetClassName() : void
+    public function testGetClassName(): void
     {
         $subject = $this->parse('ParsedDocumentFixture.php');
 
         $this->assertEquals('Fixtures\ParsedDocumentFixture', $subject->getClassName());
     }
 
-    public function testGetMethod() : void
+    public function testGetMethod(): void
     {
         $subject = $this->parse('ParsedDocumentFixture.php');
 
@@ -33,7 +36,7 @@ class ParsedDocumentTest extends ParserTestCase
         $this->assertEquals('testMethod', $method->name);
     }
 
-    public function testGetClassProperty() : void
+    public function testGetClassProperty(): void
     {
         $subject = $this->parse('TypedPropertyFixture.php');
 
@@ -44,7 +47,7 @@ class ParsedDocumentTest extends ParserTestCase
         $this->assertEquals('foo', $property->props[0]->name);
     }
 
-    public function testGetClassPropertyWithNoProperty() : void
+    public function testGetClassPropertyWithNoProperty(): void
     {
         $subject = $this->parse('TypedPropertyFixture.php');
 
@@ -53,7 +56,7 @@ class ParsedDocumentTest extends ParserTestCase
         $this->assertNull($property);
     }
 
-    public function testFindNodes() : void
+    public function testFindNodes(): void
     {
         $subject = $this->parse('ParsedDocumentFixture.php');
 
@@ -62,7 +65,7 @@ class ParsedDocumentTest extends ParserTestCase
         $this->assertEquals(3, count($nodes));
     }
 
-    public function testSearchNodes() : void
+    public function testSearchNodes(): void
     {
         $subject = $this->parse('ParsedDocumentFixture.php');
 
@@ -75,7 +78,7 @@ class ParsedDocumentTest extends ParserTestCase
         $this->assertEquals(3, count($nodes));
     }
 
-    public function testGetUseStatements() : void
+    public function testGetUseStatements(): void
     {
         $subject = $this->parse('ParsedDocumentFixture.php');
 
@@ -85,21 +88,21 @@ class ParsedDocumentTest extends ParserTestCase
         $this->assertEquals('Psr\Log\LoggerInterface', $nodes[0]->uses[0]->name);
     }
 
-    public function testGetNamespace() : void
+    public function testGetNamespace(): void
     {
         $subject = $this->parse('ParsedDocumentFixture.php');
 
         $this->assertEquals('Fixtures', $subject->getNamespace());
     }
 
-    public function testGetSource() : void
+    public function testGetSource(): void
     {
         $subject = $this->parse('ParsedDocumentFixture.php');
 
         $this->assertEquals($this->loadFixture('ParsedDocumentFixture.php'), $subject->getSource());
     }
 
-    public function testGetNodesAtCursor() : void
+    public function testGetNodesAtCursor(): void
     {
         $subject = $this->parse('ParsedDocumentFixture.php');
 
@@ -118,16 +121,18 @@ class ParsedDocumentTest extends ParserTestCase
         $this->assertContainsOnlyInstancesOf(Node::class, $result);
     }
 
-    public function testGetInnermostNodeAtCursor() : void
+    public function testGetInnermostNodeAtCursor(): void
     {
         $subject = $this->parse('ParsedDocumentFixture.php');
         $result  = $subject->getInnermostNodeAtCursor(new CursorPosition(25, 19, 379));
+
+        assert($result instanceof Name);
 
         $this->assertInstanceOf(Name::class, $result);
         $this->assertEquals('Foo', (string) $result);
     }
 
-    public function testGetInntermostNodesAtCursorWhenCursorIsNotWithinAnyNodes() : void
+    public function testGetInntermostNodesAtCursorWhenCursorIsNotWithinAnyNodes(): void
     {
         $subject = $this->parse('ParsedDocumentFixture.php');
         $result  = $subject->getInnermostNodeAtCursor(new CursorPosition(25, 900, 999));
@@ -135,7 +140,7 @@ class ParsedDocumentTest extends ParserTestCase
         $this->assertNull($result);
     }
 
-    public function testGetConstructorNodeWhenNoConstructorPresent() : void
+    public function testGetConstructorNodeWhenNoConstructorPresent(): void
     {
         $subject = $this->parse('ParsedDocumentFixture.php');
 
@@ -144,19 +149,36 @@ class ParsedDocumentTest extends ParserTestCase
         $this->assertNull($constructor);
     }
 
-    public function testGetConstructorNode() : void
+    public function testGetConstructorNode(): void
     {
         $subject = $this->parse('NoConstructor.php');
 
         $constructor = $subject->getConstructorNode();
+        assert($constructor !== null);
 
         $this->assertEquals('__construct', $constructor->name->name);
+    }
+
+    public function testGetColumnPositions(): void
+    {
+        $subject = $this->parse('ParsedDocumentFixture.php');
+
+        self::assertEquals([8, 38], $subject->getColumnPositions(17));
+    }
+
+    public function testGetColumnPositionsWhenLineIsOutOfBounds(): void
+    {
+        $subject = $this->parse('ParsedDocumentFixture.php');
+
+        $this->expectException(OutOfBoundsException::class);
+
+        self::assertEquals([8, 38], $subject->getColumnPositions(99));
     }
 
     /**
      * @dataProvider cursorPositionProvider
      */
-    public function testGetCursorPosition(int $line, int $character, int $expected) : void
+    public function testGetCursorPosition(int $line, int $character, int $expected): void
     {
         $subject = $this->parse('ParsedDocumentFixture.php');
 
@@ -166,7 +188,7 @@ class ParsedDocumentTest extends ParserTestCase
     /**
      * @return array<int, array<int, int>>
      */
-    public function cursorPositionProvider() : array
+    public function cursorPositionProvider(): array
     {
         return [
             [0, 0, 0],
@@ -182,7 +204,7 @@ class ParsedDocumentTest extends ParserTestCase
     /**
      * @param object[] $result
      */
-    private function assertContainsInstanceOf(string $class, array $result) : void
+    private function assertContainsInstanceOf(string $class, array $result): void
     {
         foreach ($result as $object) {
             if ($object instanceof $class) {

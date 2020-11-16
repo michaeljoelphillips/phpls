@@ -7,6 +7,7 @@ namespace LanguageServer\MessageHandler\TextDocument;
 use LanguageServer\Inference\TypeResolver;
 use LanguageServer\Server\MessageHandler;
 use LanguageServer\Server\Protocol\Message;
+use LanguageServer\Server\Protocol\RequestMessage;
 use LanguageServer\Server\Protocol\ResponseMessage;
 use LanguageServer\TextDocumentRegistry;
 use LanguageServerProtocol\Location;
@@ -16,6 +17,9 @@ use PhpParser\Node\Name;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflector\Exception\IdentifierNotFound;
 use Roave\BetterReflection\Reflector\Reflector;
+
+use function assert;
+use function is_array;
 
 class Definition implements MessageHandler
 {
@@ -41,6 +45,9 @@ class Definition implements MessageHandler
             return $next($message);
         }
 
+        assert($message instanceof RequestMessage);
+        assert(is_array($message->params));
+
         $params   = $message->params;
         $document = $this->registry->get($params['textDocument']['uri']);
         $cursor   = $document->getCursorPosition($params['position']['line'], $params['position']['character']);
@@ -52,8 +59,15 @@ class Definition implements MessageHandler
         }
 
         try {
-            $type       = $this->typeResolver->getType($document, $node);
+            $type = $this->typeResolver->getType($document, $node);
+
+            if ($type === null) {
+                return new ResponseMessage($message, null);
+            }
+
             $reflection = $this->reflector->reflect($type);
+
+            assert($reflection instanceof ReflectionClass);
 
             return new ResponseMessage($message, $this->locationFromReflectedClass($reflection));
         } catch (IdentifierNotFound $e) {
@@ -61,7 +75,7 @@ class Definition implements MessageHandler
         }
     }
 
-    private function locationFromReflectedClass(ReflectionClass $reflection) : Location
+    private function locationFromReflectedClass(ReflectionClass $reflection): Location
     {
         $range = new Range(
             new Position($reflection->getStartLine() - 1, $reflection->getStartColumn() - 1),

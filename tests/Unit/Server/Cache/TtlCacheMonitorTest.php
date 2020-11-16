@@ -11,7 +11,7 @@ use React\EventLoop\LoopInterface;
 
 class TtlCacheMonitorTest extends TestCase
 {
-    public function testMonitorInvokesCacheCleanOnTimer() : void
+    public function testMonitorInvokesCacheCleanOnTimer(): void
     {
         $cache = $this->createMock(CleanableCache::class);
         $loop  = $this->createMock(LoopInterface::class);

@@ -11,6 +11,7 @@ use LanguageServer\Test\Unit\ParserTestCase;
 use LanguageServer\TextDocumentRegistry;
 use Roave\BetterReflection\SourceLocator\Type\SingleFileSourceLocator;
 use Roave\BetterReflection\SourceLocator\Type\SourceLocator;
+
 use function sprintf;
 
 class SignatureHelpTest extends ParserTestCase
@@ -18,7 +19,7 @@ class SignatureHelpTest extends ParserTestCase
     private TextDocumentRegistry $registry;
     private SignatureHelp $subject;
 
-    public function setUp() : void
+    public function setUp(): void
     {
         $this->registry = new TextDocumentRegistry();
         $classReflector = $this->getClassReflector();
@@ -26,7 +27,7 @@ class SignatureHelpTest extends ParserTestCase
         $this->subject  = new SignatureHelp($classReflector, $this->getFunctionReflector(), $typeResolver, $this->registry);
     }
 
-    protected function getSourceLocator() : SourceLocator
+    protected function getSourceLocator(): SourceLocator
     {
         return new SingleFileSourceLocator(
             sprintf('%s/SignatureHelpFixture.php', self::FIXTURE_DIRECTORY),
@@ -34,7 +35,7 @@ class SignatureHelpTest extends ParserTestCase
         );
     }
 
-    public function testSignatureHelpReturnsEmptyResponseWhenNoExpressionFound() : void
+    public function testSignatureHelpReturnsEmptyResponseWhenNoExpressionFound(): void
     {
         $document = $this->parse('SignatureHelpFixture.php');
 
@@ -48,7 +49,7 @@ class SignatureHelpTest extends ParserTestCase
             ],
         ]);
 
-        $next = function () : void {
+        $next = function (): void {
             $this->fail('The next method should never be called');
         };
 
@@ -57,7 +58,7 @@ class SignatureHelpTest extends ParserTestCase
         $this->assertEmpty($response->result->activeParameter);
     }
 
-    public function testSignatureHelpReturnsEmptyResponseWhenNoConstructorFound() : void
+    public function testSignatureHelpReturnsEmptyResponseWhenNoConstructorFound(): void
     {
         $document = $this->parse('SignatureHelpFixture.php');
 
@@ -71,7 +72,7 @@ class SignatureHelpTest extends ParserTestCase
             ],
         ]);
 
-        $next = function () : void {
+        $next = function (): void {
             $this->fail('The next method should never be called');
         };
 
@@ -83,7 +84,7 @@ class SignatureHelpTest extends ParserTestCase
     /**
      * @dataProvider cursorPositionsProvider
      */
-    public function testSignatureHelp(int $line, int $character, int $activeParameter, bool $signatureFound, ?string $label) : void
+    public function testSignatureHelp(int $line, int $character, int $activeParameter, bool $signatureFound, ?string $label): void
     {
         $document = $this->parse('SignatureHelpFixture.php');
 
@@ -97,7 +98,7 @@ class SignatureHelpTest extends ParserTestCase
             ],
         ]);
 
-        $next = function () : void {
+        $next = function (): void {
             $this->fail('The next method should never be called');
         };
 
@@ -118,7 +119,7 @@ class SignatureHelpTest extends ParserTestCase
     /**
      * @return array<int, array<int, mixed>>
      */
-    public function cursorPositionsProvider() : array
+    public function cursorPositionsProvider(): array
     {
         return [
             [18, 16, 0, false, null],

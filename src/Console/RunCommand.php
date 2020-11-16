@@ -15,6 +15,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+
 use function implode;
 use function in_array;
 use function sprintf;
@@ -39,7 +40,7 @@ class RunCommand extends Command
         $this->container = $container;
     }
 
-    protected function configure() : void
+    protected function configure(): void
     {
         $this
             ->setDescription('Start PHPLS')
@@ -47,7 +48,7 @@ class RunCommand extends Command
             ->addOption('mode', null, InputOption::VALUE_OPTIONAL, 'Set the TCP mode', 'stdio');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output) : int
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->setOptions($input, $output);
 
@@ -63,13 +64,12 @@ class RunCommand extends Command
         (new TtlCacheMonitor($parserCache, $reflectorCache))(60, $loop);
 
         $server->listen($stream);
-
         $loop->run();
 
         return 0;
     }
 
-    private function setOptions(InputInterface $input, OutputInterface $output) : void
+    private function setOptions(InputInterface $input, OutputInterface $output): void
     {
         $io   = new SymfonyStyle($input, $output);
         $mode = $input->getOption('mode');

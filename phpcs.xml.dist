@@ -7,10 +7,11 @@
     <arg name="colors"/>
     <arg value="nps"/>
 
+    <file>bin</file>
     <file>src</file>
     <file>tests</file>
 
-    <exclude-pattern>tests/fixtures/*.php</exclude-pattern>
+    <exclude-pattern>tests/fixtures/*</exclude-pattern>
 
-    <rule ref="Doctrine"></rule>
+    <rule ref="Doctrine"/>
 </ruleset>

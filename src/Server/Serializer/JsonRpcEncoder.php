@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace LanguageServer\Server\Serializer;
 
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
+
+use function assert;
 use function explode;
+use function is_string;
 use function sprintf;
 use function strlen;
 
@@ -16,10 +19,13 @@ class JsonRpcEncoder extends JsonEncoder
 
     /**
      * {@inheritdoc}
+     *
+     * @param array<mixed, mixed> $context
      */
     public function encode($data, $format, array $context = [])
     {
         $result = parent::encode($data, 'json', $context);
+        assert(is_string($result));
 
         $headers = sprintf(
             "%s\r\n%s",
@@ -32,6 +38,8 @@ class JsonRpcEncoder extends JsonEncoder
 
     /**
      * {@inheritdoc}
+     *
+     * @param array<mixed, mixed> $context
      */
     public function decode($data, $format, array $context = [])
     {
