@@ -27,12 +27,18 @@ class Runner implements RunnerInterface
     public function run(ParsedDocument $document): PromiseInterface
     {
         return resolve(array_map(
-            static function (Error $error): Diagnostic {
+            static function (Error $error) use ($document): Diagnostic {
                 return new Diagnostic(
                     $error->getRawMessage(),
                     new Range(
-                        new Position($error->getStartLine() - 1, 0),
-                        new Position($error->getEndLine() - 1, 0)
+                        new Position(
+                            $error->getStartLine() - 1,
+                            $error->getStartColumn($document->getSource()) - 1
+                        ),
+                        new Position(
+                            $error->getEndLine() - 1,
+                            $error->getEndColumn($document->getSource())
+                        )
                     ),
                     500,
                     1,
