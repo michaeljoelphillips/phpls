@@ -6,7 +6,6 @@ namespace LanguageServer\Parser;
 
 use PhpParser\Error;
 use PhpParser\ErrorHandler;
-use PhpParser\ErrorHandler\Collecting;
 use PhpParser\Parser;
 use Psr\Log\LoggerInterface;
 
