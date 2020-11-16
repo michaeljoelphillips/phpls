@@ -1,0 +1,31 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'log' => [
+        'enabled' => true,
+        'level' => 'debug',
+        'path' => '/tmp/phpls',
+    ],
+    'ctags' => [
+        'completion' => ['keyword_length' => 3],
+    ],
+    'diagnostics' => [
+        'enabled' => true,
+        'ignore' => [
+            'vendor',
+        ],
+        'php' => [
+            'enabled' => true,
+        ],
+        'phpcs' => [
+            'enabled' => true,
+            'severity' => 'warning',
+        ],
+        'phpstan' => [
+            'enabled' => true,
+            'severity' => 'error',
+        ],
+    ],
+];
