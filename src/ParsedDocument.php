@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer;
 
+use OutOfBoundsException;
 use PhpParser\Error;
 use PhpParser\Node;
 use PhpParser\Node\Stmt\Class_;
@@ -19,9 +20,12 @@ use function array_filter;
 use function array_key_exists;
 use function array_key_last;
 use function assert;
+use function explode;
+use function ltrim;
 use function parse_url;
 use function sprintf;
 use function str_split;
+use function strlen;
 
 use const PHP_EOL;
 
@@ -215,6 +219,24 @@ class ParsedDocument
         assert($namespace instanceof Namespace_);
 
         return (string) $namespace->name;
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    public function getColumnPositions(int $line): array
+    {
+        $lines = explode(PHP_EOL, $this->source);
+
+        if (isset($lines[$line]) === false) {
+            throw new OutOfBoundsException(sprintf('Line %d does not exist within the document', $line));
+        }
+
+        $line  = $lines[$line];
+        $end   = strlen($line);
+        $start = $end - strlen(ltrim($line));
+
+        return [$start, $end];
     }
 
     /**

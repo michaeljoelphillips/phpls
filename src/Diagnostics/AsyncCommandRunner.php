@@ -45,7 +45,7 @@ abstract class AsyncCommandRunner implements Runner
         return $this
             ->command
             ->execute($document)
-            ->then(fn (string $output): array => $this->gatherDiagnostics($output));
+            ->then(fn (string $output): array => $this->gatherDiagnostics($document, $output));
     }
 
     /**
@@ -53,5 +53,5 @@ abstract class AsyncCommandRunner implements Runner
      *
      * @return array<int, Diagnostic>
      */
-    abstract protected function gatherDiagnostics(string $output): array;
+    abstract protected function gatherDiagnostics(ParsedDocument $document, string $output): array;
 }

@@ -64,8 +64,9 @@ class DiagnosticService implements EventEmitterInterface
 
                         $this->emit('notification', [
                             new NotificationMessage('textDocument/publishDiagnostics', [
-                                'uri' => $document->getUri(),
+                                'uri' => $uri,
                                 'diagnostics' => array_merge(...array_values($this->diagnostics[$uri])),
+
                             ]),
                         ]);
                     }

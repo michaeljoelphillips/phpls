@@ -15,6 +15,8 @@ use Psr\Log\LoggerInterface;
 
 use function React\Promise\resolve;
 
+use const PHP_INT_MAX;
+
 class RunnerTest extends TestCase
 {
     private const PHPSTAN_OUTPUT_WITH_ERRORS = <<<'JSON'
@@ -66,6 +68,23 @@ OUTPUT;
 
     public function testRunnerResolvesWithDiagnosticsWhenPhpStanReportsErrors(): void
     {
+        $document = $this->createMock(ParsedDocument::class);
+
+        $document
+            ->method('hasErrors')
+            ->willReturn(false);
+
+        $document
+            ->method('isPersisted')
+            ->willReturn(true);
+
+        $document
+            ->method('getColumnPositions')
+            ->will($this->onConsecutiveCalls(
+                [5, 25],
+                [13, 60]
+            ));
+
         $this->command
             ->method('isRunning')
             ->willReturn(false);
@@ -77,7 +96,7 @@ OUTPUT;
         $result = null;
 
         $this->subject
-            ->run(new ParsedDocument('file:///tmp/foo.php', '<?php', [], [], true))
+            ->run($document)
             ->then(static function (array $diagnostics) use (&$result): void {
                 $result = $diagnostics;
             });
@@ -88,17 +107,17 @@ OUTPUT;
 
         self::assertEquals(500, $result[0]->code);
         self::assertEquals(13, $result[0]->range->start->line);
-        self::assertEquals(-1, $result[0]->range->start->character);
+        self::assertEquals(5, $result[0]->range->start->character);
         self::assertEquals(13, $result[0]->range->end->line);
-        self::assertEquals(-1, $result[0]->range->end->character);
+        self::assertEquals(25, $result[0]->range->end->character);
         self::assertEquals(DiagnosticSeverity::ERROR, $result[0]->severity);
         self::assertEquals('Access to an undefined property LanguageServer\\Test\\Unit\\Diagnostics\\PhpStan\\RunnerTest::$command.', $result[0]->message);
 
         self::assertEquals(500, $result[1]->code);
         self::assertEquals(17, $result[1]->range->start->line);
-        self::assertEquals(-1, $result[1]->range->start->character);
+        self::assertEquals(13, $result[1]->range->start->character);
         self::assertEquals(17, $result[1]->range->end->line);
-        self::assertEquals(-1, $result[1]->range->end->character);
+        self::assertEquals(60, $result[1]->range->end->character);
         self::assertEquals(DiagnosticSeverity::ERROR, $result[1]->severity);
         self::assertEquals('Access to an undefined property LanguageServer\\Test\\Unit\\Diagnostics\\PhpStan\\RunnerTest::$command.', $result[1]->message);
     }

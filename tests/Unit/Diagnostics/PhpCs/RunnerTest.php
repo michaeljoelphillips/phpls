@@ -143,6 +143,23 @@ OUTPUT;
 
     public function testRunnerResolvesWithDiagnosticsWhenPhpCsReportsErrors(): void
     {
+        $document = $this->createMock(ParsedDocument::class);
+
+        $document
+            ->method('hasErrors')
+            ->willReturn(false);
+
+        $document
+            ->method('isPersisted')
+            ->willReturn(true);
+
+        $document
+            ->method('getColumnPositions')
+            ->will($this->onConsecutiveCalls(
+                [5, 25],
+                [13, 60]
+            ));
+
         $this->command
             ->method('isRunning')
             ->willReturn(false);
@@ -154,7 +171,7 @@ OUTPUT;
         $result = null;
 
         $this->subject
-            ->run(new ParsedDocument('file:///tmp/foo.php', '<?php', [], [], true))
+            ->run($document)
             ->then(static function (array $diagnostics) use (&$result): void {
                 $result = $diagnostics;
             });
@@ -167,6 +184,7 @@ OUTPUT;
         self::assertEquals(8, $result[0]->range->start->line);
         self::assertEquals(0, $result[0]->range->start->character);
         self::assertEquals(8, $result[0]->range->end->line);
+        self::assertEquals(25, $result[0]->range->end->character);
         self::assertEquals(DiagnosticSeverity::ERROR, $result[0]->severity);
         self::assertEquals('Type PhpParser\ErrorHandler\Collecting is not used in this file.', $result[0]->message);
 
@@ -174,6 +192,7 @@ OUTPUT;
         self::assertEquals(200, $result[1]->range->start->line);
         self::assertEquals(12, $result[1]->range->start->character);
         self::assertEquals(200, $result[1]->range->end->line);
+        self::assertEquals(60, $result[1]->range->end->character);
         self::assertEquals(DiagnosticSeverity::ERROR, $result[1]->severity);
         self::assertEquals('Class CorrectiveParser contains unused private method formatOffendingLines().', $result[1]->message);
     }

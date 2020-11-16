@@ -6,6 +6,7 @@ namespace LanguageServer\Diagnostics\PhpCs;
 
 use JsonException;
 use LanguageServer\Diagnostics\AsyncCommandRunner;
+use LanguageServer\ParsedDocument;
 use LanguageServerProtocol\Diagnostic;
 use LanguageServerProtocol\Position;
 use LanguageServerProtocol\Range;
@@ -27,7 +28,7 @@ class Runner extends AsyncCommandRunner
     /**
      * {@inheritdoc}
      */
-    protected function gatherDiagnostics(string $output): array
+    protected function gatherDiagnostics(ParsedDocument $document, string $output): array
     {
         try {
             $output = json_decode($output, true, 512, JSON_THROW_ON_ERROR);
@@ -40,12 +41,14 @@ class Runner extends AsyncCommandRunner
             $errors = array_merge(...$errors);
 
             return array_map(
-                function (array $error): Diagnostic {
+                function (array $error) use ($document): Diagnostic {
+                    [, $endColumn] = $document->getColumnPositions($error['line'] - 1);
+
                     return new Diagnostic(
                         $error['message'],
                         new Range(
                             new Position($error['line'] - 1, $error['column'] - 1),
-                            new Position($error['line'] - 1, -1)
+                            new Position($error['line'] - 1, $endColumn)
                         ),
                         $error['severity'],
                         $this->severity,

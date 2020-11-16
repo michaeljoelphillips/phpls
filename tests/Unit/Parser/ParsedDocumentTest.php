@@ -6,6 +6,7 @@ namespace LanguageServer\Test\Unit\Parser;
 
 use LanguageServer\CursorPosition;
 use LanguageServer\Test\Unit\ParserTestCase;
+use OutOfBoundsException;
 use PhpParser\Node;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Name;
@@ -156,6 +157,22 @@ class ParsedDocumentTest extends ParserTestCase
         assert($constructor !== null);
 
         $this->assertEquals('__construct', $constructor->name->name);
+    }
+
+    public function testGetColumnPositions(): void
+    {
+        $subject = $this->parse('ParsedDocumentFixture.php');
+
+        self::assertEquals([8, 38], $subject->getColumnPositions(17));
+    }
+
+    public function testGetColumnPositionsWhenLineIsOutOfBounds(): void
+    {
+        $subject = $this->parse('ParsedDocumentFixture.php');
+
+        $this->expectException(OutOfBoundsException::class);
+
+        self::assertEquals([8, 38], $subject->getColumnPositions(99));
     }
 
     /**
