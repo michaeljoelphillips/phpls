@@ -11,7 +11,7 @@ A lightweight [language server](https://langserver.org/) for PHP.
 Download the phar from the [releases
 page](https://github.com/michaeljoelphillips/phpls/releases).
 
-```
+```sh
 # Over stdio
 phpls
 
@@ -27,7 +27,8 @@ Note: `STDIO` mode is [not supported for users on Windows](https://bugs.php.net/
 ### Neovim 0.5.0
 
 Install the [neovim/nvim-lspconfig](https://github.com/neovim/nvim-lspconfig) plugin and add the following to your vimrc:
-```
+```lua
+lua << EOF
 local nvim_lsp = require 'nvim_lsp'
 local configs = require 'nvim_lsp/configs'
 local util = require 'nvim_lsp/util'
@@ -44,6 +45,7 @@ configs.phpls = {
 }
 
 nvim_lsp.phpls.setup{on_attach=require'completion'.on_attach}
+EOF
 ```
 
 ### Vim/Neovim 0.4.0
