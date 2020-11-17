@@ -15,9 +15,6 @@ use const DIRECTORY_SEPARATOR;
 class ConfigFactory
 {
     private const PHPLS_CONFIG_PATH = 'phpls' . DIRECTORY_SEPARATOR . 'config.php';
-    private const DEFAULT_CONFIG    = [
-        'log' => ['enabled' => false],
-    ];
 
     /**
      * @return array<string, mixed>
@@ -27,7 +24,6 @@ class ConfigFactory
         return (new Processor())->processConfiguration(
             new ServerConfiguration(),
             [
-                self::DEFAULT_CONFIG,
                 $this->globalConfig(),
             ]
         );

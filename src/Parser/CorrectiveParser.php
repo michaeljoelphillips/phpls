@@ -4,20 +4,14 @@ declare(strict_types=1);
 
 namespace LanguageServer\Parser;
 
-use PhpParser\Error;
 use PhpParser\ErrorHandler;
 use PhpParser\Parser;
 use Psr\Log\LoggerInterface;
 
-use function array_slice;
 use function assert;
-use function explode;
 use function implode;
 use function preg_replace_callback_array;
 use function sprintf;
-use function trim;
-
-use const PHP_EOL;
 
 class CorrectiveParser implements Parser
 {
@@ -161,17 +155,6 @@ class CorrectiveParser implements Parser
         $completedSource = $this->amendIncompleteSource($source);
         $result          = $this->wrappedParser->parse($completedSource, $errorHandler);
 
-/*         if ($errorHandler->hasErrors()) { */
-/*             foreach ($errorHandler->getErrors() as $error) { */
-/*                 $this->logger->debug( */
-/*                     sprintf('Parse Error: %s', $error->getMessage()), */
-/*                     [ */
-/*                         'lines' => $this->formatOffendingLines($completedSource, $error), */
-/*                     ], */
-/*                 ); */
-/*             } */
-/*         } */
-
         if ($result === null) {
             $this->logger->error('The parser failed to parse the source');
 
@@ -195,16 +178,5 @@ class CorrectiveParser implements Parser
         assert($ammendedSource !== null);
 
         return $ammendedSource;
-    }
-
-    private function formatOffendingLines(string $code, Error $error): string
-    {
-        $lines = array_slice(
-            explode(PHP_EOL, $code),
-            $error->getStartLine() - 1,
-            2
-        );
-
-        return trim(implode(PHP_EOL, $lines));
     }
 }

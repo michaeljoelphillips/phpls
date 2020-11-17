@@ -7,27 +7,41 @@ namespace LanguageServer\Test\Unit\Config;
 use LanguageServer\Config\ConfigFactory;
 use PHPUnit\Framework\TestCase;
 
+use function array_merge;
 use function chmod;
 use function putenv;
 use function sprintf;
 
 class ConfigFactoryTest extends TestCase
 {
+    private const DEFAULT_CONFIG = [
+        'log' => [
+            'enabled' => false,
+            'level' => 'info',
+        ],
+        'diagnostics' => [
+            'enabled' => true,
+            'ignore' => [],
+            'php' => ['enabled' => true],
+            'phpcs' => [
+                'enabled' => false,
+                'severity' => 'error',
+            ],
+            'phpstan' => [
+                'enabled' => false,
+                'severity' => 'error',
+            ],
+        ],
+
+    ];
+
     public function testFactoryReturnsDefaultConfigWhenXDGConfigIsNotSet(): void
     {
         putenv('XDG_CONFIG_HOME');
 
         $subject = new ConfigFactory();
 
-        $this->assertEquals(
-            [
-                'log' => [
-                    'enabled' => false,
-                    'level' => 'info',
-                ],
-            ],
-            $subject->__invoke()
-        );
+        $this->assertEquals(self::DEFAULT_CONFIG, $subject->__invoke());
     }
 
     public function testFactoryReturnsDefaultConfigWhenConfigDirectoryCannotBeLocated(): void
@@ -36,15 +50,7 @@ class ConfigFactoryTest extends TestCase
 
         $subject = new ConfigFactory();
 
-        $this->assertEquals(
-            [
-                'log' => [
-                    'enabled' => false,
-                    'level' => 'info',
-                ],
-            ],
-            $subject->__invoke()
-        );
+        $this->assertEquals(self::DEFAULT_CONFIG, $subject->__invoke());
     }
 
     public function testFactoryReturnsDefaultConfigWhenNoConfigIsFound(): void
@@ -55,15 +61,7 @@ class ConfigFactoryTest extends TestCase
 
         $subject = new ConfigFactory();
 
-        $this->assertEquals(
-            [
-                'log' => [
-                    'enabled' => false,
-                    'level' => 'info',
-                ],
-            ],
-            $subject->__invoke()
-        );
+        $this->assertEquals(self::DEFAULT_CONFIG, $subject->__invoke());
     }
 
     public function testFactoryReturnsGlobalConfigWhenGlobalConfigExists(): void
@@ -74,16 +72,15 @@ class ConfigFactoryTest extends TestCase
 
         $subject = new ConfigFactory();
 
-        $this->assertEquals(
-            [
-                'log' => [
-                    'enabled' => true,
-                    'level' => 'info',
-                    'path' => '/tmp/log',
-                ],
+        $config = array_merge(self::DEFAULT_CONFIG, [
+            'log' => [
+                'enabled' => true,
+                'level' => 'info',
+                'path' => '/tmp/log',
             ],
-            $subject->__invoke()
-        );
+        ]);
+
+        $this->assertEquals($config, $subject->__invoke());
     }
 
     public function testFactoryReturnsDefaultConfigWhenConfigIsNotReadable(): void
@@ -95,14 +92,6 @@ class ConfigFactoryTest extends TestCase
 
         $subject = new ConfigFactory();
 
-        $this->assertEquals(
-            [
-                'log' => [
-                    'enabled' => false,
-                    'level' => 'info',
-                ],
-            ],
-            $subject->__invoke()
-        );
+        $this->assertEquals(self::DEFAULT_CONFIG, $subject->__invoke());
     }
 }
