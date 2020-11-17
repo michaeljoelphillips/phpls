@@ -1,5 +1,9 @@
 # PHPLS
 
+[![Build Status](https://travis-ci.com/michaeljoelphillips/phpls.svg?branch=master)](https://travis-ci.com/michaeljoelphillips/phpls)
+[![70%](https://img.shields.io/badge/coverage-70%25-brightgreen.svg?style=flat)](https://phpstan.org)
+[![PHPStan Enabled](https://img.shields.io/badge/PHPStan-enabled-brightgreen.svg?style=flat)](https://phpstan.org)
+
 A lightweight [language server](https://langserver.org/) for PHP.
 
 * Completion
