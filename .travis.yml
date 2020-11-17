@@ -15,7 +15,7 @@ script:
   - vendor/bin/phpunit
   - vendor/bin/phpcs
   - vendor/bin/phpstan analyse src/ tests/
-  - php bin/coverage-checker.php clover.xml 68
+  - php bin/coverage-checker.php clover.xml 70
 
 before_deploy:
   - |
