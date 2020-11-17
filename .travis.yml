@@ -13,8 +13,9 @@ install:
 
 script:
   - vendor/bin/phpunit
-  - vendor/bin/phpstan analyse -l 1 src/ tests/
-  - php bin/coverage-checker.php clover.xml 68
+  - vendor/bin/phpcs
+  - vendor/bin/phpstan analyse src/ tests/
+  - php bin/coverage-checker.php clover.xml 70
 
 before_deploy:
   - |

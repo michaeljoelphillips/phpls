@@ -15,8 +15,6 @@ use Psr\Log\LoggerInterface;
 
 use function React\Promise\resolve;
 
-use const PHP_INT_MAX;
-
 class RunnerTest extends TestCase
 {
     private const PHPSTAN_OUTPUT_WITH_ERRORS = <<<'JSON'
