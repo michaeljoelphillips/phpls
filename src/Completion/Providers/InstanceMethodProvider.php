@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Completion;
+namespace LanguageServer\Completion\Providers;
 
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Identifier;

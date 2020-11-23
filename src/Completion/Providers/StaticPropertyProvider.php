@@ -2,16 +2,17 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Completion;
+namespace LanguageServer\Completion\Providers;
 
+use LanguageServer\Completion\CompletionProvider;
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
-use PhpParser\Node\Expr\PropertyFetch;
-use PhpParser\Node\Expr\Variable;
+use PhpParser\Node\Expr\ClassConstFetch;
+use PhpParser\Node\Name;
 use PhpParser\NodeAbstract;
+use ReflectionProperty as CoreReflectionProperty;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionProperty;
-use Throwable;
 
 use function array_filter;
 use function array_map;
@@ -19,27 +20,25 @@ use function array_values;
 use function assert;
 use function implode;
 
-class InstanceVariableProvider implements CompletionProvider
+class StaticPropertyProvider implements CompletionProvider
 {
     /**
      * {@inheritdoc}
      */
     public function complete(NodeAbstract $expression, ReflectionClass $reflection): array
     {
-        assert($expression instanceof PropertyFetch);
-
         $properties = array_filter(
-            $reflection->getProperties(),
+            $reflection->getProperties(CoreReflectionProperty::IS_STATIC),
             // phpcs:ignore
             fn (ReflectionProperty $property) => $this->filterMethod($expression, $reflection, $property)
         );
 
         return array_values(array_map(
-            function (ReflectionProperty $property) {
+            static function (ReflectionProperty $property) {
                 return new CompletionItem(
                     $property->getName(),
                     CompletionItemKind::PROPERTY,
-                    $this->getReturnTypeString($property),
+                    implode('|', $property->getDocblockTypeStrings()),
                     $property->getDocComment()
                 );
             },
@@ -47,30 +46,17 @@ class InstanceVariableProvider implements CompletionProvider
         ));
     }
 
-    private function getReturnTypeString(ReflectionProperty $property): string
+    protected function filterMethod(NodeAbstract $expression, ReflectionClass $class, ReflectionProperty $property): bool
     {
-        if ($property->hasType()) {
-            return (string) $property->getType();
-        }
-
-        try {
-            $docblockType = $property->getDocBlockTypeStrings();
-        } catch (Throwable $e) {
-            $docblockType = [];
-        }
-
-        return implode('|', $docblockType);
-    }
-
-    private function filterMethod(PropertyFetch $expression, ReflectionClass $class, ReflectionProperty $property): bool
-    {
-        assert($expression->var instanceof Variable);
-
-        if ($property->isPublic() === true) {
+        if ($property->isPublic()) {
             return true;
         }
 
-        if ($expression->var->name === 'this') {
+        assert($expression instanceof ClassConstFetch);
+        assert($expression->class instanceof Name);
+        $className = $expression->class->getLast();
+
+        if ($className === 'self') {
             if ($property->isPrivate() === true) {
                 return $property->getDeclaringClass() === $class;
             }
@@ -78,11 +64,15 @@ class InstanceVariableProvider implements CompletionProvider
             return true;
         }
 
+        if ($className === 'parent') {
+            return $property->isProtected();
+        }
+
         return false;
     }
 
     public function supports(NodeAbstract $expression): bool
     {
-        return $expression instanceof PropertyFetch && $expression->var instanceof Variable;
+        return $expression instanceof ClassConstFetch;
     }
 }

@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-use LanguageServer\Completion\ClassConstantProvider;
-use LanguageServer\Completion\CTagsProvider;
-use LanguageServer\Completion\InstanceMethodProvider;
-use LanguageServer\Completion\InstanceVariableProvider;
-use LanguageServer\Completion\LocalVariableProvider;
-use LanguageServer\Completion\MethodDocTagProvider;
-use LanguageServer\Completion\PropertyDocTagProvider;
-use LanguageServer\Completion\StaticMethodProvider;
-use LanguageServer\Completion\StaticPropertyProvider;
+use LanguageServer\Completion\Providers\ClassConstantProvider;
+use LanguageServer\Completion\Providers\CTagsProvider;
+use LanguageServer\Completion\Providers\InstanceMethodProvider;
+use LanguageServer\Completion\Providers\InstanceVariableProvider;
+use LanguageServer\Completion\Providers\LocalVariableProvider;
+use LanguageServer\Completion\Providers\MethodDocTagProvider;
+use LanguageServer\Completion\Providers\PropertyDocTagProvider;
+use LanguageServer\Completion\Providers\StaticMethodProvider;
+use LanguageServer\Completion\Providers\StaticPropertyProvider;
 use LanguageServer\Config\ConfigFactory;
 use LanguageServer\Console\RunCommand;
 use LanguageServer\Diagnostics\DiagnosticService;

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test\Unit\MessageHandler\TextDocument;
 
-use LanguageServer\Completion\InstanceMethodProvider;
-use LanguageServer\Completion\InstanceVariableProvider;
+use LanguageServer\Completion\Providers\InstanceMethodProvider;
+use LanguageServer\Completion\Providers\InstanceVariableProvider;
 use LanguageServer\Inference\TypeResolver;
 use LanguageServer\MessageHandler\TextDocument\Completion;
 use LanguageServer\Server\Protocol\RequestMessage;

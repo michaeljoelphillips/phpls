@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Test\Unit\Completion;
+namespace LanguageServer\Test\Unit\Completion\Providers;
 
-use LanguageServer\Completion\PropertyDocTagProvider;
+use LanguageServer\Completion\Providers\PropertyDocTagProvider;
 use LanguageServerProtocol\CompletionItem;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\Variable;

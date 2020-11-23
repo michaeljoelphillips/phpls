@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Test\Unit\Completion;
+namespace LanguageServer\Test\Unit\Completion\Providers;
 
-use LanguageServer\Completion\CTagsProvider;
+use LanguageServer\Completion\Providers\CTagsProvider;
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
 use PhpParser\Node\Name;
@@ -18,7 +18,7 @@ use function sprintf;
 
 class CTagsProviderTest extends TestCase
 {
-    private const TAGS_FIXTURE_DIR = __DIR__ . '/../../fixtures/tags-fixture';
+    private const TAGS_FIXTURE_DIR = __DIR__ . '/../../../fixtures/tags-fixture';
 
     private const COMPLETABLE_KINDS = [
         CompletionItemKind::CLASS_,

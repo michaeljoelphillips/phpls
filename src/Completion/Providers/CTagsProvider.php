@@ -2,11 +2,15 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Completion;
+namespace LanguageServer\Completion\Providers;
 
 use CTags\Reader;
+use LanguageServer\Completion\CompletionProvider;
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
+use LanguageServerProtocol\Position;
+use LanguageServerProtocol\Range;
+use LanguageServerProtocol\TextEdit;
 use PhpParser\Node\Name;
 use PhpParser\NodeAbstract;
 use Roave\BetterReflection\Reflection\ReflectionClass;
@@ -68,6 +72,12 @@ class CTagsProvider implements CompletionProvider
                 $tag->name,
                 $this->completionItemKind($tag->fields['kind']),
                 $tag->fields['namespace'] ?? '',
+                null,
+                null,
+                null,
+                null,
+                null,
+                [new TextEdit(new Range(new Position(3, 0), new Position(3, 15)), 'use Hello\World;')]
             );
         }
 

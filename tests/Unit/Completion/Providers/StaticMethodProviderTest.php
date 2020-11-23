@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Test\Unit\Completion;
+namespace LanguageServer\Test\Unit\Completion\Providers;
 
-use LanguageServer\Completion\StaticMethodProvider;
+use LanguageServer\Completion\Providers\StaticMethodProvider;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;

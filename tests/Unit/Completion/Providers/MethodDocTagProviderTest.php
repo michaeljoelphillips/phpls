@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Test\Unit\Completion;
+namespace LanguageServer\Test\Unit\Completion\Providers;
 
-use LanguageServer\Completion\MethodDocTagProvider;
+use LanguageServer\Completion\Providers\MethodDocTagProvider;
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
 use PhpParser\Node\Expr\ClassConstFetch;

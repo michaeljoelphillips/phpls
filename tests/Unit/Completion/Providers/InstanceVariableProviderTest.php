@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Test\Unit\Completion;
+namespace LanguageServer\Test\Unit\Completion\Providers;
 
 use InvalidArgumentException;
-use LanguageServer\Completion\InstanceVariableProvider;
+use LanguageServer\Completion\Providers\InstanceVariableProvider;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\Variable;

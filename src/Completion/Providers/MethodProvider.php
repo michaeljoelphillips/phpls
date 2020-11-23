@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Completion;
+namespace LanguageServer\Completion\Providers;
 
+use LanguageServer\Completion\CompletionProvider;
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
 use LanguageServerProtocol\InsertTextFormat;
