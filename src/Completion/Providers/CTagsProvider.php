@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace LanguageServer\Completion\Providers;
 
 use CTags\Reader;
-use LanguageServer\Completion\CompletionProvider;
+use LanguageServer\Completion\DocumentBasedCompletionProvider;
+use LanguageServer\ParsedDocument;
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
 use LanguageServerProtocol\Position;
@@ -13,13 +14,12 @@ use LanguageServerProtocol\Range;
 use LanguageServerProtocol\TextEdit;
 use PhpParser\Node\Name;
 use PhpParser\NodeAbstract;
-use Roave\BetterReflection\Reflection\ReflectionClass;
 
 use function assert;
 use function file_exists;
 use function strlen;
 
-class CTagsProvider implements CompletionProvider
+class CTagsProvider implements DocumentBasedCompletionProvider
 {
     private string $projectRoot;
 
@@ -54,7 +54,7 @@ class CTagsProvider implements CompletionProvider
     /**
      * @return CompletionItem[]
      */
-    public function complete(NodeAbstract $expression, ReflectionClass $reflection): array
+    public function complete(NodeAbstract $expression, ParsedDocument $document): array
     {
         assert($expression instanceof Name);
 

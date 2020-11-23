@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace LanguageServer\Test\Unit\Completion\Providers;
 
 use LanguageServer\Completion\Providers\CTagsProvider;
+use LanguageServer\ParsedDocument;
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
 use PhpParser\Node\Name;
 use PhpParser\Node\Stmt\Class_;
 use PHPUnit\Framework\TestCase;
-use Roave\BetterReflection\Reflection\ReflectionClass;
 
 use function implode;
 use function in_array;
@@ -51,10 +51,10 @@ class CTagsProviderTest extends TestCase
 
     public function testComplete(): void
     {
-        $subject    = new CTagsProvider(self::TAGS_FIXTURE_DIR, 3);
-        $reflection = $this->createMock(ReflectionClass::class);
+        $subject  = new CTagsProvider(self::TAGS_FIXTURE_DIR, 3);
+        $document = $this->createMock(ParsedDocument::class);
 
-        $result = $subject->complete(new Name('Abstract'), $reflection);
+        $result = $subject->complete(new Name('Abstract'), $document);
 
         self::assertNotEmpty($result);
         self::assertContainsOnlyInstancesOf(CompletionItem::class, $result);

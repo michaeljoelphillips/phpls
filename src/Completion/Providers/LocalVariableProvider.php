@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace LanguageServer\Completion\Providers;
 
-use LanguageServer\Completion\CompletionProvider;
+use LanguageServer\Completion\DocumentBasedCompletionProvider;
+use LanguageServer\ParsedDocument;
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
 use PhpParser\Node\Expr\Closure;
@@ -12,7 +13,6 @@ use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\FunctionLike;
 use PhpParser\NodeAbstract;
 use PhpParser\NodeFinder;
-use Roave\BetterReflection\Reflection\ReflectionClass;
 
 use function array_map;
 use function array_merge;
@@ -23,7 +23,7 @@ use function is_string;
 
 use const SORT_REGULAR;
 
-class LocalVariableProvider implements CompletionProvider
+class LocalVariableProvider implements DocumentBasedCompletionProvider
 {
     private NodeFinder $finder;
 
@@ -35,11 +35,11 @@ class LocalVariableProvider implements CompletionProvider
     /**
      * @return CompletionItem[]
      */
-    public function complete(NodeAbstract $expression, ReflectionClass $reflection): array
+    public function complete(NodeAbstract $expression, ParsedDocument $document): array
     {
         assert($expression instanceof Variable);
 
-        $parentFunctionNode = $this->findParentFunctionOfVariableNode($expression, $reflection->getAst()->stmts);
+        $parentFunctionNode = $this->findParentFunctionOfVariableNode($expression, $document);
 
         if ($parentFunctionNode === null) {
             return [];
@@ -61,12 +61,9 @@ class LocalVariableProvider implements CompletionProvider
         return $completableVariables;
     }
 
-    /**
-     * @param array<int, NodeAbstract> $classAst
-     */
-    private function findParentFunctionOfVariableNode(Variable $variableNode, array $classAst): ?FunctionLike
+    private function findParentFunctionOfVariableNode(Variable $variableNode, ParsedDocument $document): ?FunctionLike
     {
-        $functionNodes = $this->finder->find($classAst, static function (NodeAbstract $node) use ($variableNode): bool {
+        $functionNodes = $this->finder->find($document->getNodes(), static function (NodeAbstract $node) use ($variableNode): bool {
             return $node instanceof FunctionLike
                 && $node->getEndFilePos() >= $variableNode->getEndFilePos()
                 && $node->getStartFilePos() <= $variableNode->getStartFilePos();

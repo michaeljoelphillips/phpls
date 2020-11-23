@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Completion\Providers;
 
-use LanguageServer\Completion\CompletionProvider;
+use LanguageServer\Completion\TypeBasedCompletionProvider;
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
 use PhpParser\Node\Expr\ClassConstFetch;
@@ -15,7 +15,7 @@ use Roave\BetterReflection\Reflection\ReflectionClassConstant;
 use function array_map;
 use function array_values;
 
-class ClassConstantProvider implements CompletionProvider
+class ClassConstantProvider implements TypeBasedCompletionProvider
 {
     /**
      * {@inheritdoc}

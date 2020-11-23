@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Completion\Providers;
 
-use LanguageServer\Completion\CompletionProvider;
+use LanguageServer\Completion\TypeBasedCompletionProvider;
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
 use PhpParser\Node\Expr\ClassConstFetch;
@@ -20,7 +20,7 @@ use function array_values;
 use function assert;
 use function implode;
 
-class StaticPropertyProvider implements CompletionProvider
+class StaticPropertyProvider implements TypeBasedCompletionProvider
 {
     /**
      * {@inheritdoc}

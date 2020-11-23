@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Completion\Providers;
 
-use LanguageServer\Completion\CompletionProvider;
+use LanguageServer\Completion\TypeBasedCompletionProvider;
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
 use LanguageServerProtocol\InsertTextFormat;
@@ -21,7 +21,7 @@ use function array_values;
 use function implode;
 use function sprintf;
 
-abstract class MethodProvider implements CompletionProvider
+abstract class MethodProvider implements TypeBasedCompletionProvider
 {
     /**
      * {@inheritdoc}

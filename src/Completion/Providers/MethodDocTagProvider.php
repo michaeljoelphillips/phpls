@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Completion\Providers;
 
-use LanguageServer\Completion\CompletionProvider;
+use LanguageServer\Completion\TypeBasedCompletionProvider;
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
 use PhpParser\Node\Expr\ClassConstFetch;
@@ -19,7 +19,7 @@ use function array_values;
 use function preg_match_all;
 use function sprintf;
 
-class MethodDocTagProvider implements CompletionProvider
+class MethodDocTagProvider implements TypeBasedCompletionProvider
 {
     /**
      * {@inheritdoc}
