@@ -19,6 +19,8 @@ use PhpParser\NodeFinder;
 use function array_filter;
 use function array_key_exists;
 use function array_key_last;
+use function array_map;
+use function array_merge;
 use function assert;
 use function explode;
 use function ltrim;
@@ -207,6 +209,26 @@ class ParsedDocument
         $useStatements = $this->finder->findInstanceOf($this->getNodes(), Use_::class);
 
         return $useStatements;
+    }
+
+    public function hasUseStatement(string $class): bool
+    {
+        $useStatements = array_merge(
+            ...array_map(
+                static function (Use_ $useStatement): array {
+                    return $useStatement->uses;
+                },
+                $this->getUseStatements()
+            )
+        );
+
+        foreach ($useStatements as $useStatement) {
+            if ($useStatement->name->toCodeString() === $class) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function getConstructorNode(): ?ClassMethod

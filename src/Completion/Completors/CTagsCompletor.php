@@ -9,14 +9,12 @@ use LanguageServer\Completion\DocumentCompletor;
 use LanguageServer\ParsedDocument;
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
-use LanguageServerProtocol\Position;
-use LanguageServerProtocol\Range;
-use LanguageServerProtocol\TextEdit;
 use PhpParser\Node;
 use PhpParser\Node\Name;
 
 use function assert;
 use function file_exists;
+use function stripslashes;
 use function strlen;
 
 class CTagsCompletor implements DocumentCompletor
@@ -71,13 +69,7 @@ class CTagsCompletor implements DocumentCompletor
             $completionItems[] = new CompletionItem(
                 $tag->name,
                 $this->completionItemKind($tag->fields['kind']),
-                $tag->fields['namespace'] ?? '',
-                null,
-                null,
-                null,
-                null,
-                null,
-                [new TextEdit(new Range(new Position(3, 0), new Position(3, 15)), 'use Hello\World;')]
+                $tag->fields['namespace'] !== null ? stripslashes($tag->fields['namespace']) : ''
             );
         }
 

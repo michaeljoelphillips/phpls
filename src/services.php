@@ -71,6 +71,7 @@ use Symfony\Component\Console\Application;
 use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
+use LanguageServer\Completion\Completors\UseStatementImporter;
 
 return [
     LanguageServer::class => static function (ContainerInterface $container) {
@@ -206,7 +207,7 @@ return [
             }
         );
     },
-    CTagsCompletor::class => static function (ContainerInterface $container) {
+    'ctagscompletor' => static function (ContainerInterface $container) {
         $factory = new LazyLoadingValueHolderFactory();
 
         return $factory->createProxy(
@@ -215,7 +216,7 @@ return [
                 $initializer = null;
                 $config      = $container->get('config')['ctags'];
 
-                $wrappedObject = new CTagsCompletor($container->get('project_root'), $config['completion']['keyword_length']);
+                $wrappedObject = new UseStatementImporter(new CTagsCompletor($container->get('project_root'), $config['completion']['keyword_length']));
             }
         );
     },
@@ -230,7 +231,7 @@ return [
     },
     TextDocumentRegistry::class => DI\create(TextDocumentRegistry::class),
     'documentCompletors' => [
-        DI\get(CTagsCompletor::class),
+        DI\get('ctagscompletor'),
         DI\get(LocalVariableCompletor::class),
     ],
     'reflectionCompletors' => [
