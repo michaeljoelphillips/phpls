@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test\Unit\Completion\Providers;
 
-use LanguageServer\Completion\Providers\CTagsProvider;
+use LanguageServer\Completion\Completors\CTagsCompletor;
 use LanguageServer\ParsedDocument;
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
@@ -16,7 +16,7 @@ use function implode;
 use function in_array;
 use function sprintf;
 
-class CTagsProviderTest extends TestCase
+class CTagsCompletorTest extends TestCase
 {
     private const TAGS_FIXTURE_DIR = __DIR__ . '/../../../fixtures/tags-fixture';
 
@@ -27,7 +27,7 @@ class CTagsProviderTest extends TestCase
 
     public function testProviderDoesCannotCompleteWhenATagsFileCannotBeFound(): void
     {
-        $subject = new CTagsProvider('/tmp', 3);
+        $subject = new CTagsCompletor('/tmp', 3);
 
         $this->assertFalse($subject->supports(new Name('foo')));
         $this->assertFalse($subject->supports(new Class_('foo')));
@@ -35,14 +35,14 @@ class CTagsProviderTest extends TestCase
 
     public function testProviderCompletesWhenTagsFileCanBeFound(): void
     {
-        $subject = new CTagsProvider(self::TAGS_FIXTURE_DIR, 3);
+        $subject = new CTagsCompletor(self::TAGS_FIXTURE_DIR, 3);
 
         $this->assertTrue($subject->supports(new Name('foo')));
     }
 
     public function testProviderDoesNotCompleteOnNamesSmallerThanTheMinimumKeywordLength(): void
     {
-        $subject = new CTagsProvider(self::TAGS_FIXTURE_DIR, 3);
+        $subject = new CTagsCompletor(self::TAGS_FIXTURE_DIR, 3);
 
         $this->assertFalse($subject->supports(new Name('f')));
         $this->assertFalse($subject->supports(new Name('fo')));
@@ -51,7 +51,7 @@ class CTagsProviderTest extends TestCase
 
     public function testComplete(): void
     {
-        $subject  = new CTagsProvider(self::TAGS_FIXTURE_DIR, 3);
+        $subject  = new CTagsCompletor(self::TAGS_FIXTURE_DIR, 3);
         $document = $this->createMock(ParsedDocument::class);
 
         $result = $subject->complete(new Name('Abstract'), $document);

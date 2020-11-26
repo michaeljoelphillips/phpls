@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace LanguageServer\Test\Unit\Completion\Providers;
 
 use InvalidArgumentException;
-use LanguageServer\Completion\Providers\InstanceMethodProvider;
+use LanguageServer\Completion\Completors\InstanceMethodCompletor;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\Variable;
 use PHPUnit\Framework\TestCase;
@@ -15,18 +15,18 @@ use Roave\BetterReflection\Reflection\ReflectionMethod;
 use Roave\BetterReflection\Reflection\ReflectionType;
 use stdClass;
 
-class InstanceMethodProviderTest extends TestCase
+class InstanceMethodCompletorTest extends TestCase
 {
     public function testSupports(): void
     {
-        $subject = new InstanceMethodProvider();
+        $subject = new InstanceMethodCompletor();
 
         $this->assertTrue($subject->supports(new PropertyFetch(new Variable('foo'), 'bar')));
     }
 
     public function testCompleteWithReturnTypeDeclarations(): void
     {
-        $subject = new InstanceMethodProvider();
+        $subject = new InstanceMethodCompletor();
 
         $expression = new PropertyFetch(new Variable('foo'), 'bar');
         $reflection = $this->createMock(ReflectionClass::class);
@@ -72,7 +72,7 @@ class InstanceMethodProviderTest extends TestCase
 
     public function testCompleteWithDocBlockReturnTypes(): void
     {
-        $subject = new InstanceMethodProvider();
+        $subject = new InstanceMethodCompletor();
 
         $expression = new PropertyFetch(new Variable('foo'), 'bar');
         $reflection = $this->createMock(ReflectionClass::class);
@@ -117,7 +117,7 @@ class InstanceMethodProviderTest extends TestCase
 
     public function testCompleteWithInvalidDocblockType(): void
     {
-        $subject = new InstanceMethodProvider();
+        $subject = new InstanceMethodCompletor();
 
         $expression = new PropertyFetch(new Variable('foo'), 'bar');
         $reflection = $this->createMock(ReflectionClass::class);
@@ -142,7 +142,7 @@ class InstanceMethodProviderTest extends TestCase
 
     public function testCompleteOnNullableType(): void
     {
-        $subject = new InstanceMethodProvider();
+        $subject = new InstanceMethodCompletor();
 
         $expression = new PropertyFetch(new Variable('foo'), 'bar');
         $reflection = $this->createMock(ReflectionClass::class);
@@ -187,7 +187,7 @@ class InstanceMethodProviderTest extends TestCase
 
     public function testCompleteReturnsOnlyNonStaticMethods(): void
     {
-        $subject = new InstanceMethodProvider();
+        $subject = new InstanceMethodCompletor();
 
         $expression = new PropertyFetch(new Variable('foo'), 'bar');
         $reflection = $this->createMock(ReflectionClass::class);
@@ -215,7 +215,7 @@ class InstanceMethodProviderTest extends TestCase
      */
     public function testCompleteReturnsMethodsInScope(string $variable, stdClass $visibility, bool $expectation, bool $declaredOnParent = false): void
     {
-        $subject = new InstanceMethodProvider();
+        $subject = new InstanceMethodCompletor();
 
         $expression = new PropertyFetch(new Variable($variable), 'bar');
         $reflection = $this->createMock(ReflectionClass::class);

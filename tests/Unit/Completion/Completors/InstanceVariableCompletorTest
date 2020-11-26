@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace LanguageServer\Test\Unit\Completion\Providers;
 
 use InvalidArgumentException;
-use LanguageServer\Completion\Providers\InstanceVariableProvider;
+use LanguageServer\Completion\Completors\InstanceVariableCompletor;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\Variable;
@@ -15,11 +15,11 @@ use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionProperty;
 use Roave\BetterReflection\Reflection\ReflectionType;
 
-class InstanceVariableProviderTest extends TestCase
+class InstanceVariableCompletorTest extends TestCase
 {
     public function testSupports(): void
     {
-        $subject = new InstanceVariableProvider();
+        $subject = new InstanceVariableCompletor();
 
         $this->assertTrue($subject->supports(new PropertyFetch(new Variable('Foo'), 'bar')));
         $this->assertFalse($subject->supports(new ClassConstFetch(new Name('Foo'), 'bar')));
@@ -27,7 +27,7 @@ class InstanceVariableProviderTest extends TestCase
 
     public function testCompleteOnPropertiesWithDocblockTypes(): void
     {
-        $subject = new InstanceVariableProvider();
+        $subject = new InstanceVariableCompletor();
 
         $expression = new PropertyFetch(new Variable('this'), 'bar');
         $reflection = $this->createMock(ReflectionClass::class);
@@ -60,7 +60,7 @@ class InstanceVariableProviderTest extends TestCase
 
     public function testCompleteOnInvalidDocBlockTypes(): void
     {
-        $subject = new InstanceVariableProvider();
+        $subject = new InstanceVariableCompletor();
 
         $expression = new PropertyFetch(new Variable('this'), 'bar');
         $reflection = $this->createMock(ReflectionClass::class);
@@ -81,7 +81,7 @@ class InstanceVariableProviderTest extends TestCase
 
     public function testCompleteOnPropertiesWithNativeTypes(): void
     {
-        $subject = new InstanceVariableProvider();
+        $subject = new InstanceVariableCompletor();
 
         $expression = new PropertyFetch(new Variable('this'), 'bar');
         $reflection = $this->createMock(ReflectionClass::class);
@@ -121,7 +121,7 @@ class InstanceVariableProviderTest extends TestCase
      */
     public function testCompleteReturnsInstanceVariablesInScope(string $variable, bool $isPublic, bool $expected): void
     {
-        $subject = new InstanceVariableProvider();
+        $subject = new InstanceVariableCompletor();
 
         $expression = new PropertyFetch(new Variable($variable), 'bar');
         $reflection = $this->createMock(ReflectionClass::class);

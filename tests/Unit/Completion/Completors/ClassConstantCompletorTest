@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test\Unit\Completion\Providers;
 
-use LanguageServer\Completion\Providers\ClassConstantProvider;
+use LanguageServer\Completion\Completors\ClassConstantCompletor;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Name;
@@ -12,18 +12,18 @@ use PHPUnit\Framework\TestCase;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionClassConstant;
 
-class ClassConstantProviderTest extends TestCase
+class ClassConstantCompletorTest extends TestCase
 {
     public function testSupports(): void
     {
-        $subject = new ClassConstantProvider();
+        $subject = new ClassConstantCompletor();
 
         $this->assertTrue($subject->supports(new ClassConstFetch(new Name('Foo'), 'bar')));
     }
 
     public function testComplete(): void
     {
-        $subject = new ClassConstantProvider();
+        $subject = new ClassConstantCompletor();
 
         $expression = $this->createMock(Expr::class);
         $reflection = $this->createMock(ReflectionClass::class);

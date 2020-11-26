@@ -27,7 +27,7 @@ class TypeResolverBench
             ->addDefinitions(__DIR__ . '/../../../src/services.php')
             ->build();
 
-        $container->set('project_root', '/home/nomad/Code/hermes');
+        $container->set('project_root', '/app/hermes');
 
         $this->parser  = $container->get(Parser::class);
         $this->subject = $container->get(TypeResolver::class);
@@ -38,7 +38,7 @@ class TypeResolverBench
      */
     public function benchGetTypeOnPHPUnitMockObject(): void
     {
-        $source = file_get_contents('/home/nomad/Code/hermes/tests/Unit/Twitch/SerializedTokenStorageTest.php');
+        $source = file_get_contents('/app/hermes/tests/Unit/Twitch/SerializedTokenStorageTest.php');
         assert(is_string($source));
 
         $nodes    = $this->parser->parse($source);

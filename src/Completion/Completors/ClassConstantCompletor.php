@@ -2,25 +2,25 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Completion\Providers;
+namespace LanguageServer\Completion\Completors;
 
-use LanguageServer\Completion\TypeBasedCompletionProvider;
+use LanguageServer\Completion\ReflectionCompletor;
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
+use PhpParser\Node;
 use PhpParser\Node\Expr\ClassConstFetch;
-use PhpParser\NodeAbstract;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionClassConstant;
 
 use function array_map;
 use function array_values;
 
-class ClassConstantProvider implements TypeBasedCompletionProvider
+class ClassConstantCompletor implements ReflectionCompletor
 {
     /**
      * {@inheritdoc}
      */
-    public function complete(NodeAbstract $expression, ReflectionClass $reflection): array
+    public function complete(Node $expression, ReflectionClass $reflection): array
     {
         return array_values(array_map(
             static function (ReflectionClassConstant $constant) {
@@ -35,7 +35,7 @@ class ClassConstantProvider implements TypeBasedCompletionProvider
         ));
     }
 
-    public function supports(NodeAbstract $expression): bool
+    public function supports(Node $expression): bool
     {
         return $expression instanceof ClassConstFetch;
     }

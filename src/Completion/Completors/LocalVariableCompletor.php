@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Completion\Providers;
+namespace LanguageServer\Completion\Completors;
 
-use LanguageServer\Completion\DocumentBasedCompletionProvider;
+use LanguageServer\Completion\DocumentCompletor;
 use LanguageServer\ParsedDocument;
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
+use PhpParser\Node;
 use PhpParser\Node\Expr\Closure;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\FunctionLike;
-use PhpParser\NodeAbstract;
 use PhpParser\NodeFinder;
 
 use function array_map;
@@ -23,7 +23,7 @@ use function is_string;
 
 use const SORT_REGULAR;
 
-class LocalVariableProvider implements DocumentBasedCompletionProvider
+class LocalVariableCompletor implements DocumentCompletor
 {
     private NodeFinder $finder;
 
@@ -35,7 +35,7 @@ class LocalVariableProvider implements DocumentBasedCompletionProvider
     /**
      * @return CompletionItem[]
      */
-    public function complete(NodeAbstract $expression, ParsedDocument $document): array
+    public function complete(Node $expression, ParsedDocument $document): array
     {
         assert($expression instanceof Variable);
 
@@ -63,7 +63,7 @@ class LocalVariableProvider implements DocumentBasedCompletionProvider
 
     private function findParentFunctionOfVariableNode(Variable $variableNode, ParsedDocument $document): ?FunctionLike
     {
-        $functionNodes = $this->finder->find($document->getNodes(), static function (NodeAbstract $node) use ($variableNode): bool {
+        $functionNodes = $this->finder->find($document->getNodes(), static function (Node $node) use ($variableNode): bool {
             return $node instanceof FunctionLike
                 && $node->getEndFilePos() >= $variableNode->getEndFilePos()
                 && $node->getStartFilePos() <= $variableNode->getStartFilePos();
@@ -87,7 +87,7 @@ class LocalVariableProvider implements DocumentBasedCompletionProvider
         );
 
         /** @var array<int, Variable> $nodes */
-        $nodes = $this->finder->find($nodes, static function (NodeAbstract $node) use ($variableNode): bool {
+        $nodes = $this->finder->find($nodes, static function (Node $node) use ($variableNode): bool {
             return $node instanceof Variable
                 && $node->getStartFilePos() < $variableNode->getStartFilePos();
         });
@@ -95,7 +95,7 @@ class LocalVariableProvider implements DocumentBasedCompletionProvider
         return $nodes;
     }
 
-    public function supports(NodeAbstract $expression): bool
+    public function supports(Node $expression): bool
     {
         return $expression instanceof Variable;
     }

@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Completion\Providers;
+namespace LanguageServer\Completion\Completors;
 
-use LanguageServer\Completion\TypeBasedCompletionProvider;
+use LanguageServer\Completion\ReflectionCompletor;
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
+use PhpParser\Node;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Name;
-use PhpParser\NodeAbstract;
 use ReflectionProperty as CoreReflectionProperty;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionProperty;
@@ -20,12 +20,12 @@ use function array_values;
 use function assert;
 use function implode;
 
-class StaticPropertyProvider implements TypeBasedCompletionProvider
+class StaticPropertyCompletor implements ReflectionCompletor
 {
     /**
      * {@inheritdoc}
      */
-    public function complete(NodeAbstract $expression, ReflectionClass $reflection): array
+    public function complete(Node $expression, ReflectionClass $reflection): array
     {
         $properties = array_filter(
             $reflection->getProperties(CoreReflectionProperty::IS_STATIC),
@@ -46,7 +46,7 @@ class StaticPropertyProvider implements TypeBasedCompletionProvider
         ));
     }
 
-    protected function filterMethod(NodeAbstract $expression, ReflectionClass $class, ReflectionProperty $property): bool
+    protected function filterMethod(Node $expression, ReflectionClass $class, ReflectionProperty $property): bool
     {
         if ($property->isPublic()) {
             return true;
@@ -71,7 +71,7 @@ class StaticPropertyProvider implements TypeBasedCompletionProvider
         return false;
     }
 
-    public function supports(NodeAbstract $expression): bool
+    public function supports(Node $expression): bool
     {
         return $expression instanceof ClassConstFetch;
     }

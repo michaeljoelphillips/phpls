@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Completion\Providers;
+namespace LanguageServer\Completion\Completors;
 
+use PhpParser\Node;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Identifier;
-use PhpParser\NodeAbstract;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionMethod;
 
@@ -14,14 +14,14 @@ use function assert;
 use function is_string;
 use function property_exists;
 
-class InstanceMethodProvider extends MethodProvider
+class InstanceMethodCompletor extends MethodCompletor
 {
-    public function supports(NodeAbstract $expression): bool
+    public function supports(Node $expression): bool
     {
         return $expression instanceof PropertyFetch;
     }
 
-    protected function filterMethod(NodeAbstract $expression, ReflectionClass $class, ReflectionMethod $method): bool
+    protected function filterMethod(Node $expression, ReflectionClass $class, ReflectionMethod $method): bool
     {
         if ($method->isStatic() === true) {
             return false;

@@ -7,6 +7,7 @@ namespace LanguageServer\Inference;
 use LanguageServer\ParsedDocument;
 use phpDocumentor\Reflection\DocBlock\Tags\Property as PropertyTag;
 use phpDocumentor\Reflection\DocBlockFactory;
+use PhpParser\Node;
 use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\MethodCall;
@@ -21,7 +22,6 @@ use PhpParser\Node\Param;
 use PhpParser\Node\Stmt\Expression;
 use PhpParser\Node\Stmt\Property;
 use PhpParser\Node\Stmt\UseUse;
-use PhpParser\NodeAbstract;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionProperty;
 use Roave\BetterReflection\Reflector\Reflector;
@@ -49,7 +49,7 @@ class TypeResolver
         $this->docblockFactory = DocBlockFactory::createInstance();
     }
 
-    public function getType(ParsedDocument $document, ?NodeAbstract $node): ?string
+    public function getType(ParsedDocument $document, ?Node $node): ?string
     {
         if ($node instanceof Variable) {
             return $this->getVariableType($document, $node);
@@ -179,7 +179,7 @@ class TypeResolver
         return $this->getType($document, $closestVariable);
     }
 
-    private function findClosestVariableReferencesInDocument(Variable $variable, ParsedDocument $document): ?NodeAbstract
+    private function findClosestVariableReferencesInDocument(Variable $variable, ParsedDocument $document): ?Node
     {
         $expressions = $this->findVariableReferencesInDocument($variable, $document);
 
@@ -193,13 +193,13 @@ class TypeResolver
     }
 
     /**
-     * @return NodeAbstract[]
+     * @return Node[]
      */
     private function findVariableReferencesInDocument(Variable $variable, ParsedDocument $document): array
     {
-        /** @var array<int, NodeAbstract> $nodes */
+        /** @var array<int, Node> $nodes */
         $nodes = $document->searchNodes(
-            static function (NodeAbstract $node) use ($variable): bool {
+            static function (Node $node) use ($variable): bool {
                 if (! $node instanceof Assign && ! $node instanceof Param) {
                     return false;
                 }
@@ -215,13 +215,13 @@ class TypeResolver
     }
 
     /**
-     * @param NodeAbstract[] $expressions
+     * @param Node[] $expressions
      *
-     * @return NodeAbstract[]
+     * @return Node[]
      */
     private function sortNodesByEndingLocation(array $expressions): array
     {
-        usort($expressions, static function (NodeAbstract $a, NodeAbstract $b) {
+        usort($expressions, static function (Node $a, Node $b) {
             return $a->getEndFilePos() <=> $b->getEndFilePos();
         });
 
@@ -363,7 +363,7 @@ class TypeResolver
 
         $propertyAssignment = array_values(array_filter(
             $constructor->stmts ?? [],
-            static function (NodeAbstract $node) use ($property) {
+            static function (Node $node) use ($property) {
                 if (($node instanceof Expression && $node->expr instanceof Assign) === false) {
                     return false;
                 }

@@ -2,24 +2,24 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Completion\Providers;
+namespace LanguageServer\Completion\Completors;
 
+use PhpParser\Node;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Name;
-use PhpParser\NodeAbstract;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionMethod;
 
 use function assert;
 
-class StaticMethodProvider extends MethodProvider
+class StaticMethodCompletor extends MethodCompletor
 {
-    public function supports(NodeAbstract $expression): bool
+    public function supports(Node $expression): bool
     {
         return $expression instanceof ClassConstFetch;
     }
 
-    protected function filterMethod(NodeAbstract $expression, ReflectionClass $class, ReflectionMethod $method): bool
+    protected function filterMethod(Node $expression, ReflectionClass $class, ReflectionMethod $method): bool
     {
         if ($method->isStatic() === false) {
             return false;

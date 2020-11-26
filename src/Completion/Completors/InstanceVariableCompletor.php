@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Completion\Providers;
+namespace LanguageServer\Completion\Completors;
 
-use LanguageServer\Completion\TypeBasedCompletionProvider;
+use LanguageServer\Completion\ReflectionCompletor;
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
+use PhpParser\Node;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\Variable;
-use PhpParser\NodeAbstract;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionProperty;
 use Throwable;
@@ -20,12 +20,12 @@ use function array_values;
 use function assert;
 use function implode;
 
-class InstanceVariableProvider implements TypeBasedCompletionProvider
+class InstanceVariableCompletor implements ReflectionCompletor
 {
     /**
      * {@inheritdoc}
      */
-    public function complete(NodeAbstract $expression, ReflectionClass $reflection): array
+    public function complete(Node $expression, ReflectionClass $reflection): array
     {
         assert($expression instanceof PropertyFetch);
 
@@ -82,7 +82,7 @@ class InstanceVariableProvider implements TypeBasedCompletionProvider
         return false;
     }
 
-    public function supports(NodeAbstract $expression): bool
+    public function supports(Node $expression): bool
     {
         return $expression instanceof PropertyFetch && $expression->var instanceof Variable;
     }

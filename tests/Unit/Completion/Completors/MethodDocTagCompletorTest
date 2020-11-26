@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test\Unit\Completion\Providers;
 
-use LanguageServer\Completion\Providers\MethodDocTagProvider;
+use LanguageServer\Completion\Completors\MethodDocTagCompletor;
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
 use PhpParser\Node\Expr\ClassConstFetch;
@@ -15,11 +15,11 @@ use PhpParser\Node\Name;
 use PHPUnit\Framework\TestCase;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 
-class MethodDocTagProviderTest extends TestCase
+class MethodDocTagCompletorTest extends TestCase
 {
     public function testCompletionOnInstanceMethodsFromClassMethodDocblock(): void
     {
-        $subject = new MethodDocTagProvider();
+        $subject = new MethodDocTagCompletor();
 
         $expression = new PropertyFetch(new Variable('foo'), 'bar');
         $reflection = $this->createMock(ReflectionClass::class);
@@ -52,7 +52,7 @@ EOF
 
     public function testCompletionOnStaticMethodsFromClassMethodDocblock(): void
     {
-        $subject = new MethodDocTagProvider();
+        $subject = new MethodDocTagCompletor();
 
         $expression = new ClassConstFetch(new Name('Foo'), new Identifier('foo'));
         $reflection = $this->createMock(ReflectionClass::class);

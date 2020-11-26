@@ -2,15 +2,16 @@
 
 declare(strict_types=1);
 
-use LanguageServer\Completion\Providers\ClassConstantProvider;
-use LanguageServer\Completion\Providers\CTagsProvider;
-use LanguageServer\Completion\Providers\InstanceMethodProvider;
-use LanguageServer\Completion\Providers\InstanceVariableProvider;
-use LanguageServer\Completion\Providers\LocalVariableProvider;
-use LanguageServer\Completion\Providers\MethodDocTagProvider;
-use LanguageServer\Completion\Providers\PropertyDocTagProvider;
-use LanguageServer\Completion\Providers\StaticMethodProvider;
-use LanguageServer\Completion\Providers\StaticPropertyProvider;
+use LanguageServer\Completion\CompletionProvider;
+use LanguageServer\Completion\Completors\ClassConstantCompletor;
+use LanguageServer\Completion\Completors\CTagsCompletor;
+use LanguageServer\Completion\Completors\InstanceMethodCompletor;
+use LanguageServer\Completion\Completors\InstanceVariableCompletor;
+use LanguageServer\Completion\Completors\LocalVariableCompletor;
+use LanguageServer\Completion\Completors\MethodDocTagCompletor;
+use LanguageServer\Completion\Completors\PropertyDocTagCompletor;
+use LanguageServer\Completion\Completors\StaticMethodCompletor;
+use LanguageServer\Completion\Completors\StaticPropertyCompletor;
 use LanguageServer\Config\ConfigFactory;
 use LanguageServer\Console\RunCommand;
 use LanguageServer\Diagnostics\DiagnosticService;
@@ -205,16 +206,16 @@ return [
             }
         );
     },
-    CTagsProvider::class => static function (ContainerInterface $container) {
+    CTagsCompletor::class => static function (ContainerInterface $container) {
         $factory = new LazyLoadingValueHolderFactory();
 
         return $factory->createProxy(
-            CTagsProvider::class,
+            CTagsCompletor::class,
             static function (&$wrappedObject, $proxy, $method, $parameters, &$initializer) use ($container): void {
                 $initializer = null;
                 $config      = $container->get('config')['ctags'];
 
-                $wrappedObject = new CTagsProvider($container->get('project_root'), $config['completion']['keyword_length']);
+                $wrappedObject = new CTagsCompletor($container->get('project_root'), $config['completion']['keyword_length']);
             }
         );
     },
@@ -228,16 +229,18 @@ return [
         return new TypeResolver($container->get(ClassReflector::class));
     },
     TextDocumentRegistry::class => DI\create(TextDocumentRegistry::class),
-    'completionProviders' => [
-        DI\get(LocalVariableProvider::class),
-        DI\get(InstanceMethodProvider::class),
-        DI\get(StaticMethodProvider::class),
-        DI\get(InstanceVariableProvider::class),
-        DI\get(StaticPropertyProvider::class),
-        DI\get(ClassConstantProvider::class),
-        DI\get(MethodDocTagProvider::class),
-        DI\get(PropertyDocTagProvider::class),
-        DI\get(CTagsProvider::class),
+    'documentCompletors' => [
+        DI\get(CTagsCompletor::class),
+        DI\get(LocalVariableCompletor::class),
+    ],
+    'reflectionCompletors' => [
+        DI\get(InstanceMethodCompletor::class),
+        DI\get(StaticMethodCompletor::class),
+        DI\get(InstanceVariableCompletor::class),
+        DI\get(StaticPropertyCompletor::class),
+        DI\get(ClassConstantCompletor::class),
+        DI\get(MethodDocTagCompletor::class),
+        DI\get(PropertyDocTagCompletor::class),
     ],
     'messageHandlers' => [
         DI\get(Initialize::class),
@@ -254,10 +257,15 @@ return [
     Completion::class => static function (ContainerInterface $container) {
         return new Completion(
             $container->get(TextDocumentRegistry::class),
+            $container->get(CompletionProvider::class)
+        );
+    },
+    CompletionProvider::class => static function (ContainerInterface $container) {
+        return new CompletionProvider(
             $container->get(ClassReflector::class),
             $container->get(TypeResolver::class),
-            $container->get(LoggerInterface::class)->withName('completion'),
-            ...$container->get('completionProviders')
+            $container->get('documentCompletors'),
+            $container->get('reflectionCompletors')
         );
     },
     Definition::class => static function (ContainerInterface $container) {

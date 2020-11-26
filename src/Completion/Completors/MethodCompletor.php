@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Completion\Providers;
+namespace LanguageServer\Completion\Completors;
 
-use LanguageServer\Completion\TypeBasedCompletionProvider;
+use LanguageServer\Completion\ReflectionCompletor;
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
 use LanguageServerProtocol\InsertTextFormat;
-use PhpParser\NodeAbstract;
+use PhpParser\Node;
 use Reflection;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionMethod;
@@ -21,12 +21,12 @@ use function array_values;
 use function implode;
 use function sprintf;
 
-abstract class MethodProvider implements TypeBasedCompletionProvider
+abstract class MethodCompletor implements ReflectionCompletor
 {
     /**
      * {@inheritdoc}
      */
-    public function complete(NodeAbstract $expression, ReflectionClass $class): array
+    public function complete(Node $expression, ReflectionClass $class): array
     {
         $instanceMethods = array_filter(
             $class->getMethods(),
@@ -39,7 +39,7 @@ abstract class MethodProvider implements TypeBasedCompletionProvider
         return array_values(array_map(fn (ReflectionMethod $method) => $this->buildCompletionItem($method), $instanceMethods));
     }
 
-    abstract protected function filterMethod(NodeAbstract $expression, ReflectionClass $class, ReflectionMethod $method): bool;
+    abstract protected function filterMethod(Node $expression, ReflectionClass $class, ReflectionMethod $method): bool;
 
     private function buildCompletionItem(ReflectionMethod $method): CompletionItem
     {

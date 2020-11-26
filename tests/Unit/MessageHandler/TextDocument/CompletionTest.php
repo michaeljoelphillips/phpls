@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace LanguageServer\Test\Unit\MessageHandler\TextDocument;
 
-use LanguageServer\Completion\Providers\InstanceMethodProvider;
-use LanguageServer\Completion\Providers\InstanceVariableProvider;
+use LanguageServer\Completion\CompletionProvider;
+use LanguageServer\Completion\Completors\InstanceMethodCompletor;
+use LanguageServer\Completion\Completors\InstanceVariableCompletor;
 use LanguageServer\Inference\TypeResolver;
 use LanguageServer\MessageHandler\TextDocument\Completion;
 use LanguageServer\Server\Protocol\RequestMessage;
@@ -14,7 +15,6 @@ use LanguageServer\Test\Unit\ParserTestCase;
 use LanguageServer\TextDocumentRegistry;
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionList;
-use Psr\Log\LoggerInterface;
 
 class CompletionTest extends ParserTestCase
 {
@@ -27,14 +27,17 @@ class CompletionTest extends ParserTestCase
         $classReflector = $this->getClassReflector();
         $typeResolver   = new TypeResolver($classReflector);
 
-        $this->subject = new Completion(
-            $this->registry,
+        $provider = new CompletionProvider(
             $classReflector,
             $typeResolver,
-            $this->createMock(LoggerInterface::class),
-            new InstanceMethodProvider(),
-            new InstanceVariableProvider(),
+            [],
+            [
+                new InstanceMethodCompletor(),
+                new InstanceVariableCompletor(),
+            ]
         );
+
+        $this->subject = new Completion($this->registry, $provider);
     }
 
     public function testCompleteWhenExpressionIsCompletable(): void

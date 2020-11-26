@@ -134,6 +134,18 @@ class ParsedDocument
         );
     }
 
+    /**
+     * @return Node[]
+     */
+    public function searchNodesAtCursor(CursorPosition $cursorPosition, callable $predicate): array
+    {
+        return $this->searchNodes(
+            static function (NodeAbstract $node) use ($cursorPosition, $predicate) {
+                return $cursorPosition->isWithin($node) && $predicate($node);
+            }
+        );
+    }
+
     public function getClassName(): string
     {
         $namespace = $this->getNamespace();

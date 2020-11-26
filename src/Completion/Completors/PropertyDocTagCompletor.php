@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Completion\Providers;
+namespace LanguageServer\Completion\Completors;
 
-use LanguageServer\Completion\TypeBasedCompletionProvider;
+use LanguageServer\Completion\ReflectionCompletor;
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
+use PhpParser\Node;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\PropertyFetch;
-use PhpParser\NodeAbstract;
 use Roave\BetterReflection\Reflection\ReflectionClass;
 
 use function array_column;
@@ -17,12 +17,12 @@ use function array_map;
 use function array_values;
 use function preg_match_all;
 
-class PropertyDocTagProvider implements TypeBasedCompletionProvider
+class PropertyDocTagCompletor implements ReflectionCompletor
 {
     /**
      * {@inheritdoc}
      */
-    public function complete(NodeAbstract $expression, ReflectionClass $reflection): array
+    public function complete(Node $expression, ReflectionClass $reflection): array
     {
         $properties = $this->parsePropertiesInDocblock($reflection->getDocComment());
 
@@ -69,7 +69,7 @@ class PropertyDocTagProvider implements TypeBasedCompletionProvider
         ));
     }
 
-    public function supports(NodeAbstract $expression): bool
+    public function supports(Node $expression): bool
     {
         return $expression instanceof PropertyFetch && ! $expression->var instanceof MethodCall;
     }

@@ -2,24 +2,24 @@
 
 declare(strict_types=1);
 
-namespace LanguageServer\Completion\Providers;
+namespace LanguageServer\Completion\Completors;
 
 use CTags\Reader;
-use LanguageServer\Completion\DocumentBasedCompletionProvider;
+use LanguageServer\Completion\DocumentCompletor;
 use LanguageServer\ParsedDocument;
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
 use LanguageServerProtocol\Position;
 use LanguageServerProtocol\Range;
 use LanguageServerProtocol\TextEdit;
+use PhpParser\Node;
 use PhpParser\Node\Name;
-use PhpParser\NodeAbstract;
 
 use function assert;
 use function file_exists;
 use function strlen;
 
-class CTagsProvider implements DocumentBasedCompletionProvider
+class CTagsCompletor implements DocumentCompletor
 {
     private string $projectRoot;
 
@@ -54,7 +54,7 @@ class CTagsProvider implements DocumentBasedCompletionProvider
     /**
      * @return CompletionItem[]
      */
-    public function complete(NodeAbstract $expression, ParsedDocument $document): array
+    public function complete(Node $expression, ParsedDocument $document): array
     {
         assert($expression instanceof Name);
 
@@ -102,7 +102,7 @@ class CTagsProvider implements DocumentBasedCompletionProvider
         }
     }
 
-    public function supports(NodeAbstract $expression): bool
+    public function supports(Node $expression): bool
     {
         return $this->resolveTagsFile() !== null
             && $expression instanceof Name
