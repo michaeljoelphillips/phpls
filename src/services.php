@@ -12,6 +12,7 @@ use LanguageServer\Completion\Completors\MethodDocTagCompletor;
 use LanguageServer\Completion\Completors\PropertyDocTagCompletor;
 use LanguageServer\Completion\Completors\StaticMethodCompletor;
 use LanguageServer\Completion\Completors\StaticPropertyCompletor;
+use LanguageServer\Completion\Completors\UseStatementImporter;
 use LanguageServer\Config\ConfigFactory;
 use LanguageServer\Console\RunCommand;
 use LanguageServer\Diagnostics\DiagnosticService;
@@ -71,7 +72,6 @@ use Symfony\Component\Console\Application;
 use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
-use LanguageServer\Completion\Completors\UseStatementImporter;
 
 return [
     LanguageServer::class => static function (ContainerInterface $container) {

@@ -246,11 +246,21 @@ class ParsedDocument
         return $constructor;
     }
 
-    public function getNamespace(): string
+    /**
+     * @todo: There is a big here if no namespace is defined
+     */
+    public function getNamespaceNode(): Namespace_
     {
         $namespace = $this->finder->findFirstInstanceOf($this->getNodes(), Namespace_::class);
 
         assert($namespace instanceof Namespace_);
+
+        return $namespace;
+    }
+
+    public function getNamespace(): string
+    {
+        $namespace = $this->getNamespaceNode();
 
         return (string) $namespace->name;
     }

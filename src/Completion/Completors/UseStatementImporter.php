@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace LanguageServer\Completion\Completors;
 
-use React\Socket\Server;
 use LanguageServer\Completion\DocumentCompletor;
 use LanguageServer\ParsedDocument;
 use LanguageServerProtocol\CompletionItem;
@@ -14,6 +13,8 @@ use LanguageServerProtocol\Range;
 use LanguageServerProtocol\TextEdit;
 use PhpParser\Node;
 
+use function array_key_last;
+use function count;
 use function in_array;
 use function sprintf;
 use function strlen;
@@ -43,21 +44,20 @@ class UseStatementImporter implements DocumentCompletor
             ->completor
             ->complete($expression, $document);
 
-        $useStatements = $document->getUseStatements();
+        $nextAvailableLine = $this->getNextUseStatementLine($document);
 
         foreach ($completionItems as $completionItem) {
-            if ($this->itemCanBeImported($completionItem) !== true) {
+            if ($this->itemCanBeImported($completionItem) === false) {
                 continue;
             }
 
-            $lastUseStatement = $useStatements[0];
-            $newUseStatement  = $this->buildUseStatement($completionItem);
+            $newUseStatement = $this->buildUseStatement($completionItem);
 
             $completionItem->additionalTextEdits = [
                 new TextEdit(
                     new Range(
-                        new Position($lastUseStatement->uses[0]->getEndLine() - 2, 0),
-                        new Position($lastUseStatement->uses[0]->getEndLine() - 2, strlen($newUseStatement) - 1),
+                        new Position($nextAvailableLine, 0),
+                        new Position($nextAvailableLine, strlen($newUseStatement) - 1),
                     ),
                     $newUseStatement
                 ),
@@ -67,6 +67,21 @@ class UseStatementImporter implements DocumentCompletor
         return $completionItems;
     }
 
+    private function getNextUseStatementLine(ParsedDocument $document): int
+    {
+        $useStatements = $document->getUseStatements();
+
+        if (count($useStatements) > 0) {
+            $lastUseStatement = $useStatements[array_key_last($useStatements)];
+
+            return $lastUseStatement->uses[array_key_last($lastUseStatement->uses)]->getEndLine();
+        }
+
+        $namespaceNode = $document->getNamespaceNode();
+
+        return $namespaceNode->getStartLine() + 1;
+    }
+
     private function itemCanBeImported(CompletionItem $completionItem): bool
     {
         return in_array($completionItem->kind, self::IMPORTABLE_COMPLETION_ITEM_KINDS);
@@ -74,7 +89,7 @@ class UseStatementImporter implements DocumentCompletor
 
     private function buildUseStatement(CompletionItem $completionItem): string
     {
-        return sprintf('%suse %s\\%s;', PHP_EOL, $completionItem->detail, $completionItem->label);
+        return sprintf('use %s\\%s;%s', $completionItem->detail, $completionItem->label, PHP_EOL);
     }
 
     public function supports(Node $node): bool
