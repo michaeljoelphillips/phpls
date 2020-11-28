@@ -58,7 +58,7 @@ class CTagsCompletorTest extends TestCase
 
         self::assertNotEmpty($result);
         self::assertContainsOnlyInstancesOf(CompletionItem::class, $result);
-        self::assertEquals('PhpBench\\\\Benchmark\\\\Metadata\\\\Annotations', $result[0]->detail);
+        self::assertEquals('PhpBench\Benchmark\Metadata\Annotations', $result[0]->detail);
         self::assertEquals('AbstractArrayAnnotation', $result[0]->label);
         self::assertEquals(CompletionItemKind::CLASS_, $result[0]->kind);
 

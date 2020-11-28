@@ -66,10 +66,12 @@ class CTagsCompletor implements DocumentCompletor
 
         $completionItems = [];
         foreach ($matchingTags as $tag) {
+            $namespace = stripslashes($tag->fields['namespace'] ?? '');
+
             $completionItems[] = new CompletionItem(
                 $tag->name,
                 $this->completionItemKind($tag->fields['kind']),
-                $tag->fields['namespace'] !== null ? stripslashes($tag->fields['namespace']) : ''
+                $namespace
             );
         }
 
