@@ -14,6 +14,7 @@ use LanguageServerProtocol\TextEdit;
 use PhpParser\Node;
 
 use function array_key_last;
+use function assert;
 use function count;
 use function in_array;
 use function sprintf;
@@ -89,7 +90,19 @@ class UseStatementImporter implements DocumentCompletor
 
     private function buildUseStatement(CompletionItem $completionItem): string
     {
-        return sprintf('use %s\\%s;%s', $completionItem->detail, $completionItem->label, PHP_EOL);
+        switch ($completionItem->kind) {
+            case CompletionItemKind::CLASS_:
+            case CompletionItemKind::INTERFACE:
+                $statement = sprintf('use %s\\%s;%s', $completionItem->detail, $completionItem->label, PHP_EOL);
+                break;
+
+            case CompletionItemKind::FUNCTION:
+                $statement = sprintf('use function %s\\%s;%s', $completionItem->detail, $completionItem->label, PHP_EOL);
+        }
+
+        assert(isset($statement));
+
+        return $statement;
     }
 
     public function supports(Node $node): bool
