@@ -34,7 +34,7 @@ class TypeResolverTest extends ParserTestCase
 
     public function setUp(): void
     {
-        $this->document = $this->parse('TypeResolverFixture.php');
+        $this->document = $this->parseFixture('TypeResolverFixture.php');
         $this->subject  = new TypeResolver($this->getClassReflector());
     }
 

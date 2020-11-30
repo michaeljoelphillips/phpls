@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LanguageServer\Completion\Completors;
 
 use LanguageServer\Completion\DocumentCompletor;
+use LanguageServer\Inference\TypeResolver;
 use LanguageServer\ParsedDocument;
 use LanguageServerProtocol\CompletionItem;
 use LanguageServerProtocol\CompletionItemKind;
@@ -17,19 +18,20 @@ use PhpParser\NodeFinder;
 use function array_map;
 use function array_merge;
 use function array_pop;
-use function array_unique;
 use function assert;
+use function count;
 use function is_string;
-
-use const SORT_REGULAR;
 
 class LocalVariableCompletor implements DocumentCompletor
 {
+    private TypeResolver $typeResolver;
+
     private NodeFinder $finder;
 
-    public function __construct()
+    public function __construct(TypeResolver $typeResolver)
     {
-        $this->finder = new NodeFinder();
+        $this->typeResolver = $typeResolver;
+        $this->finder       = new NodeFinder();
     }
 
     /**
@@ -45,20 +47,14 @@ class LocalVariableCompletor implements DocumentCompletor
             return [];
         }
 
-        $completableVariables = array_unique(array_map(
-            static function (Variable $variable): CompletionItem {
+        return array_map(
+            function (Variable $variable) use ($document): CompletionItem {
                 assert(is_string($variable->name));
 
-                return new CompletionItem($variable->name, CompletionItemKind::VARIABLE, '');
+                return new CompletionItem($variable->name, CompletionItemKind::VARIABLE, $this->typeResolver->getType($document, $variable) ?? '');
             },
             $this->findCompletableVariablesWithinFunction($parentFunctionNode, $expression)
-        ), SORT_REGULAR);
-
-        if ($parentFunctionNode instanceof Closure && $parentFunctionNode->static === false) {
-            $completableVariables[] = new CompletionItem('this', CompletionItemKind::VARIABLE, '');
-        }
-
-        return $completableVariables;
+        );
     }
 
     private function findParentFunctionOfVariableNode(Variable $variableNode, ParsedDocument $document): ?FunctionLike
@@ -86,13 +82,49 @@ class LocalVariableCompletor implements DocumentCompletor
             $function instanceof Closure ? $function->uses : []
         );
 
+        if ($function instanceof Closure && $function->static === false) {
+            $nodes[] = new Variable('this');
+        }
+
         /** @var array<int, Variable> $nodes */
         $nodes = $this->finder->find($nodes, static function (Node $node) use ($variableNode): bool {
             return $node instanceof Variable
                 && $node->getStartFilePos() < $variableNode->getStartFilePos();
         });
 
-        return $nodes;
+        return $this->uniqueVariableNodes($nodes);
+    }
+
+    /**
+     * @param array<int, Variable> $nodes
+     *
+     * @return array<int, Variable>
+     */
+    private function uniqueVariableNodes(array $nodes): array
+    {
+        $uniqueNodes = [];
+
+        for ($i = 0; $i < count($nodes); $i++) {
+            $isUnique = true;
+
+            for ($j = $i + 1; $j < count($nodes); $j++) {
+                if ($nodes[$i]->name !== $nodes[$j]->name) {
+                    continue;
+                }
+
+                $isUnique = false;
+
+                break;
+            }
+
+            if ($isUnique !== true) {
+                continue;
+            }
+
+            $uniqueNodes[] = $nodes[$i];
+        }
+
+        return $uniqueNodes;
     }
 
     public function supports(Node $expression): bool

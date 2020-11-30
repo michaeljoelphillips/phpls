@@ -21,14 +21,14 @@ class ParsedDocumentTest extends ParserTestCase
 {
     public function testGetClassName(): void
     {
-        $subject = $this->parse('ParsedDocumentFixture.php');
+        $subject = $this->parseFixture('ParsedDocumentFixture.php');
 
         $this->assertEquals('Fixtures\ParsedDocumentFixture', $subject->getClassName());
     }
 
     public function testGetMethod(): void
     {
-        $subject = $this->parse('ParsedDocumentFixture.php');
+        $subject = $this->parseFixture('ParsedDocumentFixture.php');
 
         $method = $subject->getMethod('testMethod');
 
@@ -38,7 +38,7 @@ class ParsedDocumentTest extends ParserTestCase
 
     public function testGetClassProperty(): void
     {
-        $subject = $this->parse('TypedPropertyFixture.php');
+        $subject = $this->parseFixture('TypedPropertyFixture.php');
 
         $property = $subject->getClassProperty('foo');
 
@@ -49,7 +49,7 @@ class ParsedDocumentTest extends ParserTestCase
 
     public function testGetClassPropertyWithNoProperty(): void
     {
-        $subject = $this->parse('TypedPropertyFixture.php');
+        $subject = $this->parseFixture('TypedPropertyFixture.php');
 
         $property = $subject->getClassProperty('baz');
 
@@ -58,7 +58,7 @@ class ParsedDocumentTest extends ParserTestCase
 
     public function testFindNodes(): void
     {
-        $subject = $this->parse('ParsedDocumentFixture.php');
+        $subject = $this->parseFixture('ParsedDocumentFixture.php');
 
         $nodes = $subject->findNodes(ClassMethod::class);
 
@@ -67,7 +67,7 @@ class ParsedDocumentTest extends ParserTestCase
 
     public function testSearchNodes(): void
     {
-        $subject = $this->parse('ParsedDocumentFixture.php');
+        $subject = $this->parseFixture('ParsedDocumentFixture.php');
 
         $nodes = $subject->searchNodes(
             static function (NodeAbstract $node) {
@@ -80,7 +80,7 @@ class ParsedDocumentTest extends ParserTestCase
 
     public function testGetUseStatements(): void
     {
-        $subject = $this->parse('ParsedDocumentFixture.php');
+        $subject = $this->parseFixture('ParsedDocumentFixture.php');
 
         $nodes = $subject->getUseStatements();
 
@@ -90,21 +90,21 @@ class ParsedDocumentTest extends ParserTestCase
 
     public function testGetNamespace(): void
     {
-        $subject = $this->parse('ParsedDocumentFixture.php');
+        $subject = $this->parseFixture('ParsedDocumentFixture.php');
 
         $this->assertEquals('Fixtures', $subject->getNamespace());
     }
 
     public function testGetSource(): void
     {
-        $subject = $this->parse('ParsedDocumentFixture.php');
+        $subject = $this->parseFixture('ParsedDocumentFixture.php');
 
         $this->assertEquals($this->loadFixture('ParsedDocumentFixture.php'), $subject->getSource());
     }
 
     public function testGetNodesAtCursor(): void
     {
-        $subject = $this->parse('ParsedDocumentFixture.php');
+        $subject = $this->parseFixture('ParsedDocumentFixture.php');
 
         $result = $subject->getNodesAtCursor(new CursorPosition(18, 36, 284));
 
@@ -113,7 +113,7 @@ class ParsedDocumentTest extends ParserTestCase
 
     public function testGetNodes(): void
     {
-        $subject = $this->parse('ParsedDocumentFixture.php');
+        $subject = $this->parseFixture('ParsedDocumentFixture.php');
 
         $result = $subject->getNodes();
 
@@ -123,7 +123,7 @@ class ParsedDocumentTest extends ParserTestCase
 
     public function testGetInnermostNodeAtCursor(): void
     {
-        $subject = $this->parse('ParsedDocumentFixture.php');
+        $subject = $this->parseFixture('ParsedDocumentFixture.php');
         $result  = $subject->getInnermostNodeAtCursor(new CursorPosition(25, 19, 379));
 
         assert($result instanceof Name);
@@ -134,7 +134,7 @@ class ParsedDocumentTest extends ParserTestCase
 
     public function testGetInntermostNodesAtCursorWhenCursorIsNotWithinAnyNodes(): void
     {
-        $subject = $this->parse('ParsedDocumentFixture.php');
+        $subject = $this->parseFixture('ParsedDocumentFixture.php');
         $result  = $subject->getInnermostNodeAtCursor(new CursorPosition(25, 900, 999));
 
         $this->assertNull($result);
@@ -142,7 +142,7 @@ class ParsedDocumentTest extends ParserTestCase
 
     public function testGetConstructorNodeWhenNoConstructorPresent(): void
     {
-        $subject = $this->parse('ParsedDocumentFixture.php');
+        $subject = $this->parseFixture('ParsedDocumentFixture.php');
 
         $constructor = $subject->getConstructorNode();
 
@@ -151,7 +151,7 @@ class ParsedDocumentTest extends ParserTestCase
 
     public function testGetConstructorNode(): void
     {
-        $subject = $this->parse('NoConstructor.php');
+        $subject = $this->parseFixture('NoConstructor.php');
 
         $constructor = $subject->getConstructorNode();
         assert($constructor !== null);
@@ -161,14 +161,14 @@ class ParsedDocumentTest extends ParserTestCase
 
     public function testGetColumnPositions(): void
     {
-        $subject = $this->parse('ParsedDocumentFixture.php');
+        $subject = $this->parseFixture('ParsedDocumentFixture.php');
 
         self::assertEquals([8, 38], $subject->getColumnPositions(17));
     }
 
     public function testGetColumnPositionsWhenLineIsOutOfBounds(): void
     {
-        $subject = $this->parse('ParsedDocumentFixture.php');
+        $subject = $this->parseFixture('ParsedDocumentFixture.php');
 
         $this->expectException(OutOfBoundsException::class);
 
@@ -180,7 +180,7 @@ class ParsedDocumentTest extends ParserTestCase
      */
     public function testGetCursorPosition(int $line, int $character, int $expected): void
     {
-        $subject = $this->parse('ParsedDocumentFixture.php');
+        $subject = $this->parseFixture('ParsedDocumentFixture.php');
 
         self::assertEquals($expected, $subject->getCursorPosition($line, $character)->getRelativePosition());
     }

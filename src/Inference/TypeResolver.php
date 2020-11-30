@@ -8,6 +8,7 @@ use LanguageServer\ParsedDocument;
 use phpDocumentor\Reflection\DocBlock\Tags\Property as PropertyTag;
 use phpDocumentor\Reflection\DocBlockFactory;
 use PhpParser\Node;
+use PhpParser\Node\Expr\ArrayDimFetch;
 use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\MethodCall;
@@ -204,10 +205,14 @@ class TypeResolver
                     return false;
                 }
 
+                if ($node->var instanceof ArrayDimFetch) {
+                    return false;
+                }
+
                 assert(property_exists($node->var, 'name'));
 
                 return $node->var->name === $variable->name
-                    && $node->getEndFilePos() < $variable->getEndFilePos();
+                    && $node->getEndFilePos() <= $variable->getEndFilePos();
             }
         );
 
