@@ -98,6 +98,17 @@ class TypeResolverFixture extends ParentFixture
 
         return $variable->publicProperty;
     }
+
+    public function getTypeForScalarParameter(string $foo): void
+    {
+        return;
+    }
+
+    public function getTypeForScalarReturnValue(): string
+    {
+        return 'scalar';
+    }
+
 }
 
 abstract class ParentFixture

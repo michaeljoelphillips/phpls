@@ -41,6 +41,18 @@ use function usort;
 
 class TypeResolver
 {
+    private const SIMPLE_TYPES = [
+        'int',
+        'void',
+        'bool',
+        'float',
+        'array',
+        'object',
+        'string',
+        'iterable',
+        'callable',
+    ];
+
     private Reflector $reflector;
     private DocBlockFactory $docblockFactory;
 
@@ -73,6 +85,10 @@ class TypeResolver
 
         if ($node instanceof Name) {
             return $this->getTypeFromClassReference($document, $node);
+        }
+
+        if ($node instanceof Identifier) {
+            return $this->getTypeForIdentifier($document, $node);
         }
 
         if ($node instanceof Assign) {
@@ -155,7 +171,16 @@ class TypeResolver
             }
         }
 
+        if ($this->isScalarType($returnType)) {
+            return $returnType;
+        }
+
         return $this->getType($document, new Name($returnType));
+    }
+
+    private function isScalarType(string $returnType): bool
+    {
+        return in_array($returnType, self::SIMPLE_TYPES);
     }
 
     /**
@@ -180,6 +205,9 @@ class TypeResolver
         return $this->getType($document, $closestVariable);
     }
 
+    /**
+     * @return Assign|Param
+     */
     private function findClosestVariableReferencesInDocument(Variable $variable, ParsedDocument $document): ?Node
     {
         $expressions = $this->findVariableReferencesInDocument($variable, $document);
@@ -188,17 +216,18 @@ class TypeResolver
             return null;
         }
 
+        /** @var array<int, Param|Assign> $orderedExpressions */
         $orderedExpressions = $this->sortNodesByEndingLocation($expressions);
 
         return array_pop($orderedExpressions);
     }
 
     /**
-     * @return Node[]
+     * @return array<int, Assign|Param>
      */
     private function findVariableReferencesInDocument(Variable $variable, ParsedDocument $document): array
     {
-        /** @var array<int, Node> $nodes */
+        /** @var array<int, Assign|Param> $nodes */
         $nodes = $document->searchNodes(
             static function (Node $node) use ($variable): bool {
                 if (! $node instanceof Assign && ! $node instanceof Param) {
@@ -222,7 +251,7 @@ class TypeResolver
     /**
      * @param Node[] $expressions
      *
-     * @return Node[]
+     * @return array<int, Node>
      */
     private function sortNodesByEndingLocation(array $expressions): array
     {
@@ -278,6 +307,15 @@ class TypeResolver
         }
 
         return array_pop($matchingUseStatement)->name->toCodeString();
+    }
+
+    private function getTypeForIdentifier(ParsedDocument $document, Identifier $identifier): ?string
+    {
+        if (in_array($identifier->toLowerString(), self::SIMPLE_TYPES) === true) {
+            return $identifier->toLowerString();
+        }
+
+        return null;
     }
 
     private function getPropertyType(ParsedDocument $document, PropertyFetch $property): ?string
