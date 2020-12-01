@@ -37,7 +37,7 @@ class SignatureHelpTest extends ParserTestCase
 
     public function testSignatureHelpReturnsEmptyResponseWhenNoExpressionFound(): void
     {
-        $document = $this->parse('SignatureHelpFixture.php');
+        $document = $this->parseFixture('SignatureHelpFixture.php');
 
         $this->registry->add($document);
 
@@ -60,7 +60,7 @@ class SignatureHelpTest extends ParserTestCase
 
     public function testSignatureHelpReturnsEmptyResponseWhenNoConstructorFound(): void
     {
-        $document = $this->parse('SignatureHelpFixture.php');
+        $document = $this->parseFixture('SignatureHelpFixture.php');
 
         $this->registry->add($document);
 
@@ -86,7 +86,7 @@ class SignatureHelpTest extends ParserTestCase
      */
     public function testSignatureHelp(int $line, int $character, int $activeParameter, bool $signatureFound, ?string $label): void
     {
-        $document = $this->parse('SignatureHelpFixture.php');
+        $document = $this->parseFixture('SignatureHelpFixture.php');
 
         $this->registry->add($document);
 

@@ -42,7 +42,7 @@ class CompletionTest extends ParserTestCase
 
     public function testCompleteWhenExpressionIsCompletable(): void
     {
-        $document = $this->parse('CompletionProviderFixture.php');
+        $document = $this->parseFixture('CompletionProviderFixture.php');
 
         $this->registry->add($document);
 
@@ -69,7 +69,7 @@ class CompletionTest extends ParserTestCase
 
     public function testCompleteWhenExpressionIsNotCompletable(): void
     {
-        $document = $this->parse('TypeResolverFixture.php');
+        $document = $this->parseFixture('TypeResolverFixture.php');
 
         $this->registry->add($document);
 
@@ -94,7 +94,7 @@ class CompletionTest extends ParserTestCase
 
     public function testCompleteWhenTypeCannotBeResolved(): void
     {
-        $document = $this->parse('CompletionProviderFixture.php');
+        $document = $this->parseFixture('CompletionProviderFixture.php');
 
         $this->registry->add($document);
 
@@ -120,7 +120,7 @@ class CompletionTest extends ParserTestCase
 
     public function testCompleteWithPartialIdentifier(): void
     {
-        $document = $this->parse('CompletionProviderFixture.php');
+        $document = $this->parseFixture('CompletionProviderFixture.php');
 
         $this->registry->add($document);
 

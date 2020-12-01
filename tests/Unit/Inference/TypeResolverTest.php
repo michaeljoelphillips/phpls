@@ -34,8 +34,10 @@ class TypeResolverTest extends ParserTestCase
 
     public function setUp(): void
     {
-        $this->document = $this->parse('TypeResolverFixture.php');
+        $this->document = $this->parseFixture('TypeResolverFixture.php');
         $this->subject  = new TypeResolver($this->getClassReflector());
+
+        /* print_r($this->document->getNodes()); die; */
     }
 
     /**
@@ -276,6 +278,20 @@ class TypeResolverTest extends ParserTestCase
                     new Identifier('publicProperty')
                 ),
                 'stdClass',
+            ],
+            [
+                new PropertyFetch(
+                    new MethodCall(
+                        new Variable('this'),
+                        new Identifier('getTypeForScalarReturnValue')
+                    ),
+                    new Identifier('publicProperty')
+                ),
+                'string',
+            ],
+            [
+                new Variable('foo', ['endFilePos' => 2650, 'startFilePos' => 2653]),
+                'string',
             ],
         ];
     }

@@ -58,10 +58,16 @@ abstract class ParserTestCase extends FixtureTestCase
         );
     }
 
-    protected function parse(string $file): ParsedDocument
+    protected function parseFixture(string $file): ParsedDocument
+    {
+        $source = $this->loadFixture($file);
+
+        return $this->parse($file, $source);
+    }
+
+    protected function parse(string $file, string $source): ParsedDocument
     {
         $parser = $this->getParser();
-        $source = $this->loadFixture($file);
         $nodes  = $parser->parse($source);
 
         assert($nodes !== null);
