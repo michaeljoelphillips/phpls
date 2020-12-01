@@ -10,6 +10,8 @@ A lightweight [language server](https://langserver.org/) for PHP.
 * Diagnostics
 * Signature Help
 
+[![asciicast](https://asciinema.org/a/437481.svg)](https://asciinema.org/a/437481)
+
 ## Getting Started
 
 Download the phar from the [releases
